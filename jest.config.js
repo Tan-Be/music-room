@@ -11,6 +11,6 @@ module.exports = {
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'babel-jest',
+    '^.+\\.(ts|tsx)$': ['babel-jest', { configFile: './babel.config.jest.js' }],
   },
 }

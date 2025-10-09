@@ -20,6 +20,7 @@ music-room/
 ├── .eslintrc.json        # ESLint конфигурация
 ├── .prettierrc           # Prettier конфигурация
 ├── .prettierignore       # Файлы игнорируемые Prettier
+├── babel.config.jest.js  # Babel конфигурация для Jest
 ├── jest.config.js        # Jest конфигурация
 ├── jest.setup.ts         # Jest настройки
 ├── next.config.js        # Next.js конфигурация

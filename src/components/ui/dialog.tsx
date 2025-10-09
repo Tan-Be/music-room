@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 
 interface DialogProps {
   open: boolean
@@ -12,33 +12,33 @@ interface DialogProps {
 const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         onOpenChange(false)
       }
     }
-    
+
     if (open) {
-      document.addEventListener("keydown", handleEscape)
-      document.body.style.overflow = "hidden"
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
     }
-    
+
     return () => {
-      document.removeEventListener("keydown", handleEscape)
-      document.body.style.overflow = ""
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = ''
     }
   }, [open, onOpenChange])
-  
+
   if (!open) return null
-  
+
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={() => onOpenChange(false)}
     >
       <div className="fixed inset-0 bg-black/80" />
-      <div 
+      <div
         className="relative z-50 bg-background rounded-lg shadow-lg w-full max-w-lg"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {children}
       </div>
@@ -46,9 +46,15 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   )
 }
 
-const DialogTrigger = ({ children, onOpen }: { children: React.ReactNode, onOpen: () => void }) => {
+const DialogTrigger = ({
+  children,
+  onOpen,
+}: {
+  children: React.ReactNode
+  onOpen: () => void
+}) => {
   return React.cloneElement(children as React.ReactElement, {
-    onClick: onOpen
+    onClick: onOpen,
   })
 }
 
@@ -56,19 +62,12 @@ interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "grid gap-4 p-6",
-        className
-      )}
-      {...props}
-    >
+    <div ref={ref} className={cn('grid gap-4 p-6', className)} {...props}>
       {children}
     </div>
   )
 )
-DialogContent.displayName = "DialogContent"
+DialogContent.displayName = 'DialogContent'
 
 const DialogHeader = ({
   className,
@@ -76,13 +75,13 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
+      'flex flex-col space-y-1.5 text-center sm:text-left',
       className
     )}
     {...props}
   />
 )
-DialogHeader.displayName = "DialogHeader"
+DialogHeader.displayName = 'DialogHeader'
 
 const DialogFooter = ({
   className,
@@ -90,13 +89,13 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
       className
     )}
     {...props}
   />
 )
-DialogFooter.displayName = "DialogFooter"
+DialogFooter.displayName = 'DialogFooter'
 
 const DialogTitle = ({
   className,
@@ -104,24 +103,21 @@ const DialogTitle = ({
 }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <h2
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      'text-lg font-semibold leading-none tracking-tight',
       className
     )}
     {...props}
   />
 )
-DialogTitle.displayName = "DialogTitle"
+DialogTitle.displayName = 'DialogTitle'
 
 const DialogDescription = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
+  <p className={cn('text-sm text-muted-foreground', className)} {...props} />
 )
-DialogDescription.displayName = "DialogDescription"
+DialogDescription.displayName = 'DialogDescription'
 
 export {
   Dialog,

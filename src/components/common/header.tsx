@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
 
 interface HeaderProps {
   user?: {
@@ -19,13 +19,13 @@ interface HeaderProps {
 
 export function Header({ user, onLogin, onLogout }: HeaderProps) {
   const pathname = usePathname()
-  
+
   const navItems = [
-    { name: "Главная", href: "/" },
-    { name: "Комнаты", href: "/rooms" },
-    { name: "Профиль", href: "/profile" },
+    { name: 'Главная', href: '/' },
+    { name: 'Комнаты', href: '/rooms' },
+    { name: 'Профиль', href: '/profile' },
   ]
-  
+
   return (
     <header className="border-b">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -36,15 +36,17 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             </span>
             <span>Music Room</span>
           </Link>
-          
+
           <nav className="hidden md:flex items-center gap-4">
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  pathname === item.href ? "text-primary" : "text-muted-foreground"
+                  'text-sm font-medium transition-colors hover:text-primary',
+                  pathname === item.href
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
                 )}
               >
                 {item.name}
@@ -52,7 +54,7 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
             ))}
           </nav>
         </div>
-        
+
         <div className="flex items-center gap-4">
           {user ? (
             <>
@@ -63,7 +65,7 @@ export function Header({ user, onLogin, onLogout }: HeaderProps) {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback>
-                    {user.name?.charAt(0)?.toUpperCase() || "U"}
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium hidden sm:block">

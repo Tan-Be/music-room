@@ -1,16 +1,22 @@
-"use client"
+'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Users, Lock, Globe, Link as LinkIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Users, Lock, Globe, Link as LinkIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Room {
   id: string
   name: string
   description?: string
-  privacy: "public" | "unlisted" | "private"
+  privacy: 'public' | 'unlisted' | 'private'
   participantCount: number
   maxParticipants: number
   owner: {
@@ -28,28 +34,28 @@ interface RoomCardProps {
 export function RoomCard({ room, onJoin, className }: RoomCardProps) {
   const getPrivacyIcon = () => {
     switch (room.privacy) {
-      case "public":
+      case 'public':
         return <Globe className="h-4 w-4" />
-      case "unlisted":
+      case 'unlisted':
         return <LinkIcon className="h-4 w-4" />
-      case "private":
+      case 'private':
         return <Lock className="h-4 w-4" />
     }
   }
-  
+
   const getPrivacyLabel = () => {
     switch (room.privacy) {
-      case "public":
-        return "Публичная"
-      case "unlisted":
-        return "По ссылке"
-      case "private":
-        return "Приватная"
+      case 'public':
+        return 'Публичная'
+      case 'unlisted':
+        return 'По ссылке'
+      case 'private':
+        return 'Приватная'
     }
   }
-  
+
   return (
-    <Card className={cn("w-full hover:shadow-md transition-shadow", className)}>
+    <Card className={cn('w-full hover:shadow-md transition-shadow', className)}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
@@ -68,20 +74,20 @@ export function RoomCard({ room, onJoin, className }: RoomCardProps) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              <span>{room.participantCount}/{room.maxParticipants}</span>
+              <span>
+                {room.participantCount}/{room.maxParticipants}
+              </span>
             </div>
             <span>от {room.owner.name}</span>
           </div>
-          
-          <Button onClick={onJoin}>
-            Присоединиться
-          </Button>
+
+          <Button onClick={onJoin}>Присоединиться</Button>
         </div>
       </CardContent>
     </Card>

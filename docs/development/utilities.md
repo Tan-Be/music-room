@@ -5,6 +5,7 @@
 ### Форматирование
 
 #### `formatRelativeTime(date: Date | string): string`
+
 Форматирует дату в относительное время (например, "2 часа назад").
 
 ```typescript
@@ -15,6 +16,7 @@ console.log(formatRelativeTime(date)) // "2 часов назад"
 ```
 
 #### `formatDuration(ms: number): string`
+
 Форматирует длительность в миллисекундах в формат MM:SS.
 
 ```typescript
@@ -24,6 +26,7 @@ console.log(formatDuration(90000)) // "1:30" (1 минута 30 секунд)
 ```
 
 #### `truncateString(str: string, maxLength: number): string`
+
 Обрезает строку до заданной длины и добавляет многоточие.
 
 ```typescript
@@ -35,6 +38,7 @@ console.log(truncateString('Это очень длинная строка', 10))
 ### Генерация
 
 #### `generateId(length: number = 8): string`
+
 Генерирует случайный ID заданной длины.
 
 ```typescript
@@ -47,6 +51,7 @@ console.log(generateId(12)) // "a1b2c3d4e5f6" (12 символов)
 ### Проверки
 
 #### `isEmpty(value: any): boolean`
+
 Проверяет, является ли значение пустым (null, undefined, пустая строка, пустой массив, пустой объект).
 
 ```typescript
@@ -62,6 +67,7 @@ console.log(isEmpty('hello')) // false
 ### Классы
 
 #### `cn(...inputs: ClassValue[]): string`
+
 Объединяет классы с помощью `clsx` и `tailwind-merge`.
 
 ```typescript
@@ -73,6 +79,7 @@ const className = cn('text-red-500', 'bg-blue-500', { 'font-bold': true })
 ## Хуки
 
 ### `useTheme()`
+
 Хук для управления темой приложения.
 
 ```typescript
@@ -80,7 +87,7 @@ import { useTheme } from '@/hooks/useTheme'
 
 export function ThemeToggle() {
   const { theme, isDarkMode, toggleTheme } = useTheme()
-  
+
   return (
     <button onClick={toggleTheme}>
       Переключить на {isDarkMode ? 'светлую' : 'темную'} тему
@@ -90,6 +97,7 @@ export function ThemeToggle() {
 ```
 
 ### `useMediaQuery(query: string): boolean`
+
 Хук для работы с медиа запросами.
 
 ```typescript
@@ -97,7 +105,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 export function ResponsiveComponent() {
   const isMobile = useMediaQuery('(max-width: 768px)')
-  
+
   return (
     <div>
       {isMobile ? 'Мобильная версия' : 'Десктопная версия'}
@@ -107,6 +115,7 @@ export function ResponsiveComponent() {
 ```
 
 ### `useLoading()`
+
 Хук для управления состоянием загрузки.
 
 ```typescript
@@ -114,7 +123,7 @@ import { useLoading } from '@/hooks/useLoading'
 
 export function DataLoader() {
   const { loading, startLoading, stopLoading } = useLoading()
-  
+
   const loadData = async () => {
     startLoading()
     try {
@@ -123,7 +132,7 @@ export function DataLoader() {
       stopLoading()
     }
   }
-  
+
   return (
     <div>
       {loading ? 'Загрузка...' : <button onClick={loadData}>Загрузить</button>}
@@ -133,6 +142,7 @@ export function DataLoader() {
 ```
 
 ### `useLocalStorage<T>(key: string, initialValue: T)`
+
 Хук для работы с localStorage.
 
 ```typescript
@@ -140,7 +150,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export function Preferences() {
   const [volume, setVolume] = useLocalStorage('volume', 0.5)
-  
+
   return (
     <input
       type="range"

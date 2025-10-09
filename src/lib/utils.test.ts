@@ -1,9 +1,9 @@
-import { 
-  formatRelativeTime, 
-  formatDuration, 
-  truncateString, 
-  generateId, 
-  isEmpty 
+import {
+  formatRelativeTime,
+  formatDuration,
+  truncateString,
+  generateId,
+  isEmpty,
 } from './utils'
 
 describe('Utils', () => {

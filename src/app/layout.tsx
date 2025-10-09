@@ -11,7 +11,8 @@ const fontSans = FontSans({
 
 export const metadata: Metadata = {
   title: 'Music Room - Совместное прослушивание музыки',
-  description: 'Платформа для создания совместных плейлистов в реальном времени',
+  description:
+    'Платформа для создания совместных плейлистов в реальном времени',
 }
 
 export default function RootLayout({
@@ -21,10 +22,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={cn(
-        'min-h-screen bg-background font-sans antialiased',
-        fontSans.variable
-      )}>
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
+          fontSans.variable
+        )}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

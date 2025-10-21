@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Типы для Supabase
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json }
+  | Json[]
 
 export type Database = {
   public: {
@@ -209,6 +215,18 @@ export type Database = {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Проверяем, что URL валиден
+if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
+  console.error('Invalid Supabase URL. Please check your .env.local file.')
+  console.error('Current URL value:', supabaseUrl)
+}
+
+// Проверяем, что ключ не пустой
+if (!supabaseAnonKey) {
+  console.error('Missing Supabase anon key. Please check your .env.local file.')
+  console.error('Current key value:', supabaseAnonKey)
+}
+
 // Создаем клиент Supabase
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
@@ -217,7 +235,8 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Room = Database['public']['Tables']['rooms']['Row']
 export type RoomInsert = Database['public']['Tables']['rooms']['Insert']
 export type RoomUpdate = Database['public']['Tables']['rooms']['Update']
-export type RoomParticipant = Database['public']['Tables']['room_participants']['Row']
+export type RoomParticipant =
+  Database['public']['Tables']['room_participants']['Row']
 export type Track = Database['public']['Tables']['tracks']['Row']
 export type RoomQueueItem = Database['public']['Tables']['room_queue']['Row']
 export type ChatMessage = Database['public']['Tables']['chat_messages']['Row']

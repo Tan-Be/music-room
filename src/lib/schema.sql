@@ -10,6 +10,15 @@ CREATE TABLE profiles (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Функция для создания профиля пользователя
+CREATE OR REPLACE FUNCTION public.create_user_profile(user_id UUID, user_name VARCHAR)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, tracks_added_today, last_track_date)
+  VALUES (user_id, user_name, 0, CURRENT_DATE);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Комнаты
 CREATE TABLE rooms (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -79,5 +79,26 @@
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
+    /* Фиолетовый градиентный фон */
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  
+  /* Для светлой темы - более мягкий градиент */
+  body.light {
+    background: linear-gradient(135deg, #c4b5fd 0%, #a5b4fc 50%, #818cf8 100%);
+    background-attachment: fixed;
+  }
+  
+  /* Для темной темы - насыщенный градиент */
+  body.dark {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #4338ca 100%);
+    background-attachment: fixed;
+  }
+  
+  /* Контент должен иметь фон, чтобы градиент не мешал чтению */
+  .bg-background {
+    background-color: hsl(var(--background));
   }
 }

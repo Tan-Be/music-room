@@ -48,7 +48,7 @@ export function ThemeDemo() {
           <Button
             variant="outline"
             onClick={() =>
-              setSavedValue(`Значение ${new Date().toLocaleTimeString()}`)
+              setSavedValue(`Значение обновлено`)
             }
           >
             Обновить сохраненное значение

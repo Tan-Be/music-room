@@ -73,14 +73,19 @@ src/
 
 #### 2.1 Настройка Supabase проекта
 
-- ✅ Создание нового проекта в Supabase
-- ✅ Конфигурация переменных окружения
-- [ ] Настройка аутентификации (email + OAuth Spotify)
-- ✅ Создание базовой схемы БД
+- [x] Создание нового проекта в Supabase
+- [x] Конфигурация переменных окружения
+- [x] Создание базовой схемы БД
+- [x] Настройка аутентификации (email + OAuth Spotify)
 
 #### 2.2 Схема базы данных
 
-```sql
+- [x] Создание таблиц базы данных
+- [x] Создание функций для работы с данными
+- [x] Настройка связей между таблицами
+- [x] Проверка корректности реализации
+
+```
 -- Пользователи (расширение auth.users)
 CREATE TABLE profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
@@ -92,6 +97,15 @@ CREATE TABLE profiles (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Функция для создания профиля пользователя
+CREATE OR REPLACE FUNCTION public.create_user_profile(user_id UUID, user_name VARCHAR)
+RETURNS VOID AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, tracks_added_today, last_track_date)
+  VALUES (user_id, user_name, 0, CURRENT_DATE);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Комнаты
 CREATE TABLE rooms (
@@ -155,16 +169,16 @@ CREATE TABLE chat_messages (
 
 #### 2.3 RLS (Row Level Security) политики
 
-- [ ] Настройка политик доступа для каждой таблицы
-- [ ] Обеспечение безопасности данных
-- [ ] Тестирование прав доступа
+- [x] Настройка политик доступа для каждой таблицы
+- [x] Обеспечение безопасности данных
+- [x] Тестирование прав доступа
 
 #### 2.4 Компоненты аутентификации
 
-- [ ] Страница входа/регистрации
-- [ ] Компонент AuthProvider
-- [ ] Middleware для защищенных роутов
-- [ ] Обработка сессий и состояния пользователя
+- [x] Страница входа/регистрации
+- [x] Компонент AuthProvider
+- [x] Middleware для защищенных роутов
+- [x] Обработка сессий и состояния пользователя
 
 ---
 
@@ -172,10 +186,10 @@ CREATE TABLE chat_messages (
 
 #### 3.1 Layout и навигация
 
-- [ ] Главный layout с навигацией
-- [ ] Header с пользовательским меню
-- [ ] Sidebar для навигации
-- [ ] Адаптивная версия для мобильных
+- [x] Главный layout с навигацией
+- [x] Header с пользовательским меню
+- [x] Sidebar для навигации
+- [x] Адаптивная версия для мобильных
 
 #### 3.2 shadcn/ui компоненты
 
@@ -190,9 +204,9 @@ CREATE TABLE chat_messages (
 #### 3.3 Главная страница (/)
 
 - ✅ Список публичных комнат
-- [ ] Поиск по комнатам
-- [ ] Кнопка создания новой комнаты
-- [ ] Статистика пользователя
+- ✅ Поиск по комнатам
+- ✅ Кнопка создания новой комнаты
+- ✅ Статистика пользователя
 
 #### 3.4 Система тем
 
@@ -217,42 +231,46 @@ CREATE TABLE chat_messages (
 
 #### 4.1 Создание комнат
 
-- [ ] Форма создания комнаты
-- [ ] Валидация данных
-- [ ] Настройки приватности (публичная/приватная/с паролем)
-- [ ] Лимит участников (максимум 10)
+- ✅ Форма создания комнаты
+- ✅ Валидация данных
+- ✅ Настройки приватности (публичная/приватная/с паролем)
+- ✅ Лимит участников (максимум 10)
 
 #### 4.2 Страница комнаты (/room/[id])
 
-- [ ] Layout страницы комнаты
-- [ ] Информация о комнате
-- [ ] Список участников с ролями
-- [ ] Текущий трек и прогресс (заглушка)
-- [ ] Очередь треков
-- [ ] Область чата
+- ✅ Layout страницы комнаты
+- ✅ Информация о комнате
+- ✅ Список участников с ролями
+- ✅ Текущий трек и прогресс (заглушка)
+- ✅ Очередь треков
+- ✅ Область чата
 
 #### 4.3 Управление участниками
 
-- [ ] Присоединение к комнате
-- [ ] Покидание комнаты
-- [ ] Назначение модераторов (только владелец)
-- [ ] Кик участников
-- [ ] Проверка лимитов участников
+- ✅ Присоединение к комнате
+- ✅ Покидание комнаты
+- ✅ Назначение модераторов (только владелец)
+- ✅ Кик участников
+- ✅ Проверка лимитов участников
 
 #### 4.4 Права доступа по ролям
 
-```typescript
+``typescript
 type UserRole = 'owner' | 'moderator' | 'member' | 'guest'
 
 interface RolePermissions {
-  canAddTracks: boolean
-  canRemoveTracks: boolean
-  canControlPlayback: boolean
-  canKickUsers: boolean
-  canAssignModerators: boolean
-  canDeleteRoom: boolean
+canAddTracks: boolean
+canRemoveTracks: boolean
+canControlPlayback: boolean
+canKickUsers: boolean
+canAssignModerators: boolean
+canDeleteRoom: boolean
 }
 ```
+
+- ✅ Implemented role-based permissions system
+- ✅ Defined permissions for each user role
+- ✅ Created utility functions for permission checking
 
 ---
 
@@ -303,7 +321,7 @@ interface MockTrack {
 const mockTracks: MockTrack[] = [
   // Популярные треки разных жанров
 ]
-```
+````
 
 #### 6.2 Поиск треков
 

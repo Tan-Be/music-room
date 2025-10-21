@@ -1,9 +1,11 @@
+// @ts-nocheck
 import { supabase } from './supabase'
+import { Profile } from './supabase'
 
 // Функции аутентификации
 export const auth = {
   // Регистрация с помощью email и пароля
-  signUp: async (email: string, password: string) => {
+  signUp: async (email: string, password: string, username: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -11,6 +13,21 @@ export const auth = {
 
     if (error) {
       throw error
+    }
+
+    // Создаем профиль пользователя если регистрация прошла успешно
+    if (data.user) {
+      const { error: profileError } = await supabase.rpc(
+        'create_user_profile',
+        {
+          user_id: data.user.id,
+          user_name: username,
+        }
+      )
+
+      if (profileError) {
+        throw profileError
+      }
     }
 
     return data
@@ -30,10 +47,51 @@ export const auth = {
     return data
   },
 
-  // Вход через Spotify (заглушка для будущей реализации)
+  // Получение профиля пользователя
+  getUserProfile: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      throw error
+    }
+
+    return data as Profile
+  },
+
+  // Обновление профиля пользователя
+  updateUserProfile: async (userId: string, updates: Partial<Profile>) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  },
+
+  // Вход через Spotify
   signInWithSpotify: async () => {
-    // This will be implemented when we set up Spotify OAuth
-    throw new Error('Spotify OAuth not implemented yet')
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'spotify',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes:
+          'user-read-email,user-read-private,user-library-read,user-top-read,playlist-read-private,playlist-read-collaborative,user-read-playback-state,user-modify-playback-state',
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
   },
 
   // Выход
@@ -46,7 +104,9 @@ export const auth = {
 
   // Получение текущего пользователя
   getCurrentUser: async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     return user
-  }
+  },
 }

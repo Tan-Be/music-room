@@ -2,6 +2,14 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu'
+import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
 
 interface Participant {
@@ -10,15 +18,26 @@ interface Participant {
   avatar?: string
   role: 'owner' | 'moderator' | 'member'
   isOnline: boolean
+  userId: string
 }
 
 interface ParticipantItemProps {
   participant: Participant
+  currentUserId: string
+  currentUserRole: 'owner' | 'moderator' | 'member'
+  onRemove?: (participantId: string) => void
+  onMakeModerator?: (participantId: string) => void
+  onRemoveModerator?: (participantId: string) => void
   className?: string
 }
 
 export function ParticipantItem({
   participant,
+  currentUserId,
+  currentUserRole,
+  onRemove,
+  onMakeModerator,
+  onRemoveModerator,
   className,
 }: ParticipantItemProps) {
   const getRoleBadge = () => {
@@ -31,6 +50,29 @@ export function ParticipantItem({
         return null
     }
   }
+
+  const handleRemove = () => {
+    if (onRemove) {
+      onRemove(participant.id)
+    }
+  }
+
+  const handleMakeModerator = () => {
+    if (onMakeModerator) {
+      onMakeModerator(participant.id)
+    }
+  }
+
+  const handleRemoveModerator = () => {
+    if (onRemoveModerator) {
+      onRemoveModerator(participant.id)
+    }
+  }
+
+  // Показываем меню действий только если текущий пользователь имеет права
+  const canManageParticipant = 
+    (currentUserRole === 'owner' && participant.role !== 'owner') ||
+    (currentUserRole === 'moderator' && participant.role === 'member')
 
   return (
     <div
@@ -55,6 +97,37 @@ export function ParticipantItem({
           {getRoleBadge()}
         </div>
       </div>
+
+      {canManageParticipant && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Icons.moreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {participant.role === 'member' && currentUserRole === 'owner' && (
+              <DropdownMenuItem onClick={handleMakeModerator}>
+                <Icons.user className="h-4 w-4 mr-2" />
+                Назначить модератором
+              </DropdownMenuItem>
+            )}
+            {participant.role === 'moderator' && currentUserRole === 'owner' && (
+              <DropdownMenuItem onClick={handleRemoveModerator}>
+                <Icons.user className="h-4 w-4 mr-2" />
+                Разжаловать модератора
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem 
+              onClick={handleRemove}
+              className="text-destructive focus:text-destructive"
+            >
+              <Icons.user className="h-4 w-4 mr-2" />
+              Исключить из комнаты
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   )
 }

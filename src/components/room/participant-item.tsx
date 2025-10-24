@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,22 @@ interface ParticipantItemProps {
   className?: string
 }
 
-export function ParticipantItem({
+// Функция для проверки равенства пропсов
+function arePropsEqual(prevProps: ParticipantItemProps, nextProps: ParticipantItemProps) {
+  return (
+    prevProps.participant.id === nextProps.participant.id &&
+    prevProps.participant.name === nextProps.participant.name &&
+    prevProps.participant.avatar === nextProps.participant.avatar &&
+    prevProps.participant.role === nextProps.participant.role &&
+    prevProps.participant.isOnline === nextProps.participant.isOnline &&
+    prevProps.participant.userId === nextProps.participant.userId &&
+    prevProps.currentUserId === nextProps.currentUserId &&
+    prevProps.currentUserRole === nextProps.currentUserRole &&
+    prevProps.className === nextProps.className
+  )
+}
+
+export const ParticipantItem = memo(({
   participant,
   currentUserId,
   currentUserRole,
@@ -39,7 +55,7 @@ export function ParticipantItem({
   onMakeModerator,
   onRemoveModerator,
   className,
-}: ParticipantItemProps) {
+}: ParticipantItemProps) => {
   const getRoleBadge = () => {
     switch (participant.role) {
       case 'owner':
@@ -130,4 +146,4 @@ export function ParticipantItem({
       )}
     </div>
   )
-}
+}, arePropsEqual)

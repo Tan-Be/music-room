@@ -9,6 +9,7 @@ module.exports = {
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     '^@/config/(.*)$': '<rootDir>/src/config/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['babel-jest', { configFile: './babel.config.jest.js' }],

@@ -1,84 +1,67 @@
-# Структура проекта
+# Project Structure
 
-## Общая структура
+## Directory Structure
 
 ```
-music-room/
-├── docs/                 # Документация
-│   ├── development/      # Документация для разработчиков
-│   └── ...               # Другая документация
-├── src/                  # Исходный код
-│   ├── app/              # Next.js App Router страницы
-│   ├── components/       # Компоненты React
-│   ├── config/           # Конфигурационные файлы
-│   ├── hooks/            # Пользовательские React хуки
-│   ├── lib/              # Утилиты и библиотечные функции
-│   ├── public/           # Статические файлы
-│   ├── stores/           # Zustand хранилища
-│   ├── styles/           # Глобальные стили
-│   └── types/            # TypeScript типы
-├── .eslintrc.json        # ESLint конфигурация
-├── .prettierrc           # Prettier конфигурация
-├── .prettierignore       # Файлы игнорируемые Prettier
-├── babel.config.jest.js  # Babel конфигурация для Jest
-├── jest.config.js        # Jest конфигурация
-├── jest.setup.ts         # Jest настройки
-├── next.config.js        # Next.js конфигурация
-├── package.json          # Зависимости и скрипты
-├── pnpm-lock.yaml        # Блокировка зависимостей
-├── postcss.config.js     # PostCSS конфигурация
-├── tailwind.config.ts    # Tailwind CSS конфигурация
-├── tsconfig.json         # TypeScript конфигурация
-└── README.md             # Основная документация
+src/
+├── app/                 # Next.js App Router pages and layouts
+│   ├── (auth)/         # Authentication routes (login, register, callback)
+│   ├── room/[id]/      # Dynamic room page
+│   ├── rooms/create/   # Room creation interface
+│   └── ...             # Other pages
+├── components/         # UI components organized by feature
+│   ├── auth/           # Login forms, Spotify button, profile
+│   ├── room/           # Chat, queue, search, participant management
+│   ├── layout/         # Header, sidebar, navigation
+│   ├── ui/             # shadcn/ui base components
+│   └── ...             # Other component categories
+├── contexts/           # React context providers
+├── hooks/              # Custom React hooks
+├── lib/                # Core logic and utilities
+├── stores/             # Zustand stores for state management
+├── styles/             # Global styles and CSS
+├── types/              # TypeScript type definitions
+└── middleware.ts       # Next.js middleware
 ```
 
-## Детали по директориям
+## Key Directories
 
-### `/src/app`
+### `src/app/`
+Contains all Next.js App Router pages and layouts using the file-system based routing.
 
-Содержит страницы и маршруты Next.js App Router. Структура следует соглашениям Next.js 14.
+### `src/components/`
+UI components organized by feature. Each subdirectory contains related components:
+- `auth/` - Authentication related components
+- `room/` - Room-specific components (chat, queue, etc.)
+- `layout/` - Global layout components (header, sidebar)
+- `ui/` - Reusable UI components (shadcn/ui)
 
-### `/src/components`
+### `src/contexts/`
+React context providers for global state management.
 
-Содержит React компоненты, организованные по функциональности:
+### `src/hooks/`
+Custom React hooks for reusable logic.
 
-- `ui/` - Базовые UI компоненты (кнопки, карточки и т.д.)
-- `common/` - Общие компоненты, используемые на разных страницах
-- `auth/` - Компоненты аутентификации
-- `room/` - Компоненты комнаты
+### `src/lib/`
+Core application logic including:
+- Supabase client configuration
+- Authentication utilities
+- Room management
+- Realtime services
+- Utility functions
 
-### `/src/hooks`
+### `src/stores/`
+Zustand stores for client-side state management:
+- `useAuthStore` - Authentication state
+- `useRoomStore` - Room state (current room, queue, participants)
+- `usePlayerStore` - Player state (playback, volume, etc.)
+- `useChatStore` - Chat state (messages, typing indicators)
 
-Пользовательские React хуки для повторного использования логики:
+### `src/styles/`
+Global styles and Tailwind CSS configuration.
 
-- [useTheme](file:///c:/Users/admin/Documents/verkin/music-room/src/hooks/useTheme.ts#L4-L24) - Управление темой приложения
-- [useMediaQuery](file:///c:/Users/admin/Documents/verkin/music-room/src/hooks/useMediaQuery.ts#L4-L15) - Работа с медиа запросами
-- [useLoading](file:///c:/Users/admin/Documents/verkin/music-room/src/hooks/useLoading.ts#L4-L13) - Управление состоянием загрузки
-- [useLocalStorage](file:///c:/Users/admin/Documents/verkin/music-room/src/hooks/useLocalStorage.ts#L4-L32) - Работа с localStorage
+### `src/types/`
+TypeScript type definitions used throughout the application.
 
-### `/src/lib`
-
-Утилиты и вспомогательные функции:
-
-- [utils.ts](file:///c:/Users/admin/Documents/verkin/music-room/src/lib/utils.ts) - Общие утилиты (форматирование, хелперы)
-- Другие вспомогательные модули
-
-### `/src/types`
-
-TypeScript типы и интерфейсы:
-
-- [room.ts](file:///c:/Users/admin/Documents/verkin/music-room/src/types/room.ts) - Типы, связанные с комнатами
-- [auth.ts](file:///c:/Users/admin/Documents/verkin/music-room/src/types/auth.ts) - Типы, связанные с аутентификацией
-
-### `/src/config`
-
-Конфигурационные файлы приложения:
-
-- [app.ts](file:///c:/Users/admin/Documents/verkin/music-room/src/config/app.ts) - Основные настройки приложения
-
-### `/docs`
-
-Документация проекта:
-
-- `development/` - Документация для разработчиков
-- Другая документация проекта
+### `src/middleware.ts`
+Next.js middleware for request handling and authentication.

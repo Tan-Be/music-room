@@ -6,13 +6,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Icons } from '@/components/icons'
 import { ParticipantItem } from '@/components/room/participant-item'
-import { TrackItem } from '@/components/room/track-item'
+import { TrackQueue } from '@/components/room/track-queue'
 import { Chat } from '@/components/room/chat'
+import { TrackSearchDialog } from '@/components/room/track-search-dialog'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { rooms } from '@/lib/rooms'
 import { supabase } from '@/lib/supabase'
+import { chatRealtimeService, ChatMessageWithUserInfo } from '@/lib/chat-realtime'
+import { useChatRealtime } from '@/hooks/useChatRealtime'
+import { systemMessages } from '@/lib/system-messages'
+import { fetchRoomTracks } from '@/lib/track-queue'
 
 // Types
 interface Room {
@@ -52,18 +57,33 @@ interface Track {
   addedBy: {
     name: string
     avatar?: string
+    id: string
   }
   isPlaying?: boolean
+  position?: number
 }
 
-interface ChatMessage {
+// Тип для пользовательских сообщений
+interface UserMessage {
   id: string
   userId: string
   userName: string
   userAvatar?: string
   content: string
   timestamp: Date
+  type: 'user'
 }
+
+// Тип для системных сообщений
+interface SystemMessage {
+  id: string
+  content: string
+  timestamp: Date
+  type: 'system'
+}
+
+// Объединенный тип для всех сообщений
+type ChatMessage = UserMessage | SystemMessage
 
 // Mock data for demonstration
 const mockRoom: Room = {
@@ -88,7 +108,8 @@ const mockRoom: Room = {
     votesUp: 15,
     votesDown: 2,
     addedBy: {
-      name: 'Alex_Music'
+      name: 'Alex_Music',
+      id: '1'
     },
     isPlaying: true
   },
@@ -113,8 +134,10 @@ const mockQueue: Track[] = [
     votesUp: 5,
     votesDown: 1,
     addedBy: {
-      name: 'DJ_Master'
+      name: 'DJ_Master',
+      id: '2'
     },
+    position: 0
   },
   {
     id: '3',
@@ -125,8 +148,10 @@ const mockQueue: Track[] = [
     votesUp: 3,
     votesDown: 0,
     addedBy: {
-      name: 'MusicLover22'
+      name: 'MusicLover22',
+      id: '3'
     },
+    position: 1
   },
   {
     id: '4',
@@ -137,41 +162,21 @@ const mockQueue: Track[] = [
     votesUp: 2,
     votesDown: 0,
     addedBy: {
-      name: 'ChillVibes'
+      name: 'ChillVibes',
+      id: '5'
     },
-  },
-]
-
-const mockMessages: ChatMessage[] = [
-  {
-    id: '1',
-    userId: '1',
-    userName: 'Alex_Music',
-    content: 'Привет всем! Рад что вы присоединились к комнате.',
-    timestamp: new Date(Date.now() - 300000),
-  },
-  {
-    id: '2',
-    userId: '2',
-    userName: 'DJ_Master',
-    content: 'Отличная подборка треков сегодня!',
-    timestamp: new Date(Date.now() - 240000),
-  },
-  {
-    id: '3',
-    userId: '3',
-    userName: 'MusicLover22',
-    content: 'Кто добавил этот трек? Очень круто!',
-    timestamp: new Date(Date.now() - 180000),
+    position: 2
   },
 ]
 
 export default function RoomPage({ params }: { params: { id: string } }) {
   const { user, profile } = useAuth()
   const router = useRouter()
-  const [messages, setMessages] = useState<ChatMessage[]>(mockMessages)
+  const { messages, isLoading, isSubscribed, sendMessage, sendSystemMessage } = useChatRealtime(params.id)
   const [participants, setParticipants] = useState<Participant[]>(mockParticipants)
   const [currentUserRole, setCurrentUserRole] = useState<'owner' | 'moderator' | 'member'>('member')
+  const [isTyping, setIsTyping] = useState(false)
+  const [queue, setQueue] = useState<Track[]>(mockQueue)
 
   // Redirect to login if user is not authenticated
   useEffect(() => {
@@ -190,18 +195,26 @@ export default function RoomPage({ params }: { params: { id: string } }) {
     }
   }, [user, profile])
 
-  const handleSendMessage = (content: string) => {
-    if (content.trim() && user && profile) {
-      const message: ChatMessage = {
-        id: (messages.length + 1).toString(),
-        userId: user.id,
-        userName: profile.username || 'Anonymous',
-        content: content,
-        timestamp: new Date(),
-      }
-      setMessages([...messages, message])
+  // Отправка системного сообщения о присоединении пользователя
+  useEffect(() => {
+    if (user && profile && params.id) {
+      // Отправляем системное сообщение о присоединении
+      sendSystemMessage(
+        'user_joined',
+        systemMessages.generateUserJoinedMessage(profile.username || 'Пользователь')
+      )
     }
-  }
+    
+    // Отправляем системное сообщение о покидании комнаты при размонтировании
+    return () => {
+      if (user && profile && params.id) {
+        sendSystemMessage(
+          'user_left',
+          systemMessages.generateUserLeftMessage(profile.username || 'Пользователь')
+        )
+      }
+    }
+  }, [user, profile, params.id, sendSystemMessage])
 
   // Присоединение к комнате
   const joinRoom = async () => {
@@ -342,6 +355,58 @@ export default function RoomPage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Обработка изменения порядка треков
+  const handleReorderQueue = (newOrder: Track[]) => {
+    // В реальной реализации здесь будет вызов API для обновления порядка треков
+    setQueue(newOrder)
+    toast.success('Порядок треков обновлен')
+  }
+
+  // Обработка удаления трека
+  const handleDeleteTrack = (trackId: string) => {
+    // В реальной реализации здесь будет вызов API для удаления трека
+    const updatedQueue = queue.filter(track => track.id !== trackId)
+    setQueue(updatedQueue)
+    toast.success('Трек удален из очереди')
+  }
+
+  // Обработка воспроизведения трека
+  const handlePlayTrack = (trackId: string) => {
+    // В реальной реализации здесь будет вызов API для воспроизведения трека
+    toast.success('Трек поставлен на воспроизведение')
+  }
+
+  // Обработка голосования "за" трек
+  const handleVoteUp = (trackId: string) => {
+    // В реальной реализации здесь будет вызов API для голосования
+    const updatedQueue = queue.map(track => 
+      track.id === trackId 
+        ? { ...track, votesUp: track.votesUp + 1 } 
+        : track
+    )
+    setQueue(updatedQueue)
+    toast.success('Голос учтен')
+  }
+
+  // Обработка голосования "против" трек
+  const handleVoteDown = (trackId: string) => {
+    // В реальной реализации здесь будет вызов API для голосования
+    const updatedQueue = queue.map(track => 
+      track.id === trackId 
+        ? { ...track, votesDown: track.votesDown + 1 } 
+        : track
+    )
+    setQueue(updatedQueue)
+    toast.success('Голос учтен')
+  }
+  
+  // Обработка изменения голосов
+  const handleVoteChange = async () => {
+    // В реальной реализации здесь будет вызов API для получения обновленной очереди
+    // Для now, мы просто покажем уведомление
+    toast.success('Очередь треков обновлена')
+  }
+
   if (!user) {
     return null // or a loading spinner
   }
@@ -470,24 +535,27 @@ export default function RoomPage({ params }: { params: { id: string } }) {
           {/* Track queue */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icons.list className="h-5 w-5" />
-                Очередь треков
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Icons.list className="h-5 w-5" />
+                  Очередь треков
+                </CardTitle>
+                <TrackSearchDialog roomId={params.id} userId={user.id} />
+              </div>
             </CardHeader>
             <CardContent>
-              {mockQueue.length > 0 ? (
-                <div className="space-y-2">
-                  {mockQueue.map((track, index) => (
-                    <TrackItem key={track.id} track={track} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Icons.list className="h-12 w-12 mx-auto mb-4" />
-                  <p>Очередь пуста</p>
-                </div>
-              )}
+              <TrackQueue
+                tracks={queue}
+                roomId={params.id}
+                currentUserId={user.id}
+                currentUserRole={currentUserRole}
+                onReorder={handleReorderQueue}
+                onDelete={handleDeleteTrack}
+                onPlay={handlePlayTrack}
+                onVoteUp={handleVoteUp}
+                onVoteDown={handleVoteDown}
+                onVoteChange={handleVoteChange}
+              />
             </CardContent>
           </Card>
         </div>
@@ -528,7 +596,8 @@ export default function RoomPage({ params }: { params: { id: string } }) {
                 name: profile?.username || 'Anonymous',
                 avatar: profile?.avatar_url || undefined
               }}
-              onSendMessage={handleSendMessage}
+              onSendMessage={sendMessage}
+              isTyping={isTyping}
             />
           </Card>
         </div>

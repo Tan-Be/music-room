@@ -77,3 +77,14 @@ CREATE TABLE chat_messages (
   message TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Голоса за треки
+CREATE TABLE track_votes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  room_id UUID REFERENCES rooms(id) ON DELETE CASCADE,
+  track_id UUID REFERENCES tracks(id) ON DELETE CASCADE,
+  vote_value INTEGER NOT NULL CHECK (vote_value IN (1, -1)),
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, room_id, track_id)
+);

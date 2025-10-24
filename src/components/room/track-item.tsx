@@ -1,11 +1,14 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect, memo } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ThumbsUp, ThumbsDown, Play, Pause, MoreHorizontal } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Play, Pause } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/auth-context'
+import { getUserVote, voteForTrack, VoteValue, reorderTracksByVotes } from '@/lib/track-voting'
+import { toast } from 'sonner'
 
 interface Track {
   id: string
@@ -24,26 +27,122 @@ interface Track {
 
 interface TrackItemProps {
   track: Track
+  roomId: string
   onVoteUp?: () => void
   onVoteDown?: () => void
   onPlay?: () => void
+  onVoteChange?: () => void
   className?: string
 }
 
-export function TrackItem({
+// Функция для проверки равенства пропсов
+function arePropsEqual(prevProps: TrackItemProps, nextProps: TrackItemProps) {
+  return (
+    prevProps.track.id === nextProps.track.id &&
+    prevProps.track.title === nextProps.track.title &&
+    prevProps.track.artist === nextProps.track.artist &&
+    prevProps.track.duration === nextProps.track.duration &&
+    prevProps.track.thumbnailUrl === nextProps.track.thumbnailUrl &&
+    prevProps.track.votesUp === nextProps.track.votesUp &&
+    prevProps.track.votesDown === nextProps.track.votesDown &&
+    prevProps.track.isPlaying === nextProps.track.isPlaying &&
+    prevProps.roomId === nextProps.roomId &&
+    prevProps.className === nextProps.className
+  )
+}
+
+export const TrackItem = memo(({
   track,
+  roomId,
   onVoteUp,
   onVoteDown,
   onPlay,
+  onVoteChange,
   className,
-}: TrackItemProps) {
+}: TrackItemProps) => {
+  const { user } = useAuth()
+  const [userVote, setUserVote] = useState<VoteValue | null>(null)
+  const [votesUp, setVotesUp] = useState(track.votesUp)
+  const [votesDown, setVotesDown] = useState(track.votesDown)
+  
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const voteScore = track.votesUp - track.votesDown
+  const voteScore = votesUp - votesDown
+
+  // Fetch user's current vote when component mounts or when user/track changes
+  useEffect(() => {
+    const fetchUserVote = async () => {
+      if (user?.id && roomId) {
+        const vote = await getUserVote(user.id, roomId, track.id)
+        setUserVote(vote)
+      }
+    }
+
+    fetchUserVote()
+  }, [user?.id, roomId, track.id])
+
+  const handleVote = async (voteValue: VoteValue) => {
+    if (!user?.id || !roomId) {
+      toast.error('Необходимо войти в систему для голосования')
+      return
+    }
+
+    // If user is clicking the same vote they already have, toggle it off
+    const newVoteValue = userVote === voteValue ? null : voteValue
+    
+    const success = await voteForTrack(user.id, roomId, track.id, voteValue)
+    
+    if (success) {
+      // Update local state
+      setUserVote(newVoteValue)
+      
+      // Update vote counts
+      if (voteValue === 1) {
+        if (userVote === 1) {
+          // Removing upvote
+          setVotesUp(votesUp - 1)
+        } else if (userVote === -1) {
+          // Changing from downvote to upvote
+          setVotesDown(votesDown - 1)
+          setVotesUp(votesUp + 1)
+        } else {
+          // Adding new upvote
+          setVotesUp(votesUp + 1)
+        }
+      } else {
+        if (userVote === -1) {
+          // Removing downvote
+          setVotesDown(votesDown - 1)
+        } else if (userVote === 1) {
+          // Changing from upvote to downvote
+          setVotesUp(votesUp - 1)
+          setVotesDown(votesDown + 1)
+        } else {
+          // Adding new downvote
+          setVotesDown(votesDown + 1)
+        }
+      }
+      
+      // Reorder tracks based on vote scores
+      await reorderTracksByVotes(roomId)
+      
+      // Call parent handlers if provided
+      if (voteValue === 1 && onVoteUp) {
+        onVoteUp()
+      } else if (voteValue === -1 && onVoteDown) {
+        onVoteDown()
+      }
+      
+      // Notify parent that votes have changed
+      if (onVoteChange) {
+        onVoteChange()
+      }
+    }
+  }
 
   return (
     <Card className={cn('w-full', className)}>
@@ -101,8 +200,8 @@ export function TrackItem({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
-                onClick={onVoteUp}
+                className={cn("h-8 w-8", userVote === 1 && "text-green-500")}
+                onClick={() => handleVote(1)}
               >
                 <ThumbsUp className="h-4 w-4" />
               </Button>
@@ -121,8 +220,8 @@ export function TrackItem({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
-                onClick={onVoteDown}
+                className={cn("h-8 w-8", userVote === -1 && "text-red-500")}
+                onClick={() => handleVote(-1)}
               >
                 <ThumbsDown className="h-4 w-4" />
               </Button>
@@ -140,13 +239,9 @@ export function TrackItem({
                 <Play className="h-4 w-4" />
               )}
             </Button>
-
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </CardContent>
     </Card>
   )
-}
+}, arePropsEqual)

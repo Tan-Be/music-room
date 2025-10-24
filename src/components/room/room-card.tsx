@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import {
   Card,
   CardContent,
@@ -31,7 +32,21 @@ interface RoomCardProps {
   className?: string
 }
 
-export function RoomCard({ room, onJoin, className }: RoomCardProps) {
+// Функция для проверки равенства пропсов
+function arePropsEqual(prevProps: RoomCardProps, nextProps: RoomCardProps) {
+  return (
+    prevProps.room.id === nextProps.room.id &&
+    prevProps.room.name === nextProps.room.name &&
+    prevProps.room.description === nextProps.room.description &&
+    prevProps.room.privacy === nextProps.room.privacy &&
+    prevProps.room.participantCount === nextProps.room.participantCount &&
+    prevProps.room.maxParticipants === nextProps.room.maxParticipants &&
+    prevProps.room.owner.name === nextProps.room.owner.name &&
+    prevProps.className === nextProps.className
+  )
+}
+
+export const RoomCard = memo(({ room, onJoin, className }: RoomCardProps) => {
   const getPrivacyIcon = () => {
     switch (room.privacy) {
       case 'public':
@@ -77,19 +92,19 @@ export function RoomCard({ room, onJoin, className }: RoomCardProps) {
 
       <CardContent>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-4 text-sm text-muted-foreground min-w-0">
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
               <span>
                 {room.participantCount}/{room.maxParticipants}
               </span>
             </div>
-            <span>от {room.owner.name}</span>
+            <span className="truncate">от {room.owner.name}</span>
           </div>
 
-          <Button onClick={onJoin}>Присоединиться</Button>
+          <Button onClick={onJoin} className="ml-2 flex-shrink-0">Присоединиться</Button>
         </div>
       </CardContent>
     </Card>
   )
-}
+}, arePropsEqual)

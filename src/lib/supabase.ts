@@ -198,6 +198,55 @@ export type Database = {
           created_at?: string
         }
       }
+      system_messages: {
+        Row: {
+          id: string
+          room_id: string
+          type: string
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          room_id: string
+          type: string
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          room_id?: string
+          type?: string
+          content?: string
+          created_at?: string
+        }
+      }
+      track_votes: {
+        Row: {
+          id: string
+          user_id: string
+          room_id: string
+          track_id: string
+          vote_value: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          room_id: string
+          track_id: string
+          vote_value: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          room_id?: string
+          track_id?: string
+          vote_value?: number
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -240,3 +289,5 @@ export type RoomParticipant =
 export type Track = Database['public']['Tables']['tracks']['Row']
 export type RoomQueueItem = Database['public']['Tables']['room_queue']['Row']
 export type ChatMessage = Database['public']['Tables']['chat_messages']['Row']
+export type SystemMessage = Database['public']['Tables']['system_messages']['Row']
+export type TrackVote = Database['public']['Tables']['track_votes']['Row']

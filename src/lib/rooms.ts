@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { supabase } from './supabase'
+import { Room } from './supabase'
 
 // Функции для работы с комнатами
 export const rooms = {
@@ -22,7 +23,7 @@ export const rooms = {
         throw new Error(error.message)
       }
       
-      return { data: data[0], error: null }
+      return { data: data?.[0] as Room || null, error: null }
     } catch (error) {
       return { data: null, error: error.message }
     }

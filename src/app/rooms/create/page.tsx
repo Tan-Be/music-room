@@ -83,7 +83,12 @@ export default function CreateRoomPage() {
       }
       
       // Получаем ID созданной комнаты
-      const roomId = roomResponse.data.id
+      const roomData = roomResponse.data
+      if (!roomData?.id) {
+        throw new Error('Не удалось создать комнату')
+      }
+      
+      const roomId = roomData.id
       
       if (!roomId) {
         throw new Error('Не удалось получить ID созданной комнаты')

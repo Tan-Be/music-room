@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { toast } from 'sonner'
+import { Profile } from './supabase'
 
 // Maximum tracks a user can add per day
 export const MAX_TRACKS_PER_DAY = 8
@@ -23,10 +24,10 @@ export async function checkTrackLimit(userId: string): Promise<{
 
     // Check if it's a new day and reset counter if needed
     const today = new Date().toISOString().split('T')[0]
-    let tracksAddedToday = profile.tracks_added_today
+    let tracksAddedToday = (profile as Profile).tracks_added_today
 
     // If last track date is not today, reset the counter
-    if (profile.last_track_date !== today) {
+    if ((profile as Profile).last_track_date !== today) {
       tracksAddedToday = 0
     }
 
@@ -66,8 +67,8 @@ export async function incrementTrackCount(userId: string): Promise<boolean> {
     }
 
     // Determine new track count
-    let newTrackCount = profile.tracks_added_today
-    if (profile.last_track_date === today) {
+    let newTrackCount = (profile as Profile).tracks_added_today
+    if ((profile as Profile).last_track_date === today) {
       // Same day, increment count
       newTrackCount += 1
     } else {
@@ -78,6 +79,7 @@ export async function incrementTrackCount(userId: string): Promise<boolean> {
     // Update profile
     const { error: updateError } = await supabase
       .from('profiles')
+      // @ts-ignore
       .update({
         tracks_added_today: newTrackCount,
         last_track_date: today
@@ -101,6 +103,7 @@ export async function resetDailyTrackLimits(): Promise<void> {
   try {
     const { error } = await supabase
       .from('profiles')
+      // @ts-ignore
       .update({
         tracks_added_today: 0
       })

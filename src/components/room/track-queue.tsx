@@ -60,7 +60,7 @@ export function TrackQueue({
     setQueueTracks(tracks)
   }, [tracks])
 
-  const handleDragStart = (e: React.DragEvent, track: Track) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, track: Track) => {
     // Только модераторы и владельцы могут перетаскивать треки
     if (currentUserRole !== 'owner' && currentUserRole !== 'moderator') {
       e.preventDefault()
@@ -167,7 +167,7 @@ export function TrackQueue({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
               draggable={currentUserRole === 'owner' || currentUserRole === 'moderator'}
-              onDragStart={(e) => handleDragStart(e, track)}
+              onDragStart={(e: any) => handleDragStart(e, track)}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, track)}
               className={cn(

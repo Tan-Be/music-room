@@ -53,6 +53,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={mockTracks}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}
@@ -71,6 +72,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={[]}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}
@@ -88,6 +90,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={mockTracks}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}
@@ -108,6 +111,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={mockTracks}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}
@@ -128,6 +132,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={mockTracks}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}
@@ -148,6 +153,7 @@ describe('TrackQueue Component', () => {
     render(
       <TrackQueue
         tracks={mockTracks}
+        roomId="room1"
         currentUserId="user1"
         currentUserRole="member"
         onReorder={mockOnReorder}

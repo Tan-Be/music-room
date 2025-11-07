@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 // Тип данных для RoomCard
-interface Room {
+interface RoomCardData {
   id: string
   name: string
   description?: string
@@ -24,11 +24,25 @@ interface Room {
   createdAt: Date
 }
 
+// Тип данных для комнаты из Supabase
+interface SupabaseRoom {
+  id: string
+  name: string
+  description: string | null
+  is_public: boolean
+  max_participants: number
+  created_at: string
+  owner_id: string
+  profiles?: {
+    username: string | null
+  } | null
+}
+
 export default function RoomsPage() {
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
-  const [rooms, setRooms] = useState<Room[]>([])
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>([])
+  const [rooms, setRooms] = useState<RoomCardData[]>([])
+  const [filteredRooms, setFilteredRooms] = useState<RoomCardData[]>([])
   const [loading, setLoading] = useState(true)
 
   // Загрузка списка комнат
@@ -59,7 +73,7 @@ export default function RoomsPage() {
         
         // Получаем количество участников для каждой комнаты
         const roomsWithParticipants = await Promise.all(
-          data.map(async (room) => {
+          (data as SupabaseRoom[]).map(async (room) => {
             const { count } = await supabase
               .from('room_participants')
               .select('*', { count: 'exact', head: true })
@@ -68,7 +82,7 @@ export default function RoomsPage() {
             return {
               id: room.id,
               name: room.name,
-              description: room.description,
+              description: room.description || undefined,
               privacy: room.is_public ? 'public' : 'private',
               participantCount: count || 0,
               maxParticipants: room.max_participants,
@@ -76,7 +90,7 @@ export default function RoomsPage() {
                 name: room.profiles?.username || 'Неизвестный'
               },
               createdAt: new Date(room.created_at)
-            }
+            } as RoomCardData
           })
         )
         
@@ -122,7 +136,7 @@ export default function RoomsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Icons.spinner className="h-8 w-8 animate-spin" />
+        <Icons.music className="h-8 w-8 animate-spin" />
       </div>
     )
   }

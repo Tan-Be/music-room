@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { RoomCard } from '@/components/room/room-card'
 import { Icons } from '@/components/icons'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 
 // Тип данных для RoomCard
 interface Room {
@@ -22,54 +24,86 @@ interface Room {
   createdAt: Date
 }
 
-// Моковые данные для демонстрации
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    name: 'Chill Vibes',
-    description: 'Расслабляющая музыка для работы и отдыха',
-    privacy: 'public',
-    participantCount: 12,
-    maxParticipants: 20,
-    owner: { name: 'Alex_Music' },
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Party Hits',
-    description: 'Лучшие хиты для вечеринок',
-    privacy: 'public',
-    participantCount: 8,
-    maxParticipants: 15,
-    owner: { name: 'DJ_Master' },
-    createdAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'Indie Discoveries',
-    description: 'Новые инди-треки и артисты',
-    privacy: 'private',
-    participantCount: 5,
-    maxParticipants: 10,
-    owner: { name: 'Indie_Fan' },
-    createdAt: new Date(),
-  },
-]
-
 export default function RoomsPage() {
   const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>(mockRooms)
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([])
+  const [loading, setLoading] = useState(true)
 
+  // Загрузка списка комнат
   useEffect(() => {
-    // Фильтрация комнат по поисковому запросу
-    const filtered = mockRooms.filter(
+    const fetchRooms = async () => {
+      try {
+        setLoading(true)
+        
+        // Получаем публичные комнаты и комнаты, где пользователь является владельцем
+        const { data, error } = await supabase
+          .from('rooms')
+          .select(`
+            id,
+            name,
+            description,
+            is_public,
+            max_participants,
+            created_at,
+            owner_id,
+            profiles (username)
+          `)
+          .or(`is_public.eq.true,owner_id.eq.${user?.id || '0'}`)
+          .order('created_at', { ascending: false })
+        
+        if (error) {
+          throw new Error(error.message)
+        }
+        
+        // Получаем количество участников для каждой комнаты
+        const roomsWithParticipants = await Promise.all(
+          data.map(async (room) => {
+            const { count } = await supabase
+              .from('room_participants')
+              .select('*', { count: 'exact', head: true })
+              .eq('room_id', room.id)
+            
+            return {
+              id: room.id,
+              name: room.name,
+              description: room.description,
+              privacy: room.is_public ? 'public' : 'private',
+              participantCount: count || 0,
+              maxParticipants: room.max_participants,
+              owner: {
+                name: room.profiles?.username || 'Неизвестный'
+              },
+              createdAt: new Date(room.created_at)
+            }
+          })
+        )
+        
+        setRooms(roomsWithParticipants)
+        setFilteredRooms(roomsWithParticipants)
+      } catch (error) {
+        console.error('Error fetching rooms:', error)
+        toast.error('Не удалось загрузить список комнат')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    if (user) {
+      fetchRooms()
+    }
+  }, [user])
+
+  // Фильтрация комнат по поисковому запросу
+  useEffect(() => {
+    const filtered = rooms.filter(
       (room) =>
         room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (room.description && room.description.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     setFilteredRooms(filtered)
-  }, [searchQuery])
+  }, [searchQuery, rooms])
 
   if (!user) {
     return (
@@ -81,6 +115,14 @@ export default function RoomsPage() {
         <Button asChild>
           <Link href="/login">Войти</Link>
         </Button>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Icons.spinner className="h-8 w-8 animate-spin" />
       </div>
     )
   }

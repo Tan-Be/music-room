@@ -12,6 +12,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Lock, Globe, Link as LinkIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
+import { rooms } from '@/lib/rooms'
+import { toast } from 'sonner'
 
 interface Room {
   id: string
@@ -28,7 +33,6 @@ interface Room {
 
 interface RoomCardProps {
   room: Room
-  onJoin?: () => void
   className?: string
 }
 
@@ -46,7 +50,10 @@ function arePropsEqual(prevProps: RoomCardProps, nextProps: RoomCardProps) {
   )
 }
 
-export const RoomCard = memo(({ room, onJoin, className }: RoomCardProps) => {
+export const RoomCard = memo(({ room, className }: RoomCardProps) => {
+  const router = useRouter()
+  const { user, profile } = useAuth()
+  
   const getPrivacyIcon = () => {
     switch (room.privacy) {
       case 'public':
@@ -66,6 +73,46 @@ export const RoomCard = memo(({ room, onJoin, className }: RoomCardProps) => {
         return 'По ссылке'
       case 'private':
         return 'Приватная'
+    }
+  }
+
+  // Функция для присоединения к комнате
+  const handleJoinRoom = async () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    
+    try {
+      // Проверяем лимит участников
+      const { isLimitReached, maxCount } = await rooms.checkParticipantLimit(room.id)
+      
+      if (isLimitReached) {
+        toast.error(`Доступ запрещен: достигнут лимит участников (${maxCount})`)
+        return
+      }
+      
+      // Добавляем пользователя в комнату
+      const response = await rooms.addParticipant({
+        room_id: room.id,
+        user_id: user.id,
+        role: 'member'
+      })
+      
+      if (response.error) {
+        // Если пользователь уже участник, просто переходим в комнату
+        if (response.error.includes('duplicate key value')) {
+          router.push(`/room/${room.id}`)
+          return
+        }
+        throw new Error(response.error)
+      }
+      
+      // Переходим в комнату
+      router.push(`/room/${room.id}`)
+    } catch (error) {
+      console.error('Error joining room:', error)
+      toast.error('Не удалось присоединиться к комнате')
     }
   }
 
@@ -102,7 +149,7 @@ export const RoomCard = memo(({ room, onJoin, className }: RoomCardProps) => {
             <span className="truncate">от {room.owner.name}</span>
           </div>
 
-          <Button onClick={onJoin} className="ml-2 flex-shrink-0">Присоединиться</Button>
+          <Button onClick={handleJoinRoom} className="ml-2 flex-shrink-0">Присоединиться</Button>
         </div>
       </CardContent>
     </Card>

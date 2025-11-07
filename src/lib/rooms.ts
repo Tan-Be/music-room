@@ -40,6 +40,10 @@ export const rooms = {
         .insert([participantData])
       
       if (error) {
+        // Если пользователь уже участник, возвращаем успех
+        if (error.code === '23505') { // duplicate key value violates unique constraint
+          return { data: null, error: null }
+        }
         throw new Error(error.message)
       }
       

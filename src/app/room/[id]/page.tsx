@@ -85,98 +85,44 @@ interface SystemMessage {
 // Объединенный тип для всех сообщений
 type ChatMessage = UserMessage | SystemMessage
 
-// Mock data for demonstration
-const mockRoom: Room = {
-  id: '1',
-  name: 'Chill Vibes',
-  description: 'Расслабляющая музыка для работы и отдыха',
-  privacy: 'public',
-  participantCount: 12,
-  maxParticipants: 20,
-  owner: { 
-    id: '1',
-    name: 'Alex_Music' 
-  },
-  createdAt: new Date(),
-  isPlaying: true,
-  currentTrack: {
-    id: '1',
-    title: 'Midnight City',
-    artist: 'M83',
-    duration: 244, // seconds
-    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
-    votesUp: 15,
-    votesDown: 2,
-    addedBy: {
-      name: 'Alex_Music',
-      id: '1'
-    },
-    isPlaying: true
-  },
-  progress: 120, // seconds
+// Типы для данных из Supabase
+interface SupabaseRoom {
+  id: string
+  name: string
+  description: string | null
+  is_public: boolean
+  max_participants: number
+  owner_id: string
+  created_at: string
+  is_playing: boolean
+  progress: number
+  profiles?: {
+    username: string | null
+  } | null
 }
 
-const mockParticipants: Participant[] = [
-  { id: '1', name: 'Alex_Music', userId: '1', role: 'owner', isOnline: true },
-  { id: '2', name: 'DJ_Master', userId: '2', role: 'moderator', isOnline: true },
-  { id: '3', name: 'MusicLover22', userId: '3', role: 'member', isOnline: true },
-  { id: '4', name: 'PartyStarter', userId: '4', role: 'member', isOnline: false },
-  { id: '5', name: 'ChillVibes', userId: '5', role: 'member', isOnline: true },
-]
-
-const mockQueue: Track[] = [
-  {
-    id: '2',
-    title: 'Blinding Lights',
-    artist: 'The Weeknd',
-    duration: 200,
-    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
-    votesUp: 5,
-    votesDown: 1,
-    addedBy: {
-      name: 'DJ_Master',
-      id: '2'
-    },
-    position: 0
-  },
-  {
-    id: '3',
-    title: 'Save Your Tears',
-    artist: 'The Weeknd',
-    duration: 215,
-    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
-    votesUp: 3,
-    votesDown: 0,
-    addedBy: {
-      name: 'MusicLover22',
-      id: '3'
-    },
-    position: 1
-  },
-  {
-    id: '4',
-    title: 'Take My Breath',
-    artist: 'The Weeknd',
-    duration: 339,
-    thumbnailUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
-    votesUp: 2,
-    votesDown: 0,
-    addedBy: {
-      name: 'ChillVibes',
-      id: '5'
-    },
-    position: 2
-  },
-]
+interface SupabaseParticipant {
+  id: string
+  user_id: string
+  role: string
+  joined_at: string
+  profiles?: {
+    username: string | null
+    avatar_url: string | null
+  } | null
+}
 
 export default function RoomPage({ params }: { params: { id: string } }) {
   const { user, profile } = useAuth()
   const router = useRouter()
   const { messages, isLoading, isSubscribed, sendMessage, sendSystemMessage } = useChatRealtime(params.id)
-  const [participants, setParticipants] = useState<Participant[]>(mockParticipants)
+  const [participants, setParticipants] = useState<Participant[]>([])
   const [currentUserRole, setCurrentUserRole] = useState<'owner' | 'moderator' | 'member'>('member')
   const [isTyping, setIsTyping] = useState(false)
-  const [queue, setQueue] = useState<Track[]>(mockQueue)
+  const [queue, setQueue] = useState<Track[]>([])
+  const [room, setRoom] = useState<Room | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isParticipant, setIsParticipant] = useState(false)
 
   // Redirect to login if user is not authenticated
   useEffect(() => {
@@ -185,19 +131,118 @@ export default function RoomPage({ params }: { params: { id: string } }) {
     }
   }, [user, router])
 
-  // Определение роли текущего пользователя
+  // Загрузка данных комнаты и проверка участия пользователя
   useEffect(() => {
-    if (user && profile) {
-      const participant = mockParticipants.find(p => p.userId === user.id)
-      if (participant) {
-        setCurrentUserRole(participant.role)
+    const fetchData = async () => {
+      if (!user || !params.id) return
+      
+      try {
+        setLoading(true)
+        
+        // Получаем данные комнаты
+        const { data: roomData, error: roomError } = await supabase
+          .from('rooms')
+          .select(`
+            id,
+            name,
+            description,
+            is_public,
+            max_participants,
+            owner_id,
+            created_at,
+            is_playing,
+            progress,
+            profiles (username)
+          `)
+          .eq('id', params.id)
+          .single() as { data: SupabaseRoom | null, error: any }
+        
+        if (roomError) {
+          throw new Error(roomError.message)
+        }
+        
+        if (!roomData) {
+          throw new Error('Room not found')
+        }
+        
+        // Проверяем, является ли пользователь участником комнаты
+        const { data: participantData, error: participantError } = await supabase
+          .from('room_participants')
+          .select('id, role')
+          .eq('room_id', params.id)
+          .eq('user_id', user.id)
+          .single() as { data: { id: string, role: string } | null, error: any }
+        
+        // Если пользователь участник, загружаем дополнительные данные
+        if (participantData) {
+          setIsParticipant(true)
+          setCurrentUserRole(participantData.role as 'owner' | 'moderator' | 'member')
+          
+          // Получаем список участников
+          const { data: participantsData, error: participantsError } = await supabase
+            .from('room_participants')
+            .select(`
+              id,
+              user_id,
+              role,
+              joined_at,
+              profiles (username, avatar_url)
+            `)
+            .eq('room_id', params.id) as { data: SupabaseParticipant[] | null, error: any }
+          
+          if (!participantsError && participantsData) {
+            const formattedParticipants = participantsData.map(p => ({
+              id: p.id,
+              name: p.profiles?.username || 'Неизвестный',
+              avatar: p.profiles?.avatar_url || undefined,
+              role: p.role as 'owner' | 'moderator' | 'member',
+              isOnline: true, // В реальной реализации нужно определить статус онлайн
+              userId: p.user_id
+            }))
+            setParticipants(formattedParticipants)
+          }
+          
+          // Получаем очередь треков
+          const queueData = await fetchRoomTracks(params.id)
+          if (queueData) {
+            setQueue(queueData)
+          }
+        }
+        
+        // Форматируем данные комнаты
+        const formattedRoom: Room = {
+          id: roomData.id,
+          name: roomData.name,
+          description: roomData.description || undefined,
+          privacy: roomData.is_public ? 'public' : 'private',
+          participantCount: 0, // Будет обновлено позже
+          maxParticipants: roomData.max_participants,
+          owner: {
+            id: roomData.owner_id,
+            name: roomData.profiles?.username || 'Неизвестный'
+          },
+          createdAt: new Date(roomData.created_at),
+          isPlaying: roomData.is_playing || false,
+          progress: roomData.progress || 0
+        }
+        
+        setRoom(formattedRoom)
+      } catch (error) {
+        console.error('Error fetching room data:', error)
+        toast.error('Не удалось загрузить данные комнаты')
+      } finally {
+        setLoading(false)
       }
     }
-  }, [user, profile])
+    
+    if (user && params.id) {
+      fetchData()
+    }
+  }, [user, params.id])
 
   // Отправка системного сообщения о присоединении пользователя
   useEffect(() => {
-    if (user && profile && params.id) {
+    if (user && profile && params.id && isParticipant) {
       // Отправляем системное сообщение о присоединении
       sendSystemMessage(
         'user_joined',
@@ -207,18 +252,18 @@ export default function RoomPage({ params }: { params: { id: string } }) {
     
     // Отправляем системное сообщение о покидании комнаты при размонтировании
     return () => {
-      if (user && profile && params.id) {
+      if (user && profile && params.id && isParticipant) {
         sendSystemMessage(
           'user_left',
           systemMessages.generateUserLeftMessage(profile.username || 'Пользователь')
         )
       }
     }
-  }, [user, profile, params.id, sendSystemMessage])
+  }, [user, profile, params.id, isParticipant, sendSystemMessage])
 
   // Присоединение к комнате
   const joinRoom = async () => {
-    if (!user) return
+    if (!user || !params.id) return
     
     try {
       // Проверяем лимит участников
@@ -242,7 +287,10 @@ export default function RoomPage({ params }: { params: { id: string } }) {
       
       toast.success('Вы успешно присоединились к комнате!')
       
-      // Обновляем список участников (в реальной реализации нужно получить данные из БД)
+      // Обновляем состояние участия
+      setIsParticipant(true)
+      
+      // Обновляем список участников
       const newParticipant: Participant = {
         id: `temp-${Date.now()}`, // временный ID
         name: profile?.username || 'Anonymous',
@@ -411,9 +459,32 @@ export default function RoomPage({ params }: { params: { id: string } }) {
     return null // or a loading spinner
   }
 
-  // Проверяем, является ли пользователь участником комнаты
-  const isParticipant = participants.some(p => p.userId === user.id)
-  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Icons.music className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!room) {
+    return (
+      <div className="container py-6">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Комната не найдена</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">Запрашиваемая комната не существует или недоступна.</p>
+            <Button asChild>
+              <Link href="/rooms">Вернуться к списку комнат</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Если пользователь не участник, показываем кнопку присоединения
   if (!isParticipant) {
     return (
@@ -445,16 +516,16 @@ export default function RoomPage({ params }: { params: { id: string } }) {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Icons.music className="h-6 w-6" />
-                    {mockRoom.name}
+                    {room.name}
                   </CardTitle>
                   <p className="text-muted-foreground text-sm mt-1">
-                    {mockRoom.description}
+                    {room.description}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">
                     <Icons.users className="h-4 w-4 mr-2" />
-                    Участники ({mockRoom.participantCount}/{mockRoom.maxParticipants})
+                    Участники ({participants.length}/{room.maxParticipants})
                   </Button>
                   <Button variant="outline" size="sm" onClick={leaveRoom}>
                     <Icons.logout className="h-4 w-4 mr-2" />
@@ -474,12 +545,12 @@ export default function RoomPage({ params }: { params: { id: string } }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {mockRoom.currentTrack ? (
+              {room.currentTrack ? (
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative">
                     <img 
-                      src={mockRoom.currentTrack.thumbnailUrl} 
-                      alt={mockRoom.currentTrack.title}
+                      src={room.currentTrack.thumbnailUrl} 
+                      alt={room.currentTrack.title}
                       className="w-full sm:w-32 h-32 object-cover rounded-lg"
                     />
                     <Button 
@@ -490,23 +561,23 @@ export default function RoomPage({ params }: { params: { id: string } }) {
                     </Button>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg">{mockRoom.currentTrack.title}</h3>
-                    <p className="text-muted-foreground">{mockRoom.currentTrack.artist}</p>
+                    <h3 className="font-bold text-lg">{room.currentTrack.title}</h3>
+                    <p className="text-muted-foreground">{room.currentTrack.artist}</p>
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
                         <span>
-                          {Math.floor(mockRoom.progress / 60)}:
-                          {(mockRoom.progress % 60).toString().padStart(2, '0')}
+                          {Math.floor(room.progress / 60)}:
+                          {(room.progress % 60).toString().padStart(2, '0')}
                         </span>
                         <span>
-                          {Math.floor(mockRoom.currentTrack.duration / 60)}:
-                          {(mockRoom.currentTrack.duration % 60).toString().padStart(2, '0')}
+                          {Math.floor(room.currentTrack.duration / 60)}:
+                          {(room.currentTrack.duration % 60).toString().padStart(2, '0')}
                         </span>
                       </div>
                       <div className="w-full bg-secondary rounded-full h-2">
                         <div 
                           className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(mockRoom.progress / mockRoom.currentTrack.duration) * 100}%` }}
+                          style={{ width: `${(room.progress / room.currentTrack.duration) * 100}%` }}
                         ></div>
                       </div>
                     </div>

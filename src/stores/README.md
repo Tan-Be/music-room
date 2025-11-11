@@ -16,6 +16,29 @@ Manages the player state including playback status, current time, volume, and pl
 ### useChatStore
 Manages chat state including messages, typing indicators, and unread message counts.
 
+## Additional Store Functions
+
+Based on the development plan, the following additional functions should be implemented:
+
+### useAuthStore
+- Enhanced profile management
+- Session persistence improvements
+
+### useRoomStore
+- Real-time room updates
+- Participant management
+- Track queue operations
+
+### usePlayerStore
+- Playback controls
+- Volume management
+- Progress tracking
+
+### useChatStore
+- Message history
+- Typing indicators
+- Unread message tracking
+
 ## Usage
 
 ```typescript

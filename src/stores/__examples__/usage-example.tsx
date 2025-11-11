@@ -18,7 +18,11 @@ export function StoreUsageExample() {
     setParticipants,
     setIsParticipant,
     addTrack,
-    removeTrack
+    removeTrack,
+    updateTrackVotes,
+    addParticipant,
+    removeParticipant,
+    updateParticipant
   } = useRoomStore()
   
   // Player store usage
@@ -48,6 +52,7 @@ export function StoreUsageExample() {
     setIsTyping,
     addTypingUser,
     removeTypingUser,
+    setTypingUsers,
     incrementUnreadCount,
     resetUnreadCount
   } = useChatStore()
@@ -75,6 +80,30 @@ export function StoreUsageExample() {
     incrementUnreadCount()
   }
 
+  const handleAddTrack = (track: any) => {
+    addTrack(track)
+  }
+
+  const handleRemoveTrack = (trackId: string) => {
+    removeTrack(trackId)
+  }
+
+  const handleUpdateTrackVotes = (trackId: string, votesUp: number, votesDown: number) => {
+    updateTrackVotes(trackId, votesUp, votesDown)
+  }
+
+  const handleAddParticipant = (participant: any) => {
+    addParticipant(participant)
+  }
+
+  const handleRemoveParticipant = (participantId: string) => {
+    removeParticipant(participantId)
+  }
+
+  const handleUpdateParticipant = (participantId: string, updates: any) => {
+    updateParticipant(participantId, updates)
+  }
+
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-xl font-bold">Store Usage Example</h2>
@@ -93,6 +122,7 @@ export function StoreUsageExample() {
         <p>Current Room: {currentRoom ? currentRoom.name : 'None'}</p>
         <p>Participants: {participants.length}</p>
         <p>Queue Items: {queue.length}</p>
+        <p>Is Participant: {isParticipant ? 'Yes' : 'No'}</p>
       </div>
       
       {/* Player Section */}
@@ -101,6 +131,8 @@ export function StoreUsageExample() {
         <p>Playing: {isPlaying ? 'Yes' : 'No'}</p>
         <p>Volume: {volume}</p>
         <p>Muted: {isMuted ? 'Yes' : 'No'}</p>
+        <p>Current Time: {currentTime}</p>
+        <p>Playback Rate: {playbackRate}</p>
       </div>
       
       {/* Chat Section */}
@@ -109,6 +141,7 @@ export function StoreUsageExample() {
         <p>Messages: {messages.length}</p>
         <p>Unread: {unreadCount}</p>
         <p>Typing: {isTyping ? 'Yes' : 'No'}</p>
+        <p>Typing Users: {typingUsers.length}</p>
       </div>
     </div>
   )

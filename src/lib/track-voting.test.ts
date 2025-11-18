@@ -6,7 +6,7 @@ describe('Track Voting', () => {
       // This is more of a type-level test
       const upVote: VoteValue = 1
       const downVote: VoteValue = -1
-      
+
       expect(upVote).toBe(1)
       expect(downVote).toBe(-1)
     })

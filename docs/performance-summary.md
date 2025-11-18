@@ -3,20 +3,24 @@
 ## Completed Optimizations
 
 ### 1. React.memo Implementation
+
 - **TrackItem Component**: Wrapped with React.memo and custom arePropsEqual function
 - **ParticipantItem Component**: Wrapped with React.memo and custom arePropsEqual function
 - **RoomCard Component**: Wrapped with React.memo and custom arePropsEqual function
 
 ### 2. Planned useMemo Optimizations
+
 - Track sorting algorithms
 - Vote score calculations
 - Expensive filter operations
 
 ### 3. Planned Virtualization
+
 - Track queue virtualization with react-window
 - Chat message virtualization
 
 ### 4. Planned Search Debouncing
+
 - Track search with 300ms debounce
 - Room search with 300ms debounce
 

@@ -1,17 +1,32 @@
 'use client'
 
-import { useAuthStore, useRoomStore, usePlayerStore, useChatStore } from '@/stores'
+import {
+  useAuthStore,
+  useRoomStore,
+  usePlayerStore,
+  useChatStore,
+} from '@/stores'
 
 // Example component showing how to use the stores
 export function StoreUsageExample() {
   // Auth store usage
-  const { user, profile, isLoading, error, setUser, setProfile, setLoading, setError, signOut } = useAuthStore()
-  
+  const {
+    user,
+    profile,
+    isLoading,
+    error,
+    setUser,
+    setProfile,
+    setLoading,
+    setError,
+    signOut,
+  } = useAuthStore()
+
   // Room store usage
-  const { 
-    currentRoom, 
-    queue, 
-    participants, 
+  const {
+    currentRoom,
+    queue,
+    participants,
     isParticipant,
     setCurrentRoom,
     setQueue,
@@ -22,15 +37,15 @@ export function StoreUsageExample() {
     updateTrackVotes,
     addParticipant,
     removeParticipant,
-    updateParticipant
+    updateParticipant,
   } = useRoomStore()
-  
+
   // Player store usage
-  const { 
-    isPlaying, 
-    currentTime, 
-    volume, 
-    isMuted, 
+  const {
+    isPlaying,
+    currentTime,
+    volume,
+    isMuted,
     playbackRate,
     setIsPlaying,
     setCurrentTime,
@@ -38,14 +53,14 @@ export function StoreUsageExample() {
     setIsMuted,
     setPlaybackRate,
     togglePlay,
-    toggleMute
+    toggleMute,
   } = usePlayerStore()
-  
+
   // Chat store usage
-  const { 
-    messages, 
-    isTyping, 
-    typingUsers, 
+  const {
+    messages,
+    isTyping,
+    typingUsers,
     unreadCount,
     addMessage,
     setMessages,
@@ -54,7 +69,7 @@ export function StoreUsageExample() {
     removeTypingUser,
     setTypingUsers,
     incrementUnreadCount,
-    resetUnreadCount
+    resetUnreadCount,
   } = useChatStore()
 
   // Example functions showing how to interact with the stores
@@ -88,7 +103,11 @@ export function StoreUsageExample() {
     removeTrack(trackId)
   }
 
-  const handleUpdateTrackVotes = (trackId: string, votesUp: number, votesDown: number) => {
+  const handleUpdateTrackVotes = (
+    trackId: string,
+    votesUp: number,
+    votesDown: number
+  ) => {
     updateTrackVotes(trackId, votesUp, votesDown)
   }
 
@@ -107,7 +126,7 @@ export function StoreUsageExample() {
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-xl font-bold">Store Usage Example</h2>
-      
+
       {/* Auth Section */}
       <div className="border p-4 rounded">
         <h3 className="font-semibold">Auth State</h3>
@@ -115,7 +134,7 @@ export function StoreUsageExample() {
         <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
         {error && <p className="text-red-500">Error: {error}</p>}
       </div>
-      
+
       {/* Room Section */}
       <div className="border p-4 rounded">
         <h3 className="font-semibold">Room State</h3>
@@ -124,7 +143,7 @@ export function StoreUsageExample() {
         <p>Queue Items: {queue.length}</p>
         <p>Is Participant: {isParticipant ? 'Yes' : 'No'}</p>
       </div>
-      
+
       {/* Player Section */}
       <div className="border p-4 rounded">
         <h3 className="font-semibold">Player State</h3>
@@ -134,7 +153,7 @@ export function StoreUsageExample() {
         <p>Current Time: {currentTime}</p>
         <p>Playback Rate: {playbackRate}</p>
       </div>
-      
+
       {/* Chat Section */}
       <div className="border p-4 rounded">
         <h3 className="font-semibold">Chat State</h3>

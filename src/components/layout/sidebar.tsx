@@ -38,7 +38,7 @@ export function Sidebar() {
     <div className="hidden md:flex flex-col border-r w-64 fixed h-full">
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-          {navigationItems.map((item) => {
+          {navigationItems.map(item => {
             const Icon = item.icon
             return (
               <Link
@@ -58,7 +58,7 @@ export function Sidebar() {
           })}
         </nav>
       </div>
-      
+
       <div className="p-4 border-t">
         <Button variant="outline" className="w-full" asChild>
           <Link href="/rooms/create">

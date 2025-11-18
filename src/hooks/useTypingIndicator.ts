@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 
 export function useTypingIndicator() {
   const [isTyping, setIsTyping] = useState(false)
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  )
 
   // Функция для отправки индикатора "печатает"
   const sendTypingIndicator = useCallback(() => {
@@ -34,6 +36,6 @@ export function useTypingIndicator() {
 
   return {
     isTyping,
-    sendTypingIndicator
+    sendTypingIndicator,
   }
 }

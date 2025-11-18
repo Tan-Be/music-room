@@ -40,29 +40,34 @@ export const useChatStore = create<ChatState>()(
       isTyping: false,
       typingUsers: [],
       unreadCount: 0,
-      addMessage: (message) => set((state) => ({ 
-        messages: [...state.messages, message],
-        unreadCount: state.unreadCount + 1
-      })),
-      setMessages: (messages) => set({ messages }),
-      setIsTyping: (isTyping) => set({ isTyping }),
-      addTypingUser: (user) => set((state) => ({ 
-        typingUsers: [...state.typingUsers, user] 
-      })),
-      removeTypingUser: (userId) => set((state) => ({ 
-        typingUsers: state.typingUsers.filter(user => user.userId !== userId) 
-      })),
-      setTypingUsers: (typingUsers) => set({ typingUsers }),
-      incrementUnreadCount: () => set((state) => ({ 
-        unreadCount: state.unreadCount + 1 
-      })),
+      addMessage: message =>
+        set(state => ({
+          messages: [...state.messages, message],
+          unreadCount: state.unreadCount + 1,
+        })),
+      setMessages: messages => set({ messages }),
+      setIsTyping: isTyping => set({ isTyping }),
+      addTypingUser: user =>
+        set(state => ({
+          typingUsers: [...state.typingUsers, user],
+        })),
+      removeTypingUser: userId =>
+        set(state => ({
+          typingUsers: state.typingUsers.filter(user => user.userId !== userId),
+        })),
+      setTypingUsers: typingUsers => set({ typingUsers }),
+      incrementUnreadCount: () =>
+        set(state => ({
+          unreadCount: state.unreadCount + 1,
+        })),
       resetUnreadCount: () => set({ unreadCount: 0 }),
-      clearChat: () => set({ 
-        messages: [], 
-        isTyping: false, 
-        typingUsers: [], 
-        unreadCount: 0 
-      }),
+      clearChat: () =>
+        set({
+          messages: [],
+          isTyping: false,
+          typingUsers: [],
+          unreadCount: 0,
+        }),
     }),
     {
       name: 'chat-storage',

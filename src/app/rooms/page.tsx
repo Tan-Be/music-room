@@ -50,11 +50,12 @@ export default function RoomsPage() {
     const fetchRooms = async () => {
       try {
         setLoading(true)
-        
+
         // Получаем публичные комнаты и комнаты, где пользователь является владельцем
         const { data, error } = await supabase
           .from('rooms')
-          .select(`
+          .select(
+            `
             id,
             name,
             description,
@@ -63,22 +64,23 @@ export default function RoomsPage() {
             created_at,
             owner_id,
             profiles (username)
-          `)
+          `
+          )
           .or(`is_public.eq.true,owner_id.eq.${user?.id || '0'}`)
           .order('created_at', { ascending: false })
-        
+
         if (error) {
           throw new Error(error.message)
         }
-        
+
         // Получаем количество участников для каждой комнаты
         const roomsWithParticipants = await Promise.all(
-          (data as SupabaseRoom[]).map(async (room) => {
+          (data as SupabaseRoom[]).map(async room => {
             const { count } = await supabase
               .from('room_participants')
               .select('*', { count: 'exact', head: true })
               .eq('room_id', room.id)
-            
+
             return {
               id: room.id,
               name: room.name,
@@ -87,13 +89,13 @@ export default function RoomsPage() {
               participantCount: count || 0,
               maxParticipants: room.max_participants,
               owner: {
-                name: room.profiles?.username || 'Неизвестный'
+                name: room.profiles?.username || 'Неизвестный',
               },
-              createdAt: new Date(room.created_at)
+              createdAt: new Date(room.created_at),
             } as RoomCardData
           })
         )
-        
+
         setRooms(roomsWithParticipants)
         setFilteredRooms(roomsWithParticipants)
       } catch (error) {
@@ -103,7 +105,7 @@ export default function RoomsPage() {
         setLoading(false)
       }
     }
-    
+
     if (user) {
       fetchRooms()
     }
@@ -112,9 +114,10 @@ export default function RoomsPage() {
   // Фильтрация комнат по поисковому запросу
   useEffect(() => {
     const filtered = rooms.filter(
-      (room) =>
+      room =>
         room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (room.description && room.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        (room.description &&
+          room.description.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     setFilteredRooms(filtered)
   }, [searchQuery, rooms])
@@ -163,7 +166,7 @@ export default function RoomsPage() {
           <Input
             placeholder="Поиск комнат..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
           <Icons.search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -183,7 +186,7 @@ export default function RoomsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRooms.map((room) => (
+          {filteredRooms.map(room => (
             <RoomCard key={room.id} room={room} />
           ))}
         </div>

@@ -50,10 +50,10 @@ function arePropsEqual(prevProps: RoomCardProps, nextProps: RoomCardProps) {
   )
 }
 
-export const RoomCard = memo(({ room, className }: RoomCardProps) => {
+const RoomCardComponent = memo(({ room, className }: RoomCardProps) => {
   const router = useRouter()
   const { user, profile } = useAuth()
-  
+
   const getPrivacyIcon = () => {
     switch (room.privacy) {
       case 'public':
@@ -82,23 +82,25 @@ export const RoomCard = memo(({ room, className }: RoomCardProps) => {
       router.push('/login')
       return
     }
-    
+
     try {
       // Проверяем лимит участников
-      const { isLimitReached, maxCount } = await rooms.checkParticipantLimit(room.id)
-      
+      const { isLimitReached, maxCount } = await rooms.checkParticipantLimit(
+        room.id
+      )
+
       if (isLimitReached) {
         toast.error(`Доступ запрещен: достигнут лимит участников (${maxCount})`)
         return
       }
-      
+
       // Добавляем пользователя в комнату
       const response = await rooms.addParticipant({
         room_id: room.id,
         user_id: user.id,
-        role: 'member'
+        role: 'member',
       })
-      
+
       if (response.error) {
         // Если пользователь уже участник, просто переходим в комнату
         if (response.error.includes('duplicate key value')) {
@@ -107,7 +109,7 @@ export const RoomCard = memo(({ room, className }: RoomCardProps) => {
         }
         throw new Error(response.error)
       }
-      
+
       // Переходим в комнату
       router.push(`/room/${room.id}`)
     } catch (error) {
@@ -149,9 +151,15 @@ export const RoomCard = memo(({ room, className }: RoomCardProps) => {
             <span className="truncate">от {room.owner.name}</span>
           </div>
 
-          <Button onClick={handleJoinRoom} className="ml-2 flex-shrink-0">Присоединиться</Button>
+          <Button onClick={handleJoinRoom} className="ml-2 flex-shrink-0">
+            Присоединиться
+          </Button>
         </div>
       </CardContent>
     </Card>
   )
 }, arePropsEqual)
+
+RoomCardComponent.displayName = 'RoomCard'
+
+export { RoomCardComponent as RoomCard }

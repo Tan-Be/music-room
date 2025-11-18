@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { TrackSearch } from '@/components/track/track-search'
 import { Search } from 'lucide-react'
@@ -16,7 +22,12 @@ interface TrackSearchDialogProps {
   children?: React.ReactNode
 }
 
-export function TrackSearchDialog({ roomId, userId, onTrackAdded, children }: TrackSearchDialogProps) {
+export function TrackSearchDialog({
+  roomId,
+  userId,
+  onTrackAdded,
+  children,
+}: TrackSearchDialogProps) {
   const [open, setOpen] = useState(false)
   const { user } = useAuth()
 
@@ -24,8 +35,10 @@ export function TrackSearchDialog({ roomId, userId, onTrackAdded, children }: Tr
     try {
       // Check if user has reached their daily track limit
       if (user?.id) {
-        const { hasLimitReached, remainingTracks } = await checkTrackLimit(user.id)
-        
+        const { hasLimitReached, remainingTracks } = await checkTrackLimit(
+          user.id
+        )
+
         if (hasLimitReached) {
           toast.error('Вы достигли лимита треков на сегодня')
           return
@@ -35,16 +48,16 @@ export function TrackSearchDialog({ roomId, userId, onTrackAdded, children }: Tr
       // Here would be the logic to add the track to the queue
       // For now, just show a notification
       toast.success('Трек добавлен в очередь')
-      
+
       // Increment the user's track count for the day
       if (user?.id) {
         await incrementTrackCount(user.id)
       }
-      
+
       if (onTrackAdded) {
         onTrackAdded(trackId)
       }
-      
+
       // Close the dialog after adding
       setOpen(false)
     } catch (error) {

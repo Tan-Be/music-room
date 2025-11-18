@@ -37,7 +37,7 @@ export async function checkTrackLimit(userId: string): Promise<{
     return {
       hasLimitReached,
       tracksAddedToday,
-      remainingTracks
+      remainingTracks,
     }
   } catch (error) {
     console.error('Error checking track limit:', error)
@@ -45,7 +45,7 @@ export async function checkTrackLimit(userId: string): Promise<{
     return {
       hasLimitReached: false,
       tracksAddedToday: 0,
-      remainingTracks: MAX_TRACKS_PER_DAY
+      remainingTracks: MAX_TRACKS_PER_DAY,
     }
   }
 }
@@ -82,7 +82,7 @@ export async function incrementTrackCount(userId: string): Promise<boolean> {
       // @ts-ignore
       .update({
         tracks_added_today: newTrackCount,
-        last_track_date: today
+        last_track_date: today,
       })
       .eq('id', userId)
 
@@ -105,7 +105,7 @@ export async function resetDailyTrackLimits(): Promise<void> {
       .from('profiles')
       // @ts-ignore
       .update({
-        tracks_added_today: 0
+        tracks_added_today: 0,
       })
       .gt('tracks_added_today', 0)
 
@@ -124,10 +124,10 @@ export function getTrackLimitMessage(remainingTracks: number): string {
   if (remainingTracks === 0) {
     return 'Вы достигли лимита треков на сегодня'
   }
-  
+
   if (remainingTracks === 1) {
     return 'Вы можете добавить еще 1 трек сегодня'
   }
-  
+
   return `Вы можете добавить еще ${remainingTracks} треков сегодня`
 }

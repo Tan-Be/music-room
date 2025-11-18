@@ -14,7 +14,10 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { rooms } from '@/lib/rooms'
 import { supabase } from '@/lib/supabase'
-import { chatRealtimeService, ChatMessageWithUserInfo } from '@/lib/chat-realtime'
+import {
+  chatRealtimeService,
+  ChatMessageWithUserInfo,
+} from '@/lib/chat-realtime'
 import { useChatRealtime } from '@/hooks/useChatRealtime'
 import { systemMessages } from '@/lib/system-messages'
 import { fetchRoomTracks } from '@/lib/track-queue'
@@ -27,9 +30,9 @@ interface Room {
   privacy: 'public' | 'unlisted' | 'private'
   participantCount: number
   maxParticipants: number
-  owner: { 
+  owner: {
     id: string
-    name: string 
+    name: string
   }
   createdAt: Date
   isPlaying: boolean
@@ -115,9 +118,12 @@ interface SupabaseParticipant {
 export default function RoomPage({ params }: { params: { id: string } }) {
   const { user, profile } = useAuth()
   const router = useRouter()
-  const { messages, isLoading, isSubscribed, sendMessage, sendSystemMessage } = useChatRealtime(params.id)
+  const { messages, isLoading, isSubscribed, sendMessage, sendSystemMessage } =
+    useChatRealtime(params.id)
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [currentUserRole, setCurrentUserRole] = useState<'owner' | 'moderator' | 'member'>('member')
+  const [currentUserRole, setCurrentUserRole] = useState<
+    'owner' | 'moderator' | 'member'
+  >('member')
   const [isTyping, setIsTyping] = useState(false)
   const [queue, setQueue] = useState<Track[]>([])
   const [room, setRoom] = useState<Room | null>(null)
@@ -135,14 +141,15 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchData = async () => {
       if (!user || !params.id) return
-      
+
       try {
         setLoading(true)
-        
+
         // Получаем данные комнаты
-        const { data: roomData, error: roomError } = await supabase
+        const { data: roomData, error: roomError } = (await supabase
           .from('rooms')
-          .select(`
+          .select(
+            `
             id,
             name,
             description,
@@ -153,43 +160,56 @@ export default function RoomPage({ params }: { params: { id: string } }) {
             is_playing,
             progress,
             profiles (username)
-          `)
+          `
+          )
           .eq('id', params.id)
-          .single() as { data: SupabaseRoom | null, error: any }
-        
+          .single()) as { data: SupabaseRoom | null; error: any }
+
         if (roomError) {
           throw new Error(roomError.message)
         }
-        
+
         if (!roomData) {
           throw new Error('Room not found')
         }
-        
+
         // Проверяем, является ли пользователь участником комнаты
-        const { data: participantData, error: participantError } = await supabase
-          .from('room_participants')
-          .select('id, role')
-          .eq('room_id', params.id)
-          .eq('user_id', user.id)
-          .single() as { data: { id: string, role: string } | null, error: any }
-        
+        const { data: participantData, error: participantError } =
+          (await supabase
+            .from('room_participants')
+            .select('id, role')
+            .eq('room_id', params.id)
+            .eq('user_id', user.id)
+            .single()) as {
+            data: { id: string; role: string } | null
+            error: any
+          }
+
         // Если пользователь участник, загружаем дополнительные данные
         if (participantData) {
           setIsParticipant(true)
-          setCurrentUserRole(participantData.role as 'owner' | 'moderator' | 'member')
-          
+          setCurrentUserRole(
+            participantData.role as 'owner' | 'moderator' | 'member'
+          )
+
           // Получаем список участников
-          const { data: participantsData, error: participantsError } = await supabase
-            .from('room_participants')
-            .select(`
+          const { data: participantsData, error: participantsError } =
+            (await supabase
+              .from('room_participants')
+              .select(
+                `
               id,
               user_id,
               role,
               joined_at,
               profiles (username, avatar_url)
-            `)
-            .eq('room_id', params.id) as { data: SupabaseParticipant[] | null, error: any }
-          
+            `
+              )
+              .eq('room_id', params.id)) as {
+              data: SupabaseParticipant[] | null
+              error: any
+            }
+
           if (!participantsError && participantsData) {
             const formattedParticipants = participantsData.map(p => ({
               id: p.id,
@@ -197,18 +217,18 @@ export default function RoomPage({ params }: { params: { id: string } }) {
               avatar: p.profiles?.avatar_url || undefined,
               role: p.role as 'owner' | 'moderator' | 'member',
               isOnline: true, // В реальной реализации нужно определить статус онлайн
-              userId: p.user_id
+              userId: p.user_id,
             }))
             setParticipants(formattedParticipants)
           }
-          
+
           // Получаем очередь треков
           const queueData = await fetchRoomTracks(params.id)
           if (queueData) {
             setQueue(queueData)
           }
         }
-        
+
         // Форматируем данные комнаты
         const formattedRoom: Room = {
           id: roomData.id,
@@ -219,13 +239,13 @@ export default function RoomPage({ params }: { params: { id: string } }) {
           maxParticipants: roomData.max_participants,
           owner: {
             id: roomData.owner_id,
-            name: roomData.profiles?.username || 'Неизвестный'
+            name: roomData.profiles?.username || 'Неизвестный',
           },
           createdAt: new Date(roomData.created_at),
           isPlaying: roomData.is_playing || false,
-          progress: roomData.progress || 0
+          progress: roomData.progress || 0,
         }
-        
+
         setRoom(formattedRoom)
       } catch (error) {
         console.error('Error fetching room data:', error)
@@ -234,7 +254,7 @@ export default function RoomPage({ params }: { params: { id: string } }) {
         setLoading(false)
       }
     }
-    
+
     if (user && params.id) {
       fetchData()
     }
@@ -246,16 +266,20 @@ export default function RoomPage({ params }: { params: { id: string } }) {
       // Отправляем системное сообщение о присоединении
       sendSystemMessage(
         'user_joined',
-        systemMessages.generateUserJoinedMessage(profile.username || 'Пользователь')
+        systemMessages.generateUserJoinedMessage(
+          profile.username || 'Пользователь'
+        )
       )
     }
-    
+
     // Отправляем системное сообщение о покидании комнаты при размонтировании
     return () => {
       if (user && profile && params.id && isParticipant) {
         sendSystemMessage(
           'user_left',
-          systemMessages.generateUserLeftMessage(profile.username || 'Пользователь')
+          systemMessages.generateUserLeftMessage(
+            profile.username || 'Пользователь'
+          )
         )
       }
     }
@@ -264,39 +288,40 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Присоединение к комнате
   const joinRoom = async () => {
     if (!user || !params.id) return
-    
+
     try {
       // Проверяем лимит участников
-      const { isLimitReached, currentCount, maxCount } = await rooms.checkParticipantLimit(params.id)
-      
+      const { isLimitReached, currentCount, maxCount } =
+        await rooms.checkParticipantLimit(params.id)
+
       if (isLimitReached) {
         toast.error(`Достигнут лимит участников (${maxCount})`)
         return
       }
-      
+
       // Добавляем пользователя в комнату
       const response = await rooms.addParticipant({
         room_id: params.id,
         user_id: user.id,
-        role: 'member'
+        role: 'member',
       })
-      
+
       if (response.error) {
         throw new Error(response.error)
       }
-      
+
       toast.success('Вы успешно присоединились к комнате!')
-      
+
       // Обновляем состояние участия
       setIsParticipant(true)
-      
+
       // Обновляем список участников
       const newParticipant: Participant = {
         id: `temp-${Date.now()}`, // временный ID
         name: profile?.username || 'Anonymous',
         userId: user.id,
         role: 'member',
-        isOnline: true
+        isOnline: true,
       }
       setParticipants([...participants, newParticipant])
     } catch (error) {
@@ -308,29 +333,31 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Покидание комнаты
   const leaveRoom = async () => {
     if (!user) return
-    
+
     try {
       // Находим участника в комнате
       const participant = participants.find(p => p.userId === user.id)
-      
+
       if (!participant) {
         toast.error('Вы не являетесь участником этой комнаты')
         return
       }
-      
+
       // Удаляем участника из комнаты
       const response = await rooms.removeParticipant(participant.id)
-      
+
       if (response.error) {
         throw new Error(response.error)
       }
-      
+
       toast.success('Вы покинули комнату')
-      
+
       // Обновляем список участников
-      const updatedParticipants = participants.filter(p => p.id !== participant.id)
+      const updatedParticipants = participants.filter(
+        p => p.id !== participant.id
+      )
       setParticipants(updatedParticipants)
-      
+
       // Перенаправляем на страницу комнат
       router.push('/rooms')
     } catch (error) {
@@ -342,16 +369,19 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Назначение модератора
   const makeModerator = async (participantId: string) => {
     try {
-      const response = await rooms.updateParticipantRole(participantId, 'moderator')
-      
+      const response = await rooms.updateParticipantRole(
+        participantId,
+        'moderator'
+      )
+
       if (response.error) {
         throw new Error(response.error)
       }
-      
+
       toast.success('Пользователь назначен модератором')
-      
+
       // Обновляем список участников
-      const updatedParticipants = participants.map(p => 
+      const updatedParticipants = participants.map(p =>
         p.id === participantId ? { ...p, role: 'moderator' } : p
       ) as Participant[]
       setParticipants(updatedParticipants)
@@ -364,16 +394,19 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Разжалование модератора
   const removeModerator = async (participantId: string) => {
     try {
-      const response = await rooms.updateParticipantRole(participantId, 'member')
-      
+      const response = await rooms.updateParticipantRole(
+        participantId,
+        'member'
+      )
+
       if (response.error) {
         throw new Error(response.error)
       }
-      
+
       toast.success('Пользователь разжалован')
-      
+
       // Обновляем список участников
-      const updatedParticipants = participants.map(p => 
+      const updatedParticipants = participants.map(p =>
         p.id === participantId ? { ...p, role: 'member' } : p
       ) as Participant[]
       setParticipants(updatedParticipants)
@@ -387,15 +420,17 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   const removeParticipant = async (participantId: string) => {
     try {
       const response = await rooms.removeParticipant(participantId)
-      
+
       if (response.error) {
         throw new Error(response.error)
       }
-      
+
       toast.success('Пользователь исключен из комнаты')
-      
+
       // Обновляем список участников
-      const updatedParticipants = participants.filter(p => p.id !== participantId)
+      const updatedParticipants = participants.filter(
+        p => p.id !== participantId
+      )
       setParticipants(updatedParticipants)
     } catch (error) {
       console.error('Error removing participant:', error)
@@ -427,10 +462,8 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Обработка голосования "за" трек
   const handleVoteUp = (trackId: string) => {
     // В реальной реализации здесь будет вызов API для голосования
-    const updatedQueue = queue.map(track => 
-      track.id === trackId 
-        ? { ...track, votesUp: track.votesUp + 1 } 
-        : track
+    const updatedQueue = queue.map(track =>
+      track.id === trackId ? { ...track, votesUp: track.votesUp + 1 } : track
     )
     setQueue(updatedQueue)
     toast.success('Голос учтен')
@@ -439,15 +472,15 @@ export default function RoomPage({ params }: { params: { id: string } }) {
   // Обработка голосования "против" трек
   const handleVoteDown = (trackId: string) => {
     // В реальной реализации здесь будет вызов API для голосования
-    const updatedQueue = queue.map(track => 
-      track.id === trackId 
-        ? { ...track, votesDown: track.votesDown + 1 } 
+    const updatedQueue = queue.map(track =>
+      track.id === trackId
+        ? { ...track, votesDown: track.votesDown + 1 }
         : track
     )
     setQueue(updatedQueue)
     toast.success('Голос учтен')
   }
-  
+
   // Обработка изменения голосов
   const handleVoteChange = async () => {
     // В реальной реализации здесь будет вызов API для получения обновленной очереди
@@ -475,7 +508,9 @@ export default function RoomPage({ params }: { params: { id: string } }) {
             <CardTitle>Комната не найдена</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4">Запрашиваемая комната не существует или недоступна.</p>
+            <p className="mb-4">
+              Запрашиваемая комната не существует или недоступна.
+            </p>
             <Button asChild>
               <Link href="/rooms">Вернуться к списку комнат</Link>
             </Button>
@@ -494,7 +529,9 @@ export default function RoomPage({ params }: { params: { id: string } }) {
             <CardTitle>Присоединиться к комнате</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-4">Вы не являетесь участником этой комнаты. Хотите присоединиться?</p>
+            <p className="mb-4">
+              Вы не являетесь участником этой комнаты. Хотите присоединиться?
+            </p>
             <Button onClick={joinRoom} className="w-full">
               Присоединиться к комнате
             </Button>
@@ -548,21 +585,25 @@ export default function RoomPage({ params }: { params: { id: string } }) {
               {room.currentTrack ? (
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative">
-                    <img 
-                      src={room.currentTrack.thumbnailUrl} 
+                    <img
+                      src={room.currentTrack.thumbnailUrl}
                       alt={room.currentTrack.title}
                       className="w-full sm:w-32 h-32 object-cover rounded-lg"
                     />
-                    <Button 
-                      size="icon" 
+                    <Button
+                      size="icon"
                       className="absolute bottom-2 right-2 rounded-full"
                     >
                       <Icons.play className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-lg">{room.currentTrack.title}</h3>
-                    <p className="text-muted-foreground">{room.currentTrack.artist}</p>
+                    <h3 className="font-bold text-lg">
+                      {room.currentTrack.title}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {room.currentTrack.artist}
+                    </p>
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
                         <span>
@@ -571,13 +612,17 @@ export default function RoomPage({ params }: { params: { id: string } }) {
                         </span>
                         <span>
                           {Math.floor(room.currentTrack.duration / 60)}:
-                          {(room.currentTrack.duration % 60).toString().padStart(2, '0')}
+                          {(room.currentTrack.duration % 60)
+                            .toString()
+                            .padStart(2, '0')}
                         </span>
                       </div>
                       <div className="w-full bg-secondary rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full" 
-                          style={{ width: `${(room.progress / room.currentTrack.duration) * 100}%` }}
+                        <div
+                          className="bg-primary h-2 rounded-full"
+                          style={{
+                            width: `${(room.progress / room.currentTrack.duration) * 100}%`,
+                          }}
                         ></div>
                       </div>
                     </div>
@@ -643,10 +688,10 @@ export default function RoomPage({ params }: { params: { id: string } }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {participants.map((participant) => (
-                  <ParticipantItem 
-                    key={participant.id} 
-                    participant={participant} 
+                {participants.map(participant => (
+                  <ParticipantItem
+                    key={participant.id}
+                    participant={participant}
                     currentUserId={user.id}
                     currentUserRole={currentUserRole}
                     onRemove={removeParticipant}
@@ -660,12 +705,12 @@ export default function RoomPage({ params }: { params: { id: string } }) {
 
           {/* Chat */}
           <Card className="h-[500px]">
-            <Chat 
-              messages={messages} 
+            <Chat
+              messages={messages}
               currentUser={{
                 id: user.id,
                 name: profile?.username || 'Anonymous',
-                avatar: profile?.avatar_url || undefined
+                avatar: profile?.avatar_url || undefined,
               }}
               onSendMessage={sendMessage}
               isTyping={isTyping}

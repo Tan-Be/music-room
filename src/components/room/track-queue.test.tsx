@@ -5,8 +5,8 @@ import { TrackQueue } from './track-queue'
 jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({
     user: { id: 'user1' },
-    profile: { username: 'TestUser' }
-  })
+    profile: { username: 'TestUser' },
+  }),
 }))
 
 describe('TrackQueue Component', () => {
@@ -20,9 +20,9 @@ describe('TrackQueue Component', () => {
       votesDown: 2,
       addedBy: {
         name: 'User 1',
-        id: 'user1'
+        id: 'user1',
       },
-      position: 0
+      position: 0,
     },
     {
       id: '2',
@@ -33,10 +33,10 @@ describe('TrackQueue Component', () => {
       votesDown: 1,
       addedBy: {
         name: 'User 2',
-        id: 'user2'
+        id: 'user2',
       },
-      position: 1
-    }
+      position: 1,
+    },
   ]
 
   const mockOnReorder = jest.fn()

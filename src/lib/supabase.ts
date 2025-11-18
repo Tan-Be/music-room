@@ -289,5 +289,6 @@ export type RoomParticipant =
 export type Track = Database['public']['Tables']['tracks']['Row']
 export type RoomQueueItem = Database['public']['Tables']['room_queue']['Row']
 export type ChatMessage = Database['public']['Tables']['chat_messages']['Row']
-export type SystemMessage = Database['public']['Tables']['system_messages']['Row']
+export type SystemMessage =
+  Database['public']['Tables']['system_messages']['Row']
 export type TrackVote = Database['public']['Tables']['track_votes']['Row']

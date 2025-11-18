@@ -31,6 +31,7 @@ interface TrackQueueProps {
   roomId: string
   currentUserId: string
   currentUserRole: 'owner' | 'moderator' | 'member'
+  currentTrackId?: string
   onReorder?: (newOrder: Track[]) => void
   onDelete?: (trackId: string) => void
   onPlay?: (trackId: string) => void
@@ -45,6 +46,7 @@ export function TrackQueue({
   roomId,
   currentUserId,
   currentUserRole,
+  currentTrackId,
   onReorder,
   onDelete,
   onPlay,
@@ -60,13 +62,16 @@ export function TrackQueue({
     setQueueTracks(tracks)
   }, [tracks])
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, track: Track) => {
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    track: Track
+  ) => {
     // Только модераторы и владельцы могут перетаскивать треки
     if (currentUserRole !== 'owner' && currentUserRole !== 'moderator') {
       e.preventDefault()
       return
     }
-    
+
     setDraggedItem(track)
     e.dataTransfer.effectAllowed = 'move'
   }
@@ -78,7 +83,7 @@ export function TrackQueue({
 
   const handleDrop = (e: React.DragEvent, targetTrack: Track) => {
     e.preventDefault()
-    
+
     if (!draggedItem || draggedItem.id === targetTrack.id) {
       return
     }
@@ -92,24 +97,24 @@ export function TrackQueue({
     const newTracks = [...queueTracks]
     const draggedIndex = newTracks.findIndex(t => t.id === draggedItem.id)
     const targetIndex = newTracks.findIndex(t => t.id === targetTrack.id)
-    
+
     // Удаляем перетаскиваемый элемент
     newTracks.splice(draggedIndex, 1)
     // Вставляем его на новую позицию
     newTracks.splice(targetIndex, 0, draggedItem)
-    
+
     // Обновляем позиции
     const updatedTracks = newTracks.map((track, index) => ({
       ...track,
-      position: index
+      position: index,
     }))
-    
+
     setQueueTracks(updatedTracks)
-    
+
     if (onReorder) {
       onReorder(updatedTracks)
     }
-    
+
     setDraggedItem(null)
   }
 
@@ -117,20 +122,20 @@ export function TrackQueue({
     // Проверяем права на удаление
     const track = queueTracks.find(t => t.id === trackId)
     if (!track) return
-    
+
     // Владелец может удалить любой трек
     // Модератор может удалить треки участников
     // Участник может удалить только свои треки
-    const canDelete = 
+    const canDelete =
       currentUserRole === 'owner' ||
       (currentUserRole === 'moderator' && track.addedBy.id !== currentUserId) ||
       track.addedBy.id === currentUserId
-    
+
     if (!canDelete) {
       toast.error('У вас нет прав для удаления этого трека')
       return
     }
-    
+
     if (onDelete) {
       onDelete(trackId)
     }
@@ -166,41 +171,52 @@ export function TrackQueue({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              draggable={currentUserRole === 'owner' || currentUserRole === 'moderator'}
+              draggable={
+                currentUserRole === 'owner' || currentUserRole === 'moderator'
+              }
               onDragStart={(e: any) => handleDragStart(e, track)}
               onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, track)}
+              onDrop={e => handleDrop(e, track)}
               className={cn(
                 'relative group',
-                (currentUserRole === 'owner' || currentUserRole === 'moderator') && 'cursor-move'
+                (currentUserRole === 'owner' ||
+                  currentUserRole === 'moderator') &&
+                  'cursor-move'
               )}
             >
               {/* Drag handle for moderators */}
-              {(currentUserRole === 'owner' || currentUserRole === 'moderator') && (
+              {(currentUserRole === 'owner' ||
+                currentUserRole === 'moderator') && (
                 <div className="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <GripVertical className="h-4 w-4 text-muted-foreground" />
                 </div>
               )}
-              
+
               <TrackItem
                 track={track}
+                index={index}
+                isCurrent={!!currentTrackId && currentTrackId === track.id}
                 roomId={roomId}
-                onVoteUp={() => handleVoteUp(track.id)}
-                onVoteDown={() => handleVoteDown(track.id)}
-                onPlay={() => handlePlay(track.id)}
-                onVoteChange={onVoteChange}
+                onVote={value => {
+                  if (value === 1) {
+                    handleVoteUp(track.id)
+                  } else if (value === -1) {
+                    handleVoteDown(track.id)
+                  }
+                }}
+                onRemove={() => handleDelete(track.id)}
                 className={cn(
                   track.isPlaying && 'border-primary',
-                  (currentUserRole === 'owner' || currentUserRole === 'moderator') && 'pl-6'
+                  (currentUserRole === 'owner' ||
+                    currentUserRole === 'moderator') &&
+                    'pl-6'
                 )}
               />
-              
+
               {/* Delete button for owners/moderators or track owners */}
-              {(
-                currentUserRole === 'owner' || 
-                currentUserRole === 'moderator' || 
-                track.addedBy.id === currentUserId
-              ) && (
+              {(currentUserRole === 'owner' ||
+                currentUserRole === 'moderator' ||
+                track.addedBy.id === currentUserId) && (
                 <Button
                   variant="ghost"
                   size="icon"

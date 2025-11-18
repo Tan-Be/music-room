@@ -1,13 +1,13 @@
-import { 
-  Music, 
-  Users, 
-  User, 
-  LogOut, 
-  Moon, 
-  Sun, 
-  Monitor, 
-  Menu, 
-  X, 
+import {
+  Music,
+  Users,
+  User,
+  LogOut,
+  Moon,
+  Sun,
+  Monitor,
+  Menu,
+  X,
   Search,
   Share,
   Play,
@@ -16,7 +16,7 @@ import {
   SkipForward,
   List,
   MessageCircle,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react'
 
 export const Icons = {
@@ -37,5 +37,5 @@ export const Icons = {
   skipForward: SkipForward,
   list: List,
   messageCircle: MessageCircle,
-  moreHorizontal: MoreHorizontal
+  moreHorizontal: MoreHorizontal,
 }

@@ -5,8 +5,8 @@ import { useChatRealtime } from './useChatRealtime'
 jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => ({
     user: { id: 'test-user-id' },
-    profile: { username: 'TestUser' }
-  })
+    profile: { username: 'TestUser' },
+  }),
 }))
 
 jest.mock('@/lib/chat-realtime', () => ({
@@ -14,8 +14,8 @@ jest.mock('@/lib/chat-realtime', () => ({
     subscribeToRoom: jest.fn(),
     unsubscribe: jest.fn(),
     isCurrentlySubscribed: jest.fn(),
-    sendMessage: jest.fn()
-  }
+    sendMessage: jest.fn(),
+  },
 }))
 
 describe('useChatRealtime', () => {
@@ -61,7 +61,7 @@ describe('useChatRealtime', () => {
     mockSendMessage.mockResolvedValue(true)
 
     const { result } = renderHook(() => useChatRealtime('test-room-id'))
-    
+
     let success = false
     await act(async () => {
       success = await result.current.sendMessage('Test message')
@@ -89,8 +89,8 @@ describe('useChatRealtime', () => {
     jest.mock('@/contexts/auth-context', () => ({
       useAuth: () => ({
         user: null,
-        profile: null
-      })
+        profile: null,
+      }),
     }))
 
     renderHook(() => useChatRealtime('test-room-id'))

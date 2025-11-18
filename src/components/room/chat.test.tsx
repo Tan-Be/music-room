@@ -16,7 +16,7 @@ describe('Chat Component', () => {
       userName: 'Alice',
       content: 'Hello everyone!',
       timestamp: new Date('2023-01-01T10:00:00Z'),
-      type: 'user' as const
+      type: 'user' as const,
     },
     {
       id: '2',
@@ -24,7 +24,7 @@ describe('Chat Component', () => {
       userName: 'Bob',
       content: 'Hi Alice!',
       timestamp: new Date('2023-01-01T10:01:00Z'),
-      type: 'user' as const
+      type: 'user' as const,
     },
   ]
 
@@ -33,8 +33,8 @@ describe('Chat Component', () => {
       id: '3',
       content: 'Alice присоединился к комнате',
       timestamp: new Date('2023-01-01T09:59:00Z'),
-      type: 'system' as const
-    }
+      type: 'system' as const,
+    },
   ]
 
   const mockMessages = [...mockSystemMessages, ...mockUserMessages]
@@ -69,7 +69,9 @@ describe('Chat Component', () => {
       />
     )
 
-    expect(screen.getByText('Alice присоединился к комнате')).toBeInTheDocument()
+    expect(
+      screen.getByText('Alice присоединился к комнате')
+    ).toBeInTheDocument()
   })
 
   it('displays typing indicator when isTyping is true', () => {
@@ -87,7 +89,7 @@ describe('Chat Component', () => {
 
   it('calls onSendMessage when form is submitted', () => {
     const mockSendMessage = jest.fn()
-    
+
     render(
       <Chat
         messages={mockUserMessages}
@@ -114,7 +116,7 @@ describe('Chat Component', () => {
         userName: 'Alice',
         content: 'Today message',
         timestamp: today,
-        type: 'user' as const
+        type: 'user' as const,
       },
     ]
 
@@ -130,7 +132,7 @@ describe('Chat Component', () => {
     const timeString = today.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
     })
     expect(screen.getByText(timeString)).toBeInTheDocument()
   })
@@ -145,10 +147,10 @@ describe('Chat Component', () => {
     )
 
     const input = screen.getByPlaceholderText('Написать сообщение...')
-    
+
     // Проверяем, что отображается счетчик символов
     expect(screen.getByText('0/500')).toBeInTheDocument()
-    
+
     // Вводим текст и проверяем обновление счетчика
     fireEvent.change(input, { target: { value: 'Test' } })
     expect(screen.getByText('4/500')).toBeInTheDocument()
@@ -156,7 +158,7 @@ describe('Chat Component', () => {
 
   it('shows error for empty message', () => {
     const mockSendMessage = jest.fn()
-    
+
     render(
       <Chat
         messages={mockUserMessages}
@@ -168,7 +170,9 @@ describe('Chat Component', () => {
     const button = screen.getByRole('button', { name: '' })
     fireEvent.click(button)
 
-    expect(screen.getByText('Сообщение не может быть пустым')).toBeInTheDocument()
+    expect(
+      screen.getByText('Сообщение не может быть пустым')
+    ).toBeInTheDocument()
     expect(mockSendMessage).not.toHaveBeenCalled()
   })
 
@@ -183,9 +187,11 @@ describe('Chat Component', () => {
 
     const input = screen.getByPlaceholderText('Написать сообщение...')
     const longMessage = 'a'.repeat(501) // Больше лимита
-    
+
     fireEvent.change(input, { target: { value: longMessage } })
-    
-    expect(screen.getByText('Сообщение слишком длинное (максимум 500 символов)')).toBeInTheDocument()
+
+    expect(
+      screen.getByText('Сообщение слишком длинное (максимум 500 символов)')
+    ).toBeInTheDocument()
   })
 })

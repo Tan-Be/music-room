@@ -8,7 +8,7 @@ describe('ScrollArea Component', () => {
         <div>Test content</div>
       </ScrollArea>
     )
-    
+
     expect(screen.getByText('Test content')).toBeInTheDocument()
   })
 
@@ -19,7 +19,7 @@ describe('ScrollArea Component', () => {
         <ScrollBar />
       </ScrollArea>
     )
-    
+
     // Проверяем, что компонент отрендерился без ошибок
     expect(screen.getByText('Test content')).toBeInTheDocument()
   })
@@ -31,7 +31,7 @@ describe('ScrollArea Component', () => {
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     )
-    
+
     // Проверяем, что компонент отрендерился без ошибок
     expect(screen.getByText('Test content')).toBeInTheDocument()
   })

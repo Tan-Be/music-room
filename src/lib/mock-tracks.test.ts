@@ -22,8 +22,19 @@ describe('mockTracks', () => {
   })
 
   it('should have tracks with valid genres', () => {
-    const validGenres = ['pop', 'rock', 'hip-hop', 'electronic', 'jazz', 'classical', 'reggae', 'metal', 'alternative', 'country']
-    
+    const validGenres = [
+      'pop',
+      'rock',
+      'hip-hop',
+      'electronic',
+      'jazz',
+      'classical',
+      'reggae',
+      'metal',
+      'alternative',
+      'country',
+    ]
+
     mockTracks.forEach((track: MockTrack) => {
       if (track.genre) {
         expect(validGenres).toContain(track.genre)

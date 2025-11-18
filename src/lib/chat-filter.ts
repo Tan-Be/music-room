@@ -28,7 +28,7 @@ const PROFANITY_WORDS = [
   'залупа',
   'чмо',
   'черт',
-  'чёрт'
+  'чёрт',
 ]
 
 // Максимальная длина сообщения
@@ -40,13 +40,13 @@ export const MIN_MESSAGE_INTERVAL = 1000 // 1 секунда
 // Фильтрация нецензурной лексики
 export function filterProfanity(text: string): string {
   let filteredText = text
-  
+
   // Заменяем нецензурные слова на звездочки
   PROFANITY_WORDS.forEach(word => {
     const regex = new RegExp(`\\b${word}\\b`, 'gi')
     filteredText = filteredText.replace(regex, '*'.repeat(word.length))
   })
-  
+
   return filteredText
 }
 
@@ -63,29 +63,29 @@ export function isSendingTooFast(lastMessageTime: number): boolean {
 
 // Валидация сообщения
 export function validateMessage(
-  text: string, 
+  text: string,
   lastMessageTime: number
 ): { isValid: boolean; error?: string } {
   // Проверка на пустое сообщение
   if (!text.trim()) {
     return { isValid: false, error: 'Сообщение не может быть пустым' }
   }
-  
+
   // Проверка длины сообщения
   if (isMessageTooLong(text)) {
-    return { 
-      isValid: false, 
-      error: `Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)` 
+    return {
+      isValid: false,
+      error: `Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)`,
     }
   }
-  
+
   // Проверка частоты отправки
   if (isSendingTooFast(lastMessageTime)) {
-    return { 
-      isValid: false, 
-      error: `Пожалуйста, подождите перед отправкой следующего сообщения` 
+    return {
+      isValid: false,
+      error: `Пожалуйста, подождите перед отправкой следующего сообщения`,
     }
   }
-  
+
   return { isValid: true }
 }

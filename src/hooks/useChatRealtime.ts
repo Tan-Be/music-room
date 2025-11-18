@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { chatRealtimeService, ChatMessageWithUserInfo } from '@/lib/chat-realtime'
+import {
+  chatRealtimeService,
+  ChatMessageWithUserInfo,
+} from '@/lib/chat-realtime'
 import { systemMessages, SystemMessageData } from '@/lib/system-messages'
 import { toast } from 'sonner'
 
@@ -39,7 +42,7 @@ export function useChatRealtime(roomId: string) {
       // Подписываемся на пользовательские сообщения
       chatRealtimeService.subscribeToRoom(
         roomId,
-        (chatMessages) => {
+        chatMessages => {
           // Преобразуем пользовательские сообщения из формата Supabase в формат для UI
           const userMessages: UserMessage[] = chatMessages.map(msg => ({
             id: msg.id,
@@ -48,28 +51,33 @@ export function useChatRealtime(roomId: string) {
             userAvatar: msg.profiles?.avatar_url || undefined,
             content: msg.message,
             timestamp: new Date(msg.created_at),
-            type: 'user'
+            type: 'user',
           }))
-          
+
           // Получаем системные сообщения
-          systemMessages.getMessages(roomId).then(({ data: systemMessagesData }) => {
-            const systemMsgs: SystemMessage[] = systemMessagesData.map(msg => ({
-              id: msg.id,
-              content: msg.content,
-              timestamp: new Date(msg.created_at),
-              type: 'system'
-            }))
-            
-            // Объединяем и сортируем все сообщения
-            const allMessages: ChatMessage[] = [...userMessages, ...systemMsgs].sort(
-              (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-            )
-            
-            setMessages(allMessages)
-            setIsLoading(false)
-          })
+          systemMessages
+            .getMessages(roomId)
+            .then(({ data: systemMessagesData }) => {
+              const systemMsgs: SystemMessage[] = systemMessagesData.map(
+                msg => ({
+                  id: msg.id,
+                  content: msg.content,
+                  timestamp: new Date(msg.created_at),
+                  type: 'system',
+                })
+              )
+
+              // Объединяем и сортируем все сообщения
+              const allMessages: ChatMessage[] = [
+                ...userMessages,
+                ...systemMsgs,
+              ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+
+              setMessages(allMessages)
+              setIsLoading(false)
+            })
         },
-        (newMessage) => {
+        newMessage => {
           // Обработка новых пользовательских сообщений
           const userMsg: UserMessage = {
             id: newMessage.id,
@@ -78,24 +86,24 @@ export function useChatRealtime(roomId: string) {
             userAvatar: newMessage.profiles?.avatar_url || undefined,
             content: newMessage.message,
             timestamp: new Date(newMessage.created_at),
-            type: 'user'
+            type: 'user',
           }
-          
+
           setMessages(prev => [...prev, userMsg])
         }
       )
-      
+
       // Подписываемся на системные сообщения
       systemChannelRef.current = systemMessages.subscribeToMessages(
         roomId,
-        (systemMessage) => {
+        systemMessage => {
           const systemMsg: SystemMessage = {
             id: systemMessage.id,
             content: systemMessage.content,
             timestamp: new Date(systemMessage.created_at),
-            type: 'system'
+            type: 'system',
           }
-          
+
           setMessages(prev => [...prev, systemMsg])
         }
       )
@@ -111,56 +119,63 @@ export function useChatRealtime(roomId: string) {
   }, [user, roomId])
 
   // Отправка сообщения
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !user || !roomId) {
-      return false
-    }
-
-    try {
-      const success = await chatRealtimeService.sendMessage(
-        roomId,
-        user.id,
-        content,
-        lastMessageTime.current
-      )
-      
-      if (success) {
-        // Обновляем время последнего сообщения
-        lastMessageTime.current = Date.now()
-      } else {
-        toast.error('Не удалось отправить сообщение')
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || !user || !roomId) {
         return false
       }
-      
-      return true
-    } catch (error) {
-      console.error('Error sending message:', error)
-      toast.error('Ошибка при отправке сообщения')
-      return false
-    }
-  }, [user, roomId])
+
+      try {
+        const success = await chatRealtimeService.sendMessage(
+          roomId,
+          user.id,
+          content,
+          lastMessageTime.current
+        )
+
+        if (success) {
+          // Обновляем время последнего сообщения
+          lastMessageTime.current = Date.now()
+        } else {
+          toast.error('Не удалось отправить сообщение')
+          return false
+        }
+
+        return true
+      } catch (error) {
+        console.error('Error sending message:', error)
+        toast.error('Ошибка при отправке сообщения')
+        return false
+      }
+    },
+    [user, roomId]
+  )
 
   // Создание системного сообщения
-  const sendSystemMessage = useCallback(async (
-    type: any,
-    content: string
-  ) => {
-    if (!roomId) return false
-    
-    try {
-      const { data, error } = await systemMessages.createMessage(roomId, type, content)
-      
-      if (error) {
+  const sendSystemMessage = useCallback(
+    async (type: any, content: string) => {
+      if (!roomId) return false
+
+      try {
+        const { data, error } = await systemMessages.createMessage(
+          roomId,
+          type,
+          content
+        )
+
+        if (error) {
+          console.error('Error sending system message:', error)
+          return false
+        }
+
+        return true
+      } catch (error) {
         console.error('Error sending system message:', error)
         return false
       }
-      
-      return true
-    } catch (error) {
-      console.error('Error sending system message:', error)
-      return false
-    }
-  }, [roomId])
+    },
+    [roomId]
+  )
 
   // Проверка статуса подключения
   const isSubscribed = chatRealtimeService.isCurrentlySubscribed()
@@ -170,6 +185,6 @@ export function useChatRealtime(roomId: string) {
     isLoading,
     isSubscribed,
     sendMessage,
-    sendSystemMessage
+    sendSystemMessage,
   }
 }

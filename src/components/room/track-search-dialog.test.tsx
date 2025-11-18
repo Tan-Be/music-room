@@ -21,7 +21,7 @@ jest.mock('sonner', () => ({
   toast: {
     success: jest.fn(),
     error: jest.fn(),
-  }
+  },
 }))
 
 describe('TrackSearchDialog Component', () => {
@@ -34,59 +34,63 @@ describe('TrackSearchDialog Component', () => {
 
   it('renders trigger button by default', () => {
     render(
-      <TrackSearchDialog 
-        roomId="test-room-id" 
-        userId="test-user-id" 
+      <TrackSearchDialog
+        roomId="test-room-id"
+        userId="test-user-id"
         onTrackAdded={mockOnTrackAdded}
       />
     )
-    
+
     expect(screen.getByText('Поиск треков')).toBeInTheDocument()
   })
 
   it('renders custom children when provided', () => {
     render(
-      <TrackSearchDialog 
-        roomId="test-room-id" 
-        userId="test-user-id" 
+      <TrackSearchDialog
+        roomId="test-room-id"
+        userId="test-user-id"
         onTrackAdded={mockOnTrackAdded}
       >
         <button>Custom Trigger</button>
       </TrackSearchDialog>
     )
-    
+
     expect(screen.getByText('Custom Trigger')).toBeInTheDocument()
   })
 
   it('opens dialog when trigger is clicked', () => {
     render(
-      <TrackSearchDialog 
-        roomId="test-room-id" 
-        userId="test-user-id" 
+      <TrackSearchDialog
+        roomId="test-room-id"
+        userId="test-user-id"
         onTrackAdded={mockOnTrackAdded}
       />
     )
-    
+
     const triggerButton = screen.getByText('Поиск треков')
     fireEvent.click(triggerButton)
-    
+
     // Проверяем, что диалог открылся
     expect(screen.getByText('Поиск треков')).toBeInTheDocument()
   })
 
   it('calls onTrackAdded when track is added to queue', () => {
     render(
-      <TrackSearchDialog 
-        roomId="test-room-id" 
-        userId="test-user-id" 
+      <TrackSearchDialog
+        roomId="test-room-id"
+        userId="test-user-id"
         onTrackAdded={mockOnTrackAdded}
       />
     )
-    
+
     const triggerButton = screen.getByText('Поиск треков')
     fireEvent.click(triggerButton)
-    
+
     // Проверяем, что компонент поиска треков отрендерился
-    expect(screen.getByPlaceholderText('Поиск треков по названию, исполнителю или жанру...')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText(
+        'Поиск треков по названию, исполнителю или жанру...'
+      )
+    ).toBeInTheDocument()
   })
 })

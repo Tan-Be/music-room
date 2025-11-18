@@ -15,20 +15,20 @@ describe('useDebounce', () => {
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: 'initial', delay: 500 } }
     )
-    
+
     expect(result.current).toBe('initial')
-    
+
     // Обновляем значение
     rerender({ value: 'updated', delay: 500 })
-    
+
     // Значение не должно измениться сразу
     expect(result.current).toBe('initial')
-    
+
     // Продвигаем время на 500 мс
     act(() => {
       jest.advanceTimersByTime(500)
     })
-    
+
     // Теперь значение должно измениться
     expect(result.current).toBe('updated')
   })
@@ -38,22 +38,22 @@ describe('useDebounce', () => {
       ({ value, delay }) => useDebounce(value, delay),
       { initialProps: { value: 'initial', delay: 500 } }
     )
-    
+
     expect(result.current).toBe('initial')
-    
+
     // Обновляем значение
     rerender({ value: 'first update', delay: 500 })
     expect(result.current).toBe('initial')
-    
+
     // Обновляем значение снова до истечения времени
     rerender({ value: 'second update', delay: 500 })
     expect(result.current).toBe('initial')
-    
+
     // Продвигаем время на 500 мс
     act(() => {
       jest.advanceTimersByTime(500)
     })
-    
+
     // Должно установиться последнее значение
     expect(result.current).toBe('second update')
   })

@@ -11,8 +11,8 @@ describe('TrackItem Component', () => {
     votesUp: 5,
     votesDown: 2,
     addedBy: {
-      name: 'Test User'
-    }
+      name: 'Test User',
+    },
   }
 
   const mockOnVoteUp = jest.fn()
@@ -109,7 +109,7 @@ describe('TrackItem Component', () => {
   it('shows playing indicator when track is playing', () => {
     const playingTrack = {
       ...mockTrack,
-      isPlaying: true
+      isPlaying: true,
     }
 
     render(

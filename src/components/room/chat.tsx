@@ -47,7 +47,7 @@ interface ChatProps {
 function formatMessageTime(date: Date): string {
   const now = new Date()
   const messageDate = new Date(date)
-  
+
   // Если сообщение сегодня, показываем только время
   if (messageDate.toDateString() === now.toDateString()) {
     return messageDate.toLocaleTimeString([], {
@@ -55,7 +55,7 @@ function formatMessageTime(date: Date): string {
       minute: '2-digit',
     })
   }
-  
+
   // Если сообщение вчера, показываем "Вчера" и время
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
@@ -65,7 +65,7 @@ function formatMessageTime(date: Date): string {
       minute: '2-digit',
     })}`
   }
-  
+
   // Для более старых сообщений показываем дату и время
   return messageDate.toLocaleString([], {
     day: '2-digit',
@@ -90,17 +90,19 @@ export function Chat({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!message.trim()) {
       setError('Сообщение не может быть пустым')
       return
     }
-    
+
     if (message.length > MAX_MESSAGE_LENGTH) {
-      setError(`Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)`)
+      setError(
+        `Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)`
+      )
       return
     }
-    
+
     if (onSendMessage) {
       onSendMessage(message.trim())
       setMessage('')
@@ -112,15 +114,17 @@ export function Chat({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setMessage(value)
-    
+
     // Очищаем ошибку при вводе
     if (error && value.trim()) {
       setError('')
     }
-    
+
     // Проверяем длину сообщения
     if (value.length > MAX_MESSAGE_LENGTH) {
-      setError(`Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)`)
+      setError(
+        `Сообщение слишком длинное (максимум ${MAX_MESSAGE_LENGTH} символов)`
+      )
     } else if (error.includes('слишком длинное')) {
       setError('')
     }
@@ -143,7 +147,7 @@ export function Chat({
       </CardHeader>
 
       <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => {
+        {messages.map(message => {
           if (message.type === 'system') {
             // Отображение системного сообщения
             return (
@@ -167,7 +171,10 @@ export function Chat({
                 )}
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={message.userAvatar} alt={message.userName} />
+                  <AvatarImage
+                    src={message.userAvatar}
+                    alt={message.userName}
+                  />
                   <AvatarFallback>{message.userName.charAt(0)}</AvatarFallback>
                 </Avatar>
 
@@ -179,7 +186,9 @@ export function Chat({
                       : 'bg-muted rounded-bl-none'
                   )}
                 >
-                  <div className="text-xs font-medium mb-1">{message.userName}</div>
+                  <div className="text-xs font-medium mb-1">
+                    {message.userName}
+                  </div>
                   <div>{message.content}</div>
                   <div className="text-xs opacity-70 mt-1">
                     {formatMessageTime(message.timestamp)}
@@ -189,33 +198,39 @@ export function Chat({
             )
           }
         })}
-        
+
         {isTyping && (
           <div className="flex gap-2">
             <Avatar className="h-8 w-8">
               <AvatarFallback>...</AvatarFallback>
             </Avatar>
             <div className="bg-muted rounded-lg px-3 py-2 rounded-bl-none">
-              <div className="text-xs font-medium mb-1">Пользователь печатает</div>
+              <div className="text-xs font-medium mb-1">
+                Пользователь печатает
+              </div>
               <div className="flex items-center">
                 <div className="flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.4s' }}
+                  ></div>
                 </div>
               </div>
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </CardContent>
 
       <CardFooter className="border-t p-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-full">
-          {error && (
-            <div className="text-sm text-red-500">{error}</div>
-          )}
+          {error && <div className="text-sm text-red-500">{error}</div>}
           <div className="flex gap-2">
             <Input
               ref={inputRef}

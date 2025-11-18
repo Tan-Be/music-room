@@ -1,7 +1,11 @@
 import { supabase } from '@/lib/supabase'
 import { ChatMessage } from '@/lib/supabase'
 import { toast } from 'sonner'
-import { filterProfanity, validateMessage, MIN_MESSAGE_INTERVAL } from '@/lib/chat-filter'
+import {
+  filterProfanity,
+  validateMessage,
+  MIN_MESSAGE_INTERVAL,
+} from '@/lib/chat-filter'
 
 // Типы для realtime чата
 export type ChatMessageWithUserInfo = ChatMessage & {
@@ -25,7 +29,11 @@ class ChatRealtimeService {
   private userMessageTimes: Map<string, number> = new Map() // Для отслеживания частоты сообщений пользователей
 
   // Подписка на сообщения комнаты
-  subscribeToRoom(roomId: string, onMessages: ChatCallback, onNewMessage?: NewMessageCallback) {
+  subscribeToRoom(
+    roomId: string,
+    onMessages: ChatCallback,
+    onNewMessage?: NewMessageCallback
+  ) {
     this.roomId = roomId
     this.onMessagesCallback = onMessages
     this.onNewMessageCallback = onNewMessage || null
@@ -44,20 +52,20 @@ class ChatRealtimeService {
           event: 'INSERT',
           schema: 'public',
           table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`
+          filter: `room_id=eq.${roomId}`,
         },
-        async (payload) => {
+        async payload => {
           try {
             // Получаем информацию о пользователе для нового сообщения
             const message = payload.new as ChatMessage
             const userMessage = await this.getMessageWithUserInfo(message)
-            
+
             if (userMessage) {
               // Вызываем callback для нового сообщения
               if (this.onNewMessageCallback) {
                 this.onNewMessageCallback(userMessage)
               }
-              
+
               // Добавляем в буфер и вызываем общий callback
               this.messageBuffer.push(userMessage)
               if (this.onMessagesCallback) {
@@ -70,11 +78,11 @@ class ChatRealtimeService {
           }
         }
       )
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
           this.isSubscribed = true
           console.log(`Subscribed to chat for room ${roomId}`)
-          
+
           // Загружаем последние сообщения при успешной подписке
           await this.loadRecentMessages()
         } else if (status === 'CHANNEL_ERROR') {
@@ -94,10 +102,12 @@ class ChatRealtimeService {
     try {
       const { data, error } = await supabase
         .from('chat_messages')
-        .select(`
+        .select(
+          `
           *,
           profiles (username, avatar_url)
-        `)
+        `
+        )
         .eq('room_id', this.roomId)
         .order('created_at', { ascending: false })
         .limit(limit)
@@ -107,12 +117,12 @@ class ChatRealtimeService {
       // Преобразуем сообщения в правильный формат
       const messagesWithUserInfo = (data as any[]).map(msg => ({
         ...msg,
-        profiles: msg.profiles || null
+        profiles: msg.profiles || null,
       })) as ChatMessageWithUserInfo[]
 
       // Сохраняем сообщения в буфер (в обратном порядке, чтобы новые были в конце)
       this.messageBuffer = messagesWithUserInfo.reverse()
-      
+
       // Вызываем callback с сообщениями
       if (this.onMessagesCallback) {
         this.onMessagesCallback([...this.messageBuffer])
@@ -124,7 +134,9 @@ class ChatRealtimeService {
   }
 
   // Получение информации о пользователе для сообщения
-  private async getMessageWithUserInfo(message: ChatMessage): Promise<ChatMessageWithUserInfo | null> {
+  private async getMessageWithUserInfo(
+    message: ChatMessage
+  ): Promise<ChatMessageWithUserInfo | null> {
     try {
       const { data: profileData, error } = await supabase
         .from('profiles')
@@ -136,19 +148,19 @@ class ChatRealtimeService {
         console.error('Error fetching user profile:', error)
         return {
           ...message,
-          profiles: null
+          profiles: null,
         }
       }
 
       return {
         ...message,
-        profiles: profileData || null
+        profiles: profileData || null,
       }
     } catch (error) {
       console.error('Error getting user info for message:', error)
       return {
         ...message,
-        profiles: null
+        profiles: null,
       }
     }
   }
@@ -166,37 +178,42 @@ class ChatRealtimeService {
   }
 
   // Отправка нового сообщения
-  async sendMessage(roomId: string, userId: string, content: string, lastMessageTime: number = 0): Promise<boolean> {
+  async sendMessage(
+    roomId: string,
+    userId: string,
+    content: string,
+    lastMessageTime: number = 0
+  ): Promise<boolean> {
     try {
       // Проверяем, не отправляет ли текущий пользователь сообщения слишком часто
       if (this.isUserSendingTooFast(userId)) {
-        toast.error(`Пожалуйста, подождите перед отправкой следующего сообщения`)
+        toast.error(
+          `Пожалуйста, подождите перед отправкой следующего сообщения`
+        )
         return false
       }
-      
+
       // Валидация сообщения
       const validation = validateMessage(content, lastMessageTime)
       if (!validation.isValid) {
         toast.error(validation.error || 'Ошибка валидации сообщения')
         return false
       }
-      
+
       // Фильтрация нецензурной лексики
       const filteredContent = filterProfanity(content)
-      
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert({
-          room_id: roomId,
-          user_id: userId,
-          message: filteredContent.trim()
-        } as any)
+
+      const { error } = await supabase.from('chat_messages').insert({
+        room_id: roomId,
+        user_id: userId,
+        message: filteredContent.trim(),
+      } as any)
 
       if (error) throw error
-      
+
       // Обновляем время последнего сообщения пользователя
       this.updateUserMessageTime(userId)
-      
+
       return true
     } catch (error) {
       console.error('Error sending message:', error)

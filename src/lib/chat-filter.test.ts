@@ -1,4 +1,9 @@
-import { filterProfanity, isMessageTooLong, validateMessage, MAX_MESSAGE_LENGTH } from './chat-filter'
+import {
+  filterProfanity,
+  isMessageTooLong,
+  validateMessage,
+  MAX_MESSAGE_LENGTH,
+} from './chat-filter'
 
 describe('chat-filter', () => {
   describe('filterProfanity', () => {
@@ -50,7 +55,9 @@ describe('chat-filter', () => {
       const now = Date.now()
       const result = validateMessage('Test message', now - 500) // 500ms ago
       expect(result.isValid).toBe(false)
-      expect(result.error).toBe('Пожалуйста, подождите перед отправкой следующего сообщения')
+      expect(result.error).toBe(
+        'Пожалуйста, подождите перед отправкой следующего сообщения'
+      )
     })
 
     it('should return valid for proper messages', () => {

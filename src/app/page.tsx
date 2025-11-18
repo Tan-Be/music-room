@@ -38,7 +38,7 @@ function MusicalNotes() {
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-[-1]">
       {/* Purple musical notes on black background */}
       <div className="absolute inset-0 bg-black"></div>
-      
+
       {/* Animated musical notes */}
       {notePositions.map((pos, i) => (
         <div
@@ -55,7 +55,7 @@ function MusicalNotes() {
           <Icons.music className="h-full w-full" />
         </div>
       ))}
-      
+
       <style jsx>{`
         @keyframes float {
           0% {
@@ -75,7 +75,7 @@ function MusicalNotes() {
         }
       `}</style>
     </div>
-  );
+  )
 }
 
 // Тип данных для RoomCard
@@ -144,9 +144,10 @@ export default function Home() {
   useEffect(() => {
     // Фильтрация комнат по поисковому запросу
     const filtered = mockRooms.filter(
-      (room) =>
+      room =>
         room.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (room.description && room.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        (room.description &&
+          room.description.toLowerCase().includes(searchQuery.toLowerCase()))
     )
     setFilteredRooms(filtered)
   }, [searchQuery])
@@ -155,7 +156,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
       {/* Musical Notes Background */}
       <MusicalNotes />
-      
+
       <div className="z-10 w-full items-center justify-between font-mono text-sm lg:flex">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
           Добро пожаловать в&nbsp;
@@ -193,23 +194,33 @@ export default function Home() {
           <div className="bg-card rounded-lg border p-6 shadow-sm">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Добро пожаловать, {profile.username}!</h2>
+                <h2 className="text-2xl font-bold">
+                  Добро пожаловать, {profile.username}!
+                </h2>
                 <p className="text-muted-foreground">
                   Здесь отображается ваша статистика и активность
                 </p>
               </div>
               <div className="mt-4 md:mt-0 flex flex-wrap gap-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold">{profile.tracks_added_today}</p>
-                  <p className="text-sm text-muted-foreground">Треков сегодня</p>
+                  <p className="text-2xl font-bold">
+                    {profile.tracks_added_today}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Треков сегодня
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold">5</p>
-                  <p className="text-sm text-muted-foreground">Комнат создано</p>
+                  <p className="text-sm text-muted-foreground">
+                    Комнат создано
+                  </p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-bold">12</p>
-                  <p className="text-sm text-muted-foreground">Участие в комнатах</p>
+                  <p className="text-sm text-muted-foreground">
+                    Участие в комнатах
+                  </p>
                 </div>
               </div>
             </div>
@@ -241,7 +252,7 @@ export default function Home() {
             <Input
               placeholder="Поиск комнат..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
             <Icons.search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -263,7 +274,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRooms.map((room) => (
+            {filteredRooms.map(room => (
               <RoomCard key={room.id} room={room} />
             ))}
           </div>

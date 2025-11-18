@@ -47,9 +47,7 @@ export function ThemeDemo() {
 
           <Button
             variant="outline"
-            onClick={() =>
-              setSavedValue(`Значение обновлено`)
-            }
+            onClick={() => setSavedValue(`Значение обновлено`)}
           >
             Обновить сохраненное значение
           </Button>

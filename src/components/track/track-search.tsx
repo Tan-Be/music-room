@@ -42,12 +42,13 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
     if (!debouncedSearchQuery) {
       return mockTracks
     }
-    
+
     const query = debouncedSearchQuery.toLowerCase()
-    return mockTracks.filter(track => 
-      track.title.toLowerCase().includes(query) || 
-      track.artist.toLowerCase().includes(query) ||
-      (track.genre && track.genre.toLowerCase().includes(query))
+    return mockTracks.filter(
+      track =>
+        track.title.toLowerCase().includes(query) ||
+        track.artist.toLowerCase().includes(query) ||
+        (track.genre && track.genre.toLowerCase().includes(query))
     )
   }, [debouncedSearchQuery])
 
@@ -67,13 +68,14 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
   const handleAddToQueue = async (trackId: string) => {
     // Check track limit before adding
     if (user?.id) {
-      const { hasLimitReached, remainingTracks: newRemainingTracks } = await checkTrackLimit(user.id)
-      
+      const { hasLimitReached, remainingTracks: newRemainingTracks } =
+        await checkTrackLimit(user.id)
+
       if (hasLimitReached) {
         toast.error('Вы достигли лимита треков на сегодня')
         return
       }
-      
+
       setRemainingTracks(newRemainingTracks)
     }
 
@@ -98,7 +100,7 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
           <Input
             placeholder="Поиск треков по названию, исполнителю или жанру..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -107,15 +109,15 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
         {paginatedTracks.length > 0 ? (
           <div className="space-y-2">
             <ScrollArea className="h-[400px] pr-4">
-              {paginatedTracks.map((track) => (
-                <div 
-                  key={track.id} 
+              {paginatedTracks.map(track => (
+                <div
+                  key={track.id}
                   className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <img 
-                        src={track.thumbnail_url} 
+                      <img
+                        src={track.thumbnail_url}
                         alt={track.title}
                         className="w-12 h-12 rounded-md object-cover"
                       />
@@ -125,7 +127,9 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
                     </div>
                     <div>
                       <h3 className="font-medium text-sm">{track.title}</h3>
-                      <p className="text-muted-foreground text-xs">{track.artist}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {track.artist}
+                      </p>
                       {track.genre && (
                         <span className="text-xs bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded mt-1 inline-block">
                           {track.genre}
@@ -135,11 +139,12 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
+                      {Math.floor(track.duration / 60)}:
+                      {(track.duration % 60).toString().padStart(2, '0')}
                     </span>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       className="h-8 w-8 p-0"
                       onClick={() => handleAddToQueue(track.id)}
                     >
@@ -149,7 +154,7 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
                 </div>
               ))}
             </ScrollArea>
-            
+
             {/* Пагинация */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4">
@@ -161,15 +166,17 @@ export function TrackSearch({ onAddToQueue, className }: TrackSearchProps) {
                 >
                   Назад
                 </Button>
-                
+
                 <span className="text-sm text-muted-foreground">
                   Страница {currentPage} из {totalPages}
                 </span>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  onClick={() =>
+                    setCurrentPage(prev => Math.min(prev + 1, totalPages))
+                  }
                   disabled={currentPage === totalPages}
                 >
                   Вперед

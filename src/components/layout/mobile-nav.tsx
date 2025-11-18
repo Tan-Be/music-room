@@ -6,11 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
 const navigationItems = [
@@ -52,10 +48,10 @@ export function MobileNav() {
           <Icons.music className="mr-2 h-4 w-4" />
           <span className="font-bold">Music Room</span>
         </Link>
-        
+
         <div className="my-4 h-[calc(100vh-8rem)] overflow-y-auto">
           <div className="flex flex-col space-y-3">
-            {navigationItems.map((item) => {
+            {navigationItems.map(item => {
               const Icon = item.icon
               return (
                 <Link
@@ -75,7 +71,7 @@ export function MobileNav() {
               )
             })}
           </div>
-          
+
           {user && (
             <div className="mt-4 pt-4 border-t">
               <Button variant="outline" className="w-full" asChild>

@@ -54,10 +54,17 @@ interface RoomState {
   setIsParticipant: (isParticipant: boolean) => void
   addTrack: (track: Track) => void
   removeTrack: (trackId: string) => void
-  updateTrackVotes: (trackId: string, votesUp: number, votesDown: number) => void
+  updateTrackVotes: (
+    trackId: string,
+    votesUp: number,
+    votesDown: number
+  ) => void
   addParticipant: (participant: Participant) => void
   removeParticipant: (participantId: string) => void
-  updateParticipant: (participantId: string, updates: Partial<Participant>) => void
+  updateParticipant: (
+    participantId: string,
+    updates: Partial<Participant>
+  ) => void
   clearRoom: () => void
 }
 
@@ -68,36 +75,44 @@ export const useRoomStore = create<RoomState>()(
       queue: [],
       participants: [],
       isParticipant: false,
-      setCurrentRoom: (currentRoom) => set({ currentRoom }),
-      setQueue: (queue) => set({ queue }),
-      setParticipants: (participants) => set({ participants }),
-      setIsParticipant: (isParticipant) => set({ isParticipant }),
-      addTrack: (track) => set((state) => ({ queue: [...state.queue, track] })),
-      removeTrack: (trackId) => set((state) => ({ 
-        queue: state.queue.filter(track => track.id !== trackId) 
-      })),
-      updateTrackVotes: (trackId, votesUp, votesDown) => set((state) => ({
-        queue: state.queue.map(track => 
-          track.id === trackId ? { ...track, votesUp, votesDown } : track
-        )
-      })),
-      addParticipant: (participant) => set((state) => ({ 
-        participants: [...state.participants, participant] 
-      })),
-      removeParticipant: (participantId) => set((state) => ({ 
-        participants: state.participants.filter(p => p.id !== participantId) 
-      })),
-      updateParticipant: (participantId, updates) => set((state) => ({
-        participants: state.participants.map(participant => 
-          participant.id === participantId ? { ...participant, ...updates } : participant
-        )
-      })),
-      clearRoom: () => set({ 
-        currentRoom: null, 
-        queue: [], 
-        participants: [], 
-        isParticipant: false 
-      }),
+      setCurrentRoom: currentRoom => set({ currentRoom }),
+      setQueue: queue => set({ queue }),
+      setParticipants: participants => set({ participants }),
+      setIsParticipant: isParticipant => set({ isParticipant }),
+      addTrack: track => set(state => ({ queue: [...state.queue, track] })),
+      removeTrack: trackId =>
+        set(state => ({
+          queue: state.queue.filter(track => track.id !== trackId),
+        })),
+      updateTrackVotes: (trackId, votesUp, votesDown) =>
+        set(state => ({
+          queue: state.queue.map(track =>
+            track.id === trackId ? { ...track, votesUp, votesDown } : track
+          ),
+        })),
+      addParticipant: participant =>
+        set(state => ({
+          participants: [...state.participants, participant],
+        })),
+      removeParticipant: participantId =>
+        set(state => ({
+          participants: state.participants.filter(p => p.id !== participantId),
+        })),
+      updateParticipant: (participantId, updates) =>
+        set(state => ({
+          participants: state.participants.map(participant =>
+            participant.id === participantId
+              ? { ...participant, ...updates }
+              : participant
+          ),
+        })),
+      clearRoom: () =>
+        set({
+          currentRoom: null,
+          queue: [],
+          participants: [],
+          isParticipant: false,
+        }),
     }),
     {
       name: 'room-storage',

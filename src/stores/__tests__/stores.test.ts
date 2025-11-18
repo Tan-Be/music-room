@@ -1,4 +1,9 @@
-import { useAuthStore, useRoomStore, usePlayerStore, useChatStore } from '../index'
+import {
+  useAuthStore,
+  useRoomStore,
+  usePlayerStore,
+  useChatStore,
+} from '../index'
 
 // Mock localStorage for testing
 const localStorageMock = (() => {
@@ -13,7 +18,7 @@ const localStorageMock = (() => {
     },
     removeItem: (key: string) => {
       delete store[key]
-    }
+    },
   }
 })()
 
@@ -73,7 +78,7 @@ describe('Zustand Stores', () => {
         owner: { id: '1', name: 'Owner' },
         isPlaying: false,
         progress: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
       }
       useRoomStore.getState().setCurrentRoom(room)
       expect(useRoomStore.getState().currentRoom).toEqual(room)
@@ -89,7 +94,7 @@ describe('Zustand Stores', () => {
         owner: { id: '1', name: 'Owner' },
         isPlaying: false,
         progress: 0,
-        createdAt: new Date()
+        createdAt: new Date(),
       }
       useRoomStore.getState().setCurrentRoom(room)
       useRoomStore.getState().clearRoom()
@@ -105,7 +110,7 @@ describe('Zustand Stores', () => {
         votesUp: 0,
         votesDown: 0,
         addedBy: { id: '1', name: 'User' },
-        position: 0
+        position: 0,
       }
       useRoomStore.getState().addTrack(track)
       expect(useRoomStore.getState().queue).toHaveLength(1)
@@ -121,7 +126,7 @@ describe('Zustand Stores', () => {
         votesUp: 0,
         votesDown: 0,
         addedBy: { id: '1', name: 'User' },
-        position: 0
+        position: 0,
       }
       const track2 = {
         id: '2',
@@ -131,7 +136,7 @@ describe('Zustand Stores', () => {
         votesUp: 0,
         votesDown: 0,
         addedBy: { id: '1', name: 'User' },
-        position: 1
+        position: 1,
       }
       useRoomStore.getState().addTrack(track1)
       useRoomStore.getState().addTrack(track2)
@@ -149,7 +154,7 @@ describe('Zustand Stores', () => {
         votesUp: 0,
         votesDown: 0,
         addedBy: { id: '1', name: 'User' },
-        position: 0
+        position: 0,
       }
       useRoomStore.getState().addTrack(track)
       useRoomStore.getState().updateTrackVotes('1', 5, 2)
@@ -164,7 +169,7 @@ describe('Zustand Stores', () => {
         userId: '1',
         name: 'Test User',
         role: 'member' as const,
-        isOnline: true
+        isOnline: true,
       }
       useRoomStore.getState().addParticipant(participant)
       expect(useRoomStore.getState().participants).toHaveLength(1)
@@ -177,14 +182,14 @@ describe('Zustand Stores', () => {
         userId: '1',
         name: 'Test User 1',
         role: 'member' as const,
-        isOnline: true
+        isOnline: true,
       }
       const participant2 = {
         id: '2',
         userId: '2',
         name: 'Test User 2',
         role: 'member' as const,
-        isOnline: true
+        isOnline: true,
       }
       useRoomStore.getState().addParticipant(participant1)
       useRoomStore.getState().addParticipant(participant2)
@@ -199,10 +204,12 @@ describe('Zustand Stores', () => {
         userId: '1',
         name: 'Test User',
         role: 'member' as const,
-        isOnline: true
+        isOnline: true,
       }
       useRoomStore.getState().addParticipant(participant)
-      useRoomStore.getState().updateParticipant('1', { role: 'moderator', isOnline: false })
+      useRoomStore
+        .getState()
+        .updateParticipant('1', { role: 'moderator', isOnline: false })
       const updatedParticipant = useRoomStore.getState().participants[0]
       expect(updatedParticipant.role).toBe('moderator')
       expect(updatedParticipant.isOnline).toBe(false)
@@ -251,7 +258,7 @@ describe('Zustand Stores', () => {
         userName: 'Test User',
         content: 'Hello',
         timestamp: new Date(),
-        type: 'user' as const
+        type: 'user' as const,
       }
       useChatStore.getState().addMessage(message)
       expect(useChatStore.getState().messages).toHaveLength(1)
@@ -265,7 +272,7 @@ describe('Zustand Stores', () => {
         userName: 'Test User',
         content: 'Hello',
         timestamp: new Date(),
-        type: 'user' as const
+        type: 'user' as const,
       }
       useChatStore.getState().addMessage(message)
       useChatStore.getState().clearChat()
@@ -280,7 +287,7 @@ describe('Zustand Stores', () => {
           userName: 'Test User',
           content: 'Hello',
           timestamp: new Date(),
-          type: 'user' as const
+          type: 'user' as const,
         },
         {
           id: '2',
@@ -288,8 +295,8 @@ describe('Zustand Stores', () => {
           userName: 'Another User',
           content: 'Hi there',
           timestamp: new Date(),
-          type: 'user' as const
-        }
+          type: 'user' as const,
+        },
       ]
       useChatStore.getState().setMessages(messages)
       expect(useChatStore.getState().messages).toEqual(messages)
@@ -304,11 +311,11 @@ describe('Zustand Stores', () => {
       const typingUser = {
         userId: '1',
         userName: 'Test User',
-        timeoutId: setTimeout(() => {}, 1000)
+        timeoutId: setTimeout(() => {}, 1000),
       }
       useChatStore.getState().addTypingUser(typingUser)
       expect(useChatStore.getState().typingUsers).toHaveLength(1)
-      
+
       useChatStore.getState().removeTypingUser('1')
       expect(useChatStore.getState().typingUsers).toHaveLength(0)
     })
@@ -317,7 +324,7 @@ describe('Zustand Stores', () => {
       useChatStore.getState().incrementUnreadCount()
       useChatStore.getState().incrementUnreadCount()
       expect(useChatStore.getState().unreadCount).toBe(2)
-      
+
       useChatStore.getState().resetUnreadCount()
       expect(useChatStore.getState().unreadCount).toBe(0)
     })

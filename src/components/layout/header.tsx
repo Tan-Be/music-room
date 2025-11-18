@@ -42,13 +42,19 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.username} />
+                    <AvatarImage
+                      src={profile?.avatar_url || undefined}
+                      alt={profile?.username}
+                    />
                     <AvatarFallback>
                       {profile?.username?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
@@ -59,7 +65,9 @@ export function Header() {
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium text-sm">{profile?.username}</p>
-                    <p className="text-muted-foreground text-xs">{user.email}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenuItem asChild>

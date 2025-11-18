@@ -17,14 +17,20 @@ describe('systemMessages', () => {
 
   describe('generateTrackAddedMessage', () => {
     it('should generate correct track added message', () => {
-      const message = systemMessages.generateTrackAddedMessage('Alice', 'Bohemian Rhapsody')
+      const message = systemMessages.generateTrackAddedMessage(
+        'Alice',
+        'Bohemian Rhapsody'
+      )
       expect(message).toBe('Alice добавил трек "Bohemian Rhapsody"')
     })
   })
 
   describe('generateTrackRemovedMessage', () => {
     it('should generate correct track removed message', () => {
-      const message = systemMessages.generateTrackRemovedMessage('Bob', 'Stairway to Heaven')
+      const message = systemMessages.generateTrackRemovedMessage(
+        'Bob',
+        'Stairway to Heaven'
+      )
       expect(message).toBe('Bob удалил трек "Stairway to Heaven"')
     })
   })
@@ -66,8 +72,13 @@ describe('systemMessages', () => {
 
   describe('generateRoomCreatedMessage', () => {
     it('should generate correct room created message', () => {
-      const message = systemMessages.generateRoomCreatedMessage('Rock Classics', 'Charlie')
-      expect(message).toBe('Комната "Rock Classics" создана пользователем Charlie')
+      const message = systemMessages.generateRoomCreatedMessage(
+        'Rock Classics',
+        'Charlie'
+      )
+      expect(message).toBe(
+        'Комната "Rock Classics" создана пользователем Charlie'
+      )
     })
   })
 

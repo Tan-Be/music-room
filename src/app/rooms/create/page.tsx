@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Icons } from '@/components/icons'
 import { toast } from 'sonner'
 import { rooms } from '@/lib/rooms'
@@ -21,13 +28,18 @@ export default function CreateRoomPage() {
   const [maxParticipants, setMaxParticipants] = useState(10)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const { user, isLoading } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Валидация формы
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
-    
+
     if (!name.trim()) {
       newErrors.name = 'Название комнаты обязательно'
     } else if (name.length < 3) {
@@ -35,11 +47,11 @@ export default function CreateRoomPage() {
     } else if (name.length > 50) {
       newErrors.name = 'Название не должно превышать 50 символов'
     }
-    
+
     if (description && description.length > 200) {
       newErrors.description = 'Описание не должно превышать 200 символов'
     }
-    
+
     if (roomType === 'password' && !password) {
       newErrors.password = 'Пароль обязателен для приватной комнаты'
     } else if (roomType === 'password' && password.length < 4) {
@@ -47,26 +59,26 @@ export default function CreateRoomPage() {
     } else if (roomType === 'password' && password.length > 20) {
       newErrors.password = 'Пароль не должен превышать 20 символов'
     }
-    
+
     if (maxParticipants < 2) {
       newErrors.maxParticipants = 'Минимум 2 участника'
     } else if (maxParticipants > 10) {
       newErrors.maxParticipants = 'Максимум 10 участников'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
       // Создаем комнату в базе данных
       const roomResponse = await rooms.createRoom({
@@ -77,34 +89,34 @@ export default function CreateRoomPage() {
         max_participants: maxParticipants,
         owner_id: user!.id,
       })
-      
+
       if (roomResponse.error) {
         throw new Error(roomResponse.error)
       }
-      
+
       // Получаем ID созданной комнаты
       const roomData = roomResponse.data
       if (!roomData?.id) {
         throw new Error('Не удалось создать комнату')
       }
-      
+
       const roomId = roomData.id
-      
+
       if (!roomId) {
         throw new Error('Не удалось получить ID созданной комнаты')
       }
-      
+
       // Добавляем владельца как участника комнаты
       const participantResponse = await rooms.addParticipant({
         room_id: roomId,
         user_id: user!.id,
         role: 'owner',
       })
-      
+
       if (participantResponse.error) {
         throw new Error(participantResponse.error)
       }
-      
+
       toast.success('Комната успешно создана!')
       router.push(`/rooms`)
     } catch (error: any) {
@@ -113,6 +125,11 @@ export default function CreateRoomPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Только на клиенте мы можем использовать router
+  if (!isClient) {
+    return null
   }
 
   if (!user) {
@@ -138,12 +155,14 @@ export default function CreateRoomPage() {
                 id="name"
                 placeholder="Введите название комнаты"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 className={errors.name ? 'border-red-500' : ''}
               />
-              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-500 text-sm">{errors.name}</p>
+              )}
             </div>
-            
+
             {/* Описание */}
             <div className="space-y-2">
               <Label htmlFor="description">Описание</Label>
@@ -151,12 +170,14 @@ export default function CreateRoomPage() {
                 id="description"
                 placeholder="Опишите вашу комнату"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={e => setDescription(e.target.value)}
                 className={errors.description ? 'border-red-500' : ''}
               />
-              {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+              {errors.description && (
+                <p className="text-red-500 text-sm">{errors.description}</p>
+              )}
             </div>
-            
+
             {/* Тип комнаты */}
             <div className="space-y-2">
               <Label>Тип комнаты</Label>
@@ -175,7 +196,7 @@ export default function CreateRoomPage() {
                 </div>
               </RadioGroup>
             </div>
-            
+
             {/* Пароль для комнаты с паролем */}
             {roomType === 'password' && (
               <div className="space-y-2">
@@ -185,16 +206,20 @@ export default function CreateRoomPage() {
                   type="password"
                   placeholder="Введите пароль для комнаты"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   className={errors.password ? 'border-red-500' : ''}
                 />
-                {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+                {errors.password && (
+                  <p className="text-red-500 text-sm">{errors.password}</p>
+                )}
               </div>
             )}
-            
+
             {/* Лимит участников */}
             <div className="space-y-2">
-              <Label htmlFor="maxParticipants">Максимум участников (2-10)</Label>
+              <Label htmlFor="maxParticipants">
+                Максимум участников (2-10)
+              </Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="maxParticipants"
@@ -202,11 +227,15 @@ export default function CreateRoomPage() {
                   min="2"
                   max="10"
                   value={maxParticipants}
-                  onChange={(e) => setMaxParticipants(Math.min(10, Math.max(2, parseInt(e.target.value) || 2)))}
+                  onChange={e =>
+                    setMaxParticipants(
+                      Math.min(10, Math.max(2, parseInt(e.target.value) || 2))
+                    )
+                  }
                   className={errors.maxParticipants ? 'border-red-500' : ''}
                 />
                 <div className="flex gap-1">
-                  {[2, 5, 10].map((value) => (
+                  {[2, 5, 10].map(value => (
                     <Button
                       key={value}
                       type="button"
@@ -219,16 +248,18 @@ export default function CreateRoomPage() {
                   ))}
                 </div>
               </div>
-              {errors.maxParticipants && <p className="text-red-500 text-sm">{errors.maxParticipants}</p>}
+              {errors.maxParticipants && (
+                <p className="text-red-500 text-sm">{errors.maxParticipants}</p>
+              )}
               <p className="text-sm text-muted-foreground">
                 Максимум 10 участников в комнате
               </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isSubmitting || isLoading}
             >
               {isSubmitting ? (

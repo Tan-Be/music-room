@@ -5,7 +5,7 @@ jest.mock('@/lib/supabase', () => ({
   supabase: {
     channel: jest.fn().mockReturnThis(),
     on: jest.fn().mockReturnThis(),
-    subscribe: jest.fn().mockImplementation((callback) => {
+    subscribe: jest.fn().mockImplementation(callback => {
       // Имитируем успешную подписку
       setTimeout(() => callback('SUBSCRIBED'), 0)
       return { removeChannel: jest.fn() }
@@ -16,8 +16,8 @@ jest.mock('@/lib/supabase', () => ({
     order: jest.fn().mockReturnThis(),
     limit: jest.fn().mockResolvedValue({ data: [], error: null }),
     insert: jest.fn().mockResolvedValue({ error: null }),
-    removeChannel: jest.fn()
-  }
+    removeChannel: jest.fn(),
+  },
 }))
 
 describe('chatRealtimeService', () => {
@@ -31,7 +31,11 @@ describe('chatRealtimeService', () => {
       const userId = 'test-user-id'
       const content = 'Test message'
 
-      const result = await chatRealtimeService.sendMessage(roomId, userId, content)
+      const result = await chatRealtimeService.sendMessage(
+        roomId,
+        userId,
+        content
+      )
 
       expect(result).toBe(true)
     })
@@ -43,9 +47,13 @@ describe('chatRealtimeService', () => {
 
       // Отправляем первое сообщение
       await chatRealtimeService.sendMessage(roomId, userId, content)
-      
+
       // Пытаемся отправить второе сообщение сразу же
-      const result = await chatRealtimeService.sendMessage(roomId, userId, content)
+      const result = await chatRealtimeService.sendMessage(
+        roomId,
+        userId,
+        content
+      )
 
       expect(result).toBe(false)
     })
@@ -57,12 +65,16 @@ describe('chatRealtimeService', () => {
 
       // Отправляем первое сообщение
       await chatRealtimeService.sendMessage(roomId, userId, content)
-      
+
       // Пропускаем время rate limit
       jest.advanceTimersByTime(1000)
-      
+
       // Пытаемся отправить второе сообщение
-      const result = await chatRealtimeService.sendMessage(roomId, userId, content)
+      const result = await chatRealtimeService.sendMessage(
+        roomId,
+        userId,
+        content
+      )
 
       expect(result).toBe(true)
     })

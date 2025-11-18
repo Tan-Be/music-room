@@ -6,7 +6,8 @@ export async function fetchRoomTracks(roomId: string) {
   try {
     const { data, error } = await (supabase as any)
       .from('room_queue')
-      .select(`
+      .select(
+        `
         id,
         track_id,
         position,
@@ -20,7 +21,8 @@ export async function fetchRoomTracks(roomId: string) {
           duration,
           thumbnail_url
         )
-      `)
+      `
+      )
       .eq('room_id', roomId)
       .order('position', { ascending: true })
 
@@ -39,9 +41,9 @@ export async function fetchRoomTracks(roomId: string) {
       votesDown: item.votes_down || 0,
       addedBy: {
         id: item.added_by,
-        name: 'User' // In a real implementation, we would fetch the user's name
+        name: 'User', // In a real implementation, we would fetch the user's name
       },
-      position: item.position
+      position: item.position,
     }))
 
     return tracks

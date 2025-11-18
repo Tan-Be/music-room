@@ -7,7 +7,7 @@ import { resetDailyTrackLimits } from '../src/lib/track-limits'
 
 async function main() {
   console.log('Resetting daily track limits...')
-  
+
   try {
     await resetDailyTrackLimits()
     console.log('Daily track limits reset successfully')

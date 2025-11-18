@@ -3,7 +3,7 @@ import { SystemMessage } from './supabase'
 import { toast } from 'sonner'
 
 // Типы системных сообщений
-export type SystemMessageType = 
+export type SystemMessageType =
   | 'user_joined'
   | 'user_left'
   | 'track_added'
@@ -39,14 +39,14 @@ export const systemMessages = {
         .insert({
           room_id: roomId,
           type,
-          content
+          content,
         } as any)
         .select()
-      
+
       if (error) {
         throw new Error(error.message)
       }
-      
+
       return { data: data[0] as SystemMessageData, error: null }
     } catch (error: any) {
       console.error('Error creating system message:', error)
@@ -66,11 +66,11 @@ export const systemMessages = {
         .eq('room_id', roomId)
         .order('created_at', { ascending: false })
         .limit(limit)
-      
+
       if (error) {
         throw new Error(error.message)
       }
-      
+
       // Возвращаем сообщения в правильном порядке (новые в конце)
       return { data: (data as SystemMessageData[]).reverse(), error: null }
     } catch (error: any) {
@@ -92,14 +92,14 @@ export const systemMessages = {
           event: 'INSERT',
           schema: 'public',
           table: 'system_messages',
-          filter: `room_id=eq.${roomId}`
+          filter: `room_id=eq.${roomId}`,
         },
-        (payload) => {
+        payload => {
           callback(payload.new as SystemMessageData)
         }
       )
       .subscribe()
-    
+
     return channel
   },
 
@@ -116,7 +116,10 @@ export const systemMessages = {
     return `${username} добавил трек "${trackTitle}"`
   },
 
-  generateTrackRemovedMessage: (username: string, trackTitle: string): string => {
+  generateTrackRemovedMessage: (
+    username: string,
+    trackTitle: string
+  ): string => {
     return `${username} удалил трек "${trackTitle}"`
   },
 
@@ -132,19 +135,28 @@ export const systemMessages = {
     return `${username} пропустил трек`
   },
 
-  generateUserKickedMessage: (kickedUsername: string, kickerUsername: string): string => {
+  generateUserKickedMessage: (
+    kickedUsername: string,
+    kickerUsername: string
+  ): string => {
     return `${kickedUsername} был исключен из комнаты пользователем ${kickerUsername}`
   },
 
-  generateUserBannedMessage: (bannedUsername: string, bannerUsername: string): string => {
+  generateUserBannedMessage: (
+    bannedUsername: string,
+    bannerUsername: string
+  ): string => {
     return `${bannedUsername} был забанен пользователем ${bannerUsername}`
   },
 
-  generateRoomCreatedMessage: (roomName: string, creatorUsername: string): string => {
+  generateRoomCreatedMessage: (
+    roomName: string,
+    creatorUsername: string
+  ): string => {
     return `Комната "${roomName}" создана пользователем ${creatorUsername}`
   },
 
   generateRoomDeletedMessage: (roomName: string): string => {
     return `Комната "${roomName}" удалена`
-  }
+  },
 }

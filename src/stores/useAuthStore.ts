@@ -16,15 +16,15 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    set => ({
       user: null,
       profile: null,
       isLoading: false,
       error: null,
-      setUser: (user) => set({ user }),
-      setProfile: (profile) => set({ profile }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setError: (error) => set({ error }),
+      setUser: user => set({ user }),
+      setProfile: profile => set({ profile }),
+      setLoading: isLoading => set({ isLoading }),
+      setError: error => set({ error }),
       signOut: () => set({ user: null, profile: null, error: null }),
     }),
     {

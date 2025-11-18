@@ -19,7 +19,7 @@ export async function voteForTrack(
       .match({
         user_id: userId,
         room_id: roomId,
-        track_id: trackId
+        track_id: trackId,
       })
       .single()
 
@@ -34,7 +34,7 @@ export async function voteForTrack(
         .from('track_votes')
         .delete()
         .match({
-          id: existingVote.id
+          id: existingVote.id,
         })
 
       if (deleteError) {
@@ -52,7 +52,7 @@ export async function voteForTrack(
         .from('track_votes')
         .update({ vote_value: voteValue })
         .match({
-          id: existingVote.id
+          id: existingVote.id,
         })
 
       if (updateError) {
@@ -60,7 +60,12 @@ export async function voteForTrack(
       }
 
       // Update track vote counts (remove old vote, add new vote)
-      await updateTrackVoteCounts(roomId, trackId, existingVote.vote_value, true) // Remove old vote
+      await updateTrackVoteCounts(
+        roomId,
+        trackId,
+        existingVote.vote_value,
+        true
+      ) // Remove old vote
       await updateTrackVoteCounts(roomId, trackId, voteValue, false) // Add new vote
       return true
     }
@@ -68,12 +73,14 @@ export async function voteForTrack(
     // If no existing vote, create a new one
     const { error: insertError } = await (supabase as any)
       .from('track_votes')
-      .insert([{
-        user_id: userId,
-        room_id: roomId,
-        track_id: trackId,
-        vote_value: voteValue
-      }])
+      .insert([
+        {
+          user_id: userId,
+          room_id: roomId,
+          track_id: trackId,
+          vote_value: voteValue,
+        },
+      ])
 
     if (insertError) {
       throw new Error(insertError.message)
@@ -103,7 +110,7 @@ async function updateTrackVoteCounts(
       .select('id, votes_up, votes_down')
       .match({
         room_id: roomId,
-        track_id: trackId
+        track_id: trackId,
       })
       .single()
 
@@ -126,10 +133,10 @@ async function updateTrackVoteCounts(
       .from('room_queue')
       .update({
         votes_up: newVotesUp,
-        votes_down: newVotesDown
+        votes_down: newVotesDown,
       })
       .match({
-        id: queueItem.id
+        id: queueItem.id,
       })
 
     if (updateError) {
@@ -154,7 +161,7 @@ export async function getUserVote(
       .match({
         user_id: userId,
         room_id: roomId,
-        track_id: trackId
+        track_id: trackId,
       })
       .single()
 
@@ -201,7 +208,7 @@ export async function reorderTracksByVotes(roomId: string): Promise<boolean> {
     })
 
     // Update positions
-    const updates = sortedTracks.map((track, index) => 
+    const updates = sortedTracks.map((track, index) =>
       (supabase as any)
         .from('room_queue')
         .update({ position: index })
@@ -210,7 +217,7 @@ export async function reorderTracksByVotes(roomId: string): Promise<boolean> {
 
     // Execute all updates
     const results = await Promise.all(updates)
-    
+
     for (const result of results) {
       if (result.error) {
         throw new Error(result.error.message)

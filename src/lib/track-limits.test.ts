@@ -9,14 +9,14 @@ jest.mock('./supabase', () => ({
     single: jest.fn(),
     update: jest.fn().mockReturnThis(),
     gt: jest.fn().mockReturnThis(),
-  }
+  },
 }))
 
 // Mock toast
 jest.mock('sonner', () => ({
   toast: {
-    error: jest.fn()
-  }
+    error: jest.fn(),
+  },
 }))
 
 describe('Track Limits', () => {

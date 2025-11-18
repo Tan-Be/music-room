@@ -13,7 +13,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('ℹ️  Переменные окружения Supabase не найдены')
   console.log('Это нормально, если вы еще не настроили .env.local файл')
   console.log('См. документацию: docs/supabase-setup.md\n')
-  console.log('✅ Скрипт тестирования RLS готов к использованию после настройки переменных окружения')
+  console.log(
+    '✅ Скрипт тестирования RLS готов к использованию после настройки переменных окружения'
+  )
   process.exit(0)
 }
 
@@ -30,9 +32,13 @@ async function testRLSPolicies() {
       .limit(1)
 
     if (profilesError && profilesError.code === '42501') {
-      console.log('✅ Политики RLS работают правильно для profiles (доступ запрещен)')
+      console.log(
+        '✅ Политики RLS работают правильно для profiles (доступ запрещен)'
+      )
     } else if (profilesData && profilesData.length === 0) {
-      console.log('✅ Политики RLS работают правильно для profiles (нет данных для доступа)')
+      console.log(
+        '✅ Политики RLS работают правильно для profiles (нет данных для доступа)'
+      )
     } else {
       console.log('⚠️  Проверьте политики для profiles')
     }
@@ -45,7 +51,9 @@ async function testRLSPolicies() {
       .limit(1)
 
     if (roomsError && roomsError.code === '42501') {
-      console.log('✅ Политики RLS работают правильно для rooms (доступ запрещен)')
+      console.log(
+        '✅ Политики RLS работают правильно для rooms (доступ запрещен)'
+      )
     } else if (roomsData) {
       console.log('ℹ️  Доступ к rooms возможен (публичные комнаты)')
     } else {
@@ -60,16 +68,19 @@ async function testRLSPolicies() {
       .limit(1)
 
     if (tracksError && tracksError.code === '42501') {
-      console.log('✅ Политики RLS работают правильно для tracks (доступ запрещен)')
+      console.log(
+        '✅ Политики RLS работают правильно для tracks (доступ запрещен)'
+      )
     } else if (tracksData) {
-      console.log('✅ Политики RLS работают правильно для tracks (публичный доступ)')
+      console.log(
+        '✅ Политики RLS работают правильно для tracks (публичный доступ)'
+      )
     } else {
       console.log('⚠️  Проверьте политики для tracks')
     }
 
     console.log('\n✅ Тестирование RLS политик завершено')
     console.log('ℹ️  Для полного тестирования аутентифицируйтесь в приложении')
-
   } catch (error) {
     console.error('❌ Ошибка при тестировании RLS политик:', error.message)
   }

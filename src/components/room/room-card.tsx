@@ -119,19 +119,27 @@ const RoomCardComponent = memo(({ room, className }: RoomCardProps) => {
   }
 
   return (
-    <Card className={cn('w-full hover:shadow-md transition-shadow', className)}>
+    <Card className={cn(
+      'w-full transition-all duration-300 cursor-pointer group',
+      'hover:shadow-2xl hover:scale-105 hover:border-primary/50',
+      'border-2 bg-card/95 backdrop-blur-sm',
+      className
+    )}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex-1">
+            <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors">
               {room.name}
-              <Badge variant="secondary" className="text-xs">
+              <Badge 
+                variant="secondary" 
+                className="text-xs flex items-center gap-1 bg-primary/10 text-primary border border-primary/20"
+              >
                 {getPrivacyIcon()}
-                {getPrivacyLabel()}
+                <span>{getPrivacyLabel()}</span>
               </Badge>
             </CardTitle>
             {room.description && (
-              <CardDescription className="mt-1">
+              <CardDescription className="mt-2 text-sm">
                 {room.description}
               </CardDescription>
             )}
@@ -140,19 +148,26 @@ const RoomCardComponent = memo(({ room, className }: RoomCardProps) => {
       </CardHeader>
 
       <CardContent>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-4 text-sm text-muted-foreground min-w-0">
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>
+            <div className="flex items-center gap-1.5 font-medium">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="text-foreground">
                 {room.participantCount}/{room.maxParticipants}
               </span>
             </div>
-            <span className="truncate">от {room.owner.name}</span>
+            <span className="truncate text-xs">
+              <span className="text-muted-foreground">от</span>{' '}
+              <span className="font-medium text-foreground">{room.owner.name}</span>
+            </span>
           </div>
 
-          <Button onClick={handleJoinRoom} className="ml-2 flex-shrink-0">
-            Присоединиться
+          <Button 
+            onClick={handleJoinRoom} 
+            size="lg"
+            className="ml-2 flex-shrink-0 font-semibold shadow-md"
+          >
+            Войти
           </Button>
         </div>
       </CardContent>

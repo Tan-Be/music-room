@@ -17,6 +17,8 @@ import {
 import { Separator } from '@/components/ui/separator'
 import Link from 'next/link'
 import { SpotifyLoginButton } from '@/components/auth/spotify-login-button'
+import { GoogleLoginButton } from '@/components/auth/google-login-button'
+import { GithubLoginButton } from '@/components/auth/github-login-button'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -85,13 +87,17 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <SpotifyLoginButton />
+            <div className="space-y-3">
+              <GoogleLoginButton />
+              <GithubLoginButton />
+              <SpotifyLoginButton />
+            </div>
 
             <div className="text-center text-sm">
               Нет аккаунта?{' '}
               <Link
                 href="/register"
-                className="text-purple-600 hover:underline"
+                className="text-purple-600 hover:underline font-medium"
               >
                 Зарегистрируйтесь
               </Link>

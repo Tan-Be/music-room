@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes'
 import { AuthProvider } from '@/contexts/auth-context'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Toaster } from 'sonner'
+import { ErrorBoundary } from '@/components/common/error-boundary'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -31,28 +32,30 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <MainLayout>{children}</MainLayout>
-            <Toaster 
-              position="top-right" 
-              richColors 
-              closeButton
-              toastOptions={{
-                style: {
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  color: 'hsl(var(--foreground))',
-                },
-              }}
-            />
-          </ThemeProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <MainLayout>{children}</MainLayout>
+              <Toaster 
+                position="top-right" 
+                richColors 
+                closeButton
+                toastOptions={{
+                  style: {
+                    background: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                  },
+                }}
+              />
+            </ThemeProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

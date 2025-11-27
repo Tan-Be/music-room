@@ -11,6 +11,7 @@ import { AnimatedBackground } from '@/components/common/animated-background'
 
 
 
+
 // Тип данных для RoomCard
 interface Room {
   id: string
@@ -87,7 +88,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
-      {/* Animated Background with Purple Wave */}
+      {/* Анимированный фон с фиолетовыми волнами */}
       <AnimatedBackground />
 
       <div className="relative z-10 w-full items-center justify-between font-mono text-sm lg:flex mb-8">
@@ -192,7 +193,7 @@ export default function Home() {
               variant="outline"
               className="mt-4 md:mt-0 shadow-lg border-2 border-primary"
             >
-              <Link href="/auth">
+              <Link href="/login">
                 Войти для создания комнаты
               </Link>
             </Button>
@@ -230,7 +231,7 @@ export default function Home() {
               </Button>
             ) : (
               <Button asChild size="lg" variant="outline" className="shadow-lg border-2">
-                <Link href="/auth">
+                <Link href="/login">
                   Войти для создания комнаты
                 </Link>
               </Button>
@@ -245,10 +246,10 @@ export default function Home() {
         )}
       </div>
 
-      <div className="relative z-10 mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-5 lg:text-left gap-4">
+      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-5 lg:text-left gap-4">
         <a
           href="/rooms"
-          className="group rounded-xl border-2 border-primary/20 bg-card/95 backdrop-blur-md px-6 py-6 transition-all duration-300 hover:border-primary hover:bg-primary/5 hover:shadow-xl hover:scale-105 cursor-pointer"
+          className="group rounded-xl border border-primary/20 bg-card px-6 py-6 transition-all duration-300 hover:border-primary hover:bg-primary/5 cursor-pointer"
         >
           <h2 className="mb-3 text-2xl font-bold text-primary">
             🎵 Комнаты{' '}
@@ -292,32 +293,32 @@ export default function Home() {
         </a>
 
         <a
-          href="/profile"
+          href="/rooms"
           className="group rounded-xl border-2 border-purple-500/20 bg-card/95 backdrop-blur-md px-6 py-6 transition-all duration-300 hover:border-purple-500 hover:bg-purple-500/5 hover:shadow-xl hover:scale-105 cursor-pointer"
         >
           <h2 className="mb-3 text-2xl font-bold text-purple-600 dark:text-purple-400">
-            👤 Профиль{' '}
+            🎵 Все комнаты{' '}
             <span className="inline-block transition-transform group-hover:translate-x-2 motion-reduce:transform-none">
               →
             </span>
           </h2>
           <p className="m-0 max-w-[30ch] text-sm text-muted-foreground">
-            Управляйте своим профилем и настройками.
+            Просмотрите все доступные музыкальные комнаты.
           </p>
         </a>
 
         <a
-          href="/docs"
+          href="/rooms/create"
           className="group rounded-xl border-2 border-orange-500/20 bg-card/95 backdrop-blur-md px-6 py-6 transition-all duration-300 hover:border-orange-500 hover:bg-orange-500/5 hover:shadow-xl hover:scale-105 cursor-pointer"
         >
           <h2 className="mb-3 text-2xl font-bold text-orange-600 dark:text-orange-400">
-            📚 Документация{' '}
+            ➕ Создать комнату{' '}
             <span className="inline-block transition-transform group-hover:translate-x-2 motion-reduce:transform-none">
               →
             </span>
           </h2>
           <p className="m-0 max-w-[30ch] text-sm text-muted-foreground">
-            Техническая документация и руководства.
+            Создайте свою музыкальную комнату прямо сейчас.
           </p>
         </a>
       </div>

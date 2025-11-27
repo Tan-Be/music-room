@@ -6,6 +6,7 @@ import {
   validateMessage,
   MIN_MESSAGE_INTERVAL,
 } from '@/lib/chat-filter'
+import { retrySupabaseQuery, retryMutation } from '@/lib/retry'
 
 // Типы для realtime чата
 export type ChatMessageWithUserInfo = ChatMessage & {
@@ -99,7 +100,8 @@ class ChatRealtimeService {
   async loadRecentMessages(limit = 50) {
     if (!this.roomId) return
 
-    try {
+    const roomId = this.roomId // Сохраняем в локальную переменную для TypeScript
+    const data = await retrySupabaseQuery(async () => {
       const { data, error } = await supabase
         .from('chat_messages')
         .select(
@@ -108,12 +110,15 @@ class ChatRealtimeService {
           profiles (username, avatar_url)
         `
         )
-        .eq('room_id', this.roomId)
+        .eq('room_id', roomId)
         .order('created_at', { ascending: false })
         .limit(limit)
 
       if (error) throw error
+      return data
+    })
 
+    if (data) {
       // Преобразуем сообщения в правильный формат
       const messagesWithUserInfo = (data as any[]).map(msg => ({
         ...msg,
@@ -127,9 +132,6 @@ class ChatRealtimeService {
       if (this.onMessagesCallback) {
         this.onMessagesCallback([...this.messageBuffer])
       }
-    } catch (error) {
-      console.error('Error loading chat messages:', error)
-      toast.error('Ошибка при загрузке сообщений чата')
     }
   }
 
@@ -137,31 +139,20 @@ class ChatRealtimeService {
   private async getMessageWithUserInfo(
     message: ChatMessage
   ): Promise<ChatMessageWithUserInfo | null> {
-    try {
-      const { data: profileData, error } = await supabase
+    const profileData = await retrySupabaseQuery(async () => {
+      const { data, error } = await supabase
         .from('profiles')
         .select('username, avatar_url')
         .eq('id', message.user_id)
         .single()
 
-      if (error) {
-        console.error('Error fetching user profile:', error)
-        return {
-          ...message,
-          profiles: null,
-        }
-      }
+      if (error) throw error
+      return data
+    })
 
-      return {
-        ...message,
-        profiles: profileData || null,
-      }
-    } catch (error) {
-      console.error('Error getting user info for message:', error)
-      return {
-        ...message,
-        profiles: null,
-      }
+    return {
+      ...message,
+      profiles: profileData || null,
     }
   }
 
@@ -203,18 +194,22 @@ class ChatRealtimeService {
       // Фильтрация нецензурной лексики
       const filteredContent = filterProfanity(content)
 
-      const { error } = await supabase.from('chat_messages').insert({
-        room_id: roomId,
-        user_id: userId,
-        message: filteredContent.trim(),
-      } as any)
+      const success = await retryMutation(async () => {
+        const { error } = await supabase.from('chat_messages').insert({
+          room_id: roomId,
+          user_id: userId,
+          message: filteredContent.trim(),
+        } as any)
 
-      if (error) throw error
+        if (error) throw error
+      })
 
-      // Обновляем время последнего сообщения пользователя
-      this.updateUserMessageTime(userId)
+      if (success) {
+        // Обновляем время последнего сообщения пользователя
+        this.updateUserMessageTime(userId)
+      }
 
-      return true
+      return success
     } catch (error) {
       console.error('Error sending message:', error)
       toast.error('Ошибка при отправке сообщения')

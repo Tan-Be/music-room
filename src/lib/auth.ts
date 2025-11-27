@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { supabase } from './supabase'
 import { Profile } from './supabase'
+import { retrySupabaseQuery, retryMutation } from './retry'
 
 // Функции аутентификации
 export const auth = {
@@ -9,6 +10,11 @@ export const auth = {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          username: username,
+        },
+      },
     })
 
     if (error) {
@@ -17,16 +23,26 @@ export const auth = {
 
     // Создаем профиль пользователя если регистрация прошла успешно
     if (data.user) {
-      const { error: profileError } = await supabase.rpc(
-        'create_user_profile',
-        {
-          user_id: data.user.id,
-          user_name: username,
-        }
-      )
+      const success = await retryMutation(async () => {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: data.user.id,
+          username: username,
+          avatar_url: null,
+          spotify_id: null,
+          tracks_added_today: 0,
+          last_track_date: new Date().toISOString().split('T')[0],
+        })
 
-      if (profileError) {
-        throw profileError
+        if (profileError) {
+          // Игнорируем ошибку, если профиль уже существует (может быть создан триггером)
+          if (profileError.code !== '23505') {
+            throw profileError
+          }
+        }
+      })
+
+      if (!success) {
+        console.warn('Failed to create profile, but user was registered')
       }
     }
 
@@ -49,31 +65,35 @@ export const auth = {
 
   // Получение профиля пользователя
   getUserProfile: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    return await retrySupabaseQuery(async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
 
-    if (error) {
-      throw error
-    }
+      if (error) {
+        throw error
+      }
 
-    return data as Profile
+      return data as Profile
+    })
   },
 
   // Обновление профиля пользователя
   updateUserProfile: async (userId: string, updates: Partial<Profile>) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
+    const success = await retryMutation(async () => {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
 
-    if (error) {
-      throw error
-    }
+      if (error) {
+        throw error
+      }
+    })
 
-    return data
+    return success
   },
 
   // Вход через Spotify

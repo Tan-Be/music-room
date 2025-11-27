@@ -28,11 +28,25 @@ export default function RegisterPage() {
   const { signUp, isLoading, error } = useAuth()
   const router = useRouter()
 
+  const [localError, setLocalError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLocalError(null)
+
+    // Валидация
+    if (username.length < 3) {
+      setLocalError('Имя пользователя должно содержать минимум 3 символа')
+      return
+    }
+
+    if (password.length < 6) {
+      setLocalError('Пароль должен содержать минимум 6 символов')
+      return
+    }
 
     if (password !== confirmPassword) {
-      alert('Пароли не совпадают')
+      setLocalError('Пароли не совпадают')
       return
     }
 
@@ -41,6 +55,7 @@ export default function RegisterPage() {
       router.push('/rooms')
     } catch (err) {
       // Error is handled by the auth context
+      console.error('Registration error:', err)
     }
   }
 
@@ -99,7 +114,13 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            {error && <div className="text-sm text-red-500">{error}</div>}
+            {(error || localError) && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 p-3">
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {localError || error}
+                </p>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>

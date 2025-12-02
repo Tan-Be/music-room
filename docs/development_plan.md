@@ -397,12 +397,17 @@ const mockTracks: MockTrack[] = [
 **Отчет**: [error-handling-check.md](./error-handling-check.md)  
 **Приоритет**: Средний - основное реализовано
 
-#### 7.4 Загрузочные состояния
+#### 7.4 Загрузочные состояния ✅ ВЫПОЛНЕНО
 
-- [ ] Skeleton loaders
-- [ ] Spinners для действий
-- [ ] Optimistic updates
-- [ ] Индикаторы сетевого статуса
+- [x] Skeleton loaders ✅ (Skeleton, RoomCardSkeleton, TrackItemSkeleton, ParticipantItemSkeleton, ChatMessageSkeleton, ProfileSkeleton)
+- [x] Spinners для действий ✅ (Spinner компонент с размерами sm/md/lg)
+- [x] Optimistic updates ✅ (useOptimistic хук с rollback и callbacks)
+- [x] Индикаторы сетевого статуса ✅ (NetworkStatus компонент + useNetworkStatus хук)
+
+**Статус**: Полностью реализовано  
+**Компоненты**: 6 skeleton loaders, 1 spinner, 2 хука  
+**Документация**: [loading-states.md](./loading-states.md)  
+**Интеграция**: NetworkStatus добавлен в layout.tsx
 
 ---
 

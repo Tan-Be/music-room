@@ -8,6 +8,7 @@ import { RoomCard } from '@/components/room/room-card'
 import { Icons } from '@/components/icons'
 import Link from 'next/link'
 import { AnimatedBackground } from '@/components/common/animated-background'
+import { BackgroundMusic } from '@/components/common/background-music'
 
 
 
@@ -90,6 +91,9 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
       {/* Анимированный фон с фиолетовыми волнами */}
       <AnimatedBackground />
+      
+      {/* Фоновая музыка */}
+      <BackgroundMusic />
 
       <div className="relative z-10 w-full items-center justify-between font-mono text-sm lg:flex mb-8">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-border/50 bg-background/95 backdrop-blur-md pb-6 pt-8 lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-card/95 lg:p-4 shadow-lg">

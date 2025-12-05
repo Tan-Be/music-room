@@ -7,6 +7,8 @@ import { AuthProvider } from '@/contexts/auth-context'
 import { MainLayout } from '@/components/layout/main-layout'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/common/error-boundary'
+import { PWAInstall } from '@/components/common/pwa-install'
+import { NetworkStatus } from '@/components/common/network-status'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -17,6 +19,19 @@ export const metadata: Metadata = {
   title: 'Music Room - Совместное прослушивание музыки',
   description:
     'Платформа для создания совместных плейлистов в реальном времени',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Music Room',
+  },
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#8b5cf6',
 }
 
 export default function RootLayout({
@@ -53,6 +68,8 @@ export default function RootLayout({
                   },
                 }}
               />
+              <NetworkStatus />
+              <PWAInstall />
             </ThemeProvider>
           </AuthProvider>
         </ErrorBoundary>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, Database } from '@/lib/supabase'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,10 +14,13 @@ import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { Upload, User, Bell, BarChart3, LogOut } from 'lucide-react'
+import { NotificationStatus } from '@/components/common/notification-permission-banner'
+import { useNotifications } from '@/hooks/use-notifications'
 
 export default function ProfilePage() {
   const router = useRouter()
   const { user, profile, refreshProfile } = useAuth()
+  const { requestPermission } = useNotifications()
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
@@ -30,6 +33,7 @@ export default function ProfilePage() {
   const [notifications, setNotifications] = useState({
     newMessages: true,
     trackAdded: true,
+    trackStarted: true,
     roomInvites: true,
     systemUpdates: false,
   })
@@ -106,7 +110,7 @@ export default function ProfilePage() {
 
     setIsSaving(true)
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
         .update({
           username: username.trim(),
@@ -169,7 +173,7 @@ export default function ProfilePage() {
       const newAvatarUrl = data.publicUrl
 
       // Обновляем профиль
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('profiles')
         .update({ avatar_url: newAvatarUrl })
         .eq('id', user.id)
@@ -363,7 +367,25 @@ export default function ProfilePage() {
         {/* Вкладка: Уведомления */}
         <TabsContent value="notifications" className="space-y-6">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Настройки уведомлений</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold">Настройки уведомлений</h2>
+              <NotificationStatus />
+            </div>
+
+            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Разрешения браузера</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Для получения уведомлений необходимо разрешение браузера
+                  </p>
+                </div>
+                <Button onClick={requestPermission} variant="outline" size="sm">
+                  <Bell className="h-4 w-4 mr-2" />
+                  Запросить разрешение
+                </Button>
+              </div>
+            </div>
 
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -392,6 +414,21 @@ export default function ProfilePage() {
                   checked={notifications.trackAdded}
                   onCheckedChange={(checked) =>
                     setNotifications({ ...notifications, trackAdded: checked })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Начало воспроизведения</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Уведомления когда начинает играть новый трек
+                  </p>
+                </div>
+                <Switch
+                  checked={notifications.trackStarted}
+                  onCheckedChange={(checked) =>
+                    setNotifications({ ...notifications, trackStarted: checked })
                   }
                 />
               </div>

@@ -129,20 +129,20 @@ export default function Home() {
 
       {/* Статистика пользователя */}
       {user && profile && (
-        <div className="relative z-10 w-full max-w-4xl mb-8">
-          <div className="bg-gradient-to-br from-primary/10 via-blue-500/10 to-purple-500/10 rounded-xl border-2 border-primary/20 p-6 shadow-lg backdrop-blur-md bg-background/60">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+        <div className="relative z-10 w-full max-w-4xl mb-8 px-2">
+          <div className="bg-gradient-to-br from-primary/10 via-blue-500/10 to-purple-500/10 rounded-xl border-2 border-primary/20 p-4 md:p-6 shadow-lg backdrop-blur-md bg-background/60">
+            <div className="flex flex-col gap-4 md:gap-6">
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   👋 Добро пожаловать, {profile.username}!
                 </h2>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-muted-foreground mt-1 text-sm md:text-base">
                   Ваша статистика и активность
                 </p>
               </div>
-              <div className="flex flex-wrap gap-6">
-                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-6 py-3 border border-primary/20 hover:border-primary transition-all hover:scale-105">
-                  <p className="text-3xl font-bold text-primary">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-4 py-3 md:px-6 border border-primary/20 hover:border-primary transition-all hover:scale-105 touch-manipulation">
+                  <p className="text-2xl md:text-3xl font-bold text-primary">
                     {profile.tracks_added_today}
                     <span className="text-muted-foreground text-lg">/8</span>
                   </p>
@@ -150,14 +150,14 @@ export default function Home() {
                     Треков сегодня
                   </p>
                 </div>
-                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-6 py-3 border border-blue-500/20 hover:border-blue-500 transition-all hover:scale-105">
-                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">5</p>
+                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-4 py-3 md:px-6 border border-blue-500/20 hover:border-blue-500 transition-all hover:scale-105 touch-manipulation">
+                  <p className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">5</p>
                   <p className="text-xs text-muted-foreground font-medium">
                     Комнат создано
                   </p>
                 </div>
-                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-6 py-3 border border-green-500/20 hover:border-green-500 transition-all hover:scale-105">
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">12</p>
+                <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-4 py-3 md:px-6 border border-green-500/20 hover:border-green-500 transition-all hover:scale-105 touch-manipulation">
+                  <p className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">12</p>
                   <p className="text-xs text-muted-foreground font-medium">
                     Участие в комнатах
                   </p>

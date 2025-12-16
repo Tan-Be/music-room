@@ -9,6 +9,8 @@ import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/common/error-boundary'
 import { PWAInstall } from '@/components/common/pwa-install'
 import { NetworkStatus } from '@/components/common/network-status'
+import { NotificationManager } from '@/components/common/notification-manager'
+import { NotificationPermissionBanner } from '@/components/common/notification-permission-banner'
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -70,6 +72,8 @@ export default function RootLayout({
               />
               <NetworkStatus />
               <PWAInstall />
+              <NotificationManager />
+              <NotificationPermissionBanner />
             </ThemeProvider>
           </AuthProvider>
         </ErrorBoundary>

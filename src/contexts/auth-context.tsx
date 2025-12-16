@@ -19,6 +19,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string) => Promise<void>
   signOut: () => Promise<void>
   signInWithSpotify: () => Promise<void>
+  refreshProfile: () => Promise<void>
   isLoading: boolean
   error: string | null
 }
@@ -138,6 +139,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const refreshProfile = async () => {
+    if (!user) return
+    
+    try {
+      const userProfile = await auth.getUserProfile(user.id)
+      setProfile(userProfile)
+    } catch (err) {
+      console.error('Error refreshing profile:', err)
+      setError(err instanceof Error ? err.message : 'Failed to refresh profile')
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -147,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         signInWithSpotify,
+        refreshProfile,
         isLoading,
         error,
       }}

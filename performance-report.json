@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-12-19T12:36:00.613Z",
+  "thresholds": {
+    "pageLoadTime": 2000,
+    "fcp": 1500,
+    "lcp": 2500,
+    "cls": 0.1,
+    "fid": 100,
+    "chatLatency": 500,
+    "lighthouseScore": 90
+  },
+  "results": {
+    "build": {
+      "buildTime": 20073,
+      "success": false
+    },
+    "typeScript": {
+      "typeCheckTime": 4686,
+      "success": false
+    }
+  },
+  "recommendations": []
+}

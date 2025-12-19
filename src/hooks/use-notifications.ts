@@ -14,7 +14,7 @@ interface NotificationOptions {
   requireInteraction?: boolean
   silent?: boolean
   vibrate?: number[]
-  actions?: NotificationAction[]
+  actions?: { action: string; title: string; icon?: string }[]
 }
 
 interface UseNotificationsReturn {
@@ -27,7 +27,8 @@ interface UseNotificationsReturn {
 }
 
 export function useNotifications(): UseNotificationsReturn {
-  const [permission, setPermission] = useState<NotificationPermission>('default')
+  const [permission, setPermission] =
+    useState<NotificationPermission>('default')
   const [isSupported, setIsSupported] = useState(false)
   const [isEnabled, setIsEnabled] = useState(true)
 
@@ -50,96 +51,103 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, [])
 
-  const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
-    if (!isSupported) {
-      toast.error('Уведомления не поддерживаются в этом браузере')
-      return 'denied'
-    }
-
-    try {
-      const result = await Notification.requestPermission()
-      setPermission(result)
-      
-      if (result === 'granted') {
-        toast.success('Уведомления разрешены!')
-      } else if (result === 'denied') {
-        toast.error('Уведомления заблокированы')
+  const requestPermission =
+    useCallback(async (): Promise<NotificationPermission> => {
+      if (!isSupported) {
+        toast.error('Уведомления не поддерживаются в этом браузере')
+        return 'denied'
       }
-      
-      return result
-    } catch (error) {
-      console.error('Error requesting notification permission:', error)
-      toast.error('Ошибка при запросе разрешений')
-      return 'denied'
-    }
-  }, [isSupported])
 
-  const showNotification = useCallback(async (options: NotificationOptions): Promise<void> => {
-    if (!isSupported) {
-      console.warn('Notifications not supported')
-      return
-    }
+      try {
+        const result = await Notification.requestPermission()
+        setPermission(result)
 
-    if (!isEnabled) {
-      console.log('Notifications disabled by user')
-      return
-    }
+        if (result === 'granted') {
+          toast.success('Уведомления разрешены!')
+        } else if (result === 'denied') {
+          toast.error('Уведомления заблокированы')
+        }
 
-    if (permission !== 'granted') {
-      console.warn('Notification permission not granted')
-      return
-    }
+        return result
+      } catch (error) {
+        console.error('Error requesting notification permission:', error)
+        toast.error('Ошибка при запросе разрешений')
+        return 'denied'
+      }
+    }, [isSupported])
 
-    try {
-      // Проверяем, активна ли вкладка
-      if (document.visibilityState === 'visible') {
-        // Если вкладка активна, показываем toast вместо уведомления
-        toast.info(options.body || options.title, {
-          description: options.body ? options.title : undefined,
-        })
+  const showNotification = useCallback(
+    async (options: NotificationOptions): Promise<void> => {
+      if (!isSupported) {
+        console.warn('Notifications not supported')
         return
       }
 
-      // Создаем уведомление
-      const notification = new Notification(options.title, {
-        body: options.body,
-        icon: options.icon || '/icons/icon-192x192.png',
-        badge: options.badge || '/icons/icon-96x96.png',
-        tag: options.tag,
-        requireInteraction: options.requireInteraction || false,
-        silent: options.silent || false,
-        vibrate: options.vibrate || [200, 100, 200],
-      })
-
-      // Автоматически закрываем через 5 секунд
-      setTimeout(() => {
-        notification.close()
-      }, 5000)
-
-      // Обработчик клика по уведомлению
-      notification.onclick = () => {
-        window.focus()
-        notification.close()
+      if (!isEnabled) {
+        console.log('Notifications disabled by user')
+        return
       }
 
-    } catch (error) {
-      console.error('Error showing notification:', error)
-    }
-  }, [isSupported, isEnabled, permission])
+      if (permission !== 'granted') {
+        console.warn('Notification permission not granted')
+        return
+      }
+
+      try {
+        // Проверяем, активна ли вкладка
+        if (document.visibilityState === 'visible') {
+          // Если вкладка активна, показываем toast вместо уведомления
+          toast.info(options.body || options.title, {
+            description: options.body ? options.title : undefined,
+          })
+          return
+        }
+
+        // Вибрация (если поддерживается)
+        if (options.vibrate && 'vibrate' in navigator) {
+          navigator.vibrate(options.vibrate)
+        }
+
+        // Создаем уведомление
+        const notification = new Notification(options.title, {
+          body: options.body,
+          icon: options.icon || '/icons/icon-192x192.png',
+          badge: options.badge || '/icons/icon-96x96.png',
+          tag: options.tag,
+          requireInteraction: options.requireInteraction || false,
+          silent: options.silent || false,
+        })
+
+        // Автоматически закрываем через 5 секунд
+        setTimeout(() => {
+          notification.close()
+        }, 5000)
+
+        // Обработчик клика по уведомлению
+        notification.onclick = () => {
+          window.focus()
+          notification.close()
+        }
+      } catch (error) {
+        console.error('Error showing notification:', error)
+      }
+    },
+    [isSupported, isEnabled, permission]
+  )
 
   const setEnabledWithStorage = useCallback((enabled: boolean) => {
     setIsEnabled(enabled)
-    
+
     // Сохраняем в localStorage
     const currentSettings = localStorage.getItem('notification_settings')
     let settings = {}
-    
+
     try {
       settings = currentSettings ? JSON.parse(currentSettings) : {}
     } catch (error) {
       console.error('Error parsing notification settings:', error)
     }
-    
+
     const newSettings = { ...settings, enabled }
     localStorage.setItem('notification_settings', JSON.stringify(newSettings))
   }, [])

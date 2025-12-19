@@ -31,6 +31,7 @@ http://localhost:3000 → **"Войти через GitHub"** → ✅
 ## ⚠️ Важно
 
 Callback URL должен быть ТОЧНО:
+
 ```
 https://syxjqxfoycmttcmrasgq.supabase.co/auth/v1/callback
 ```

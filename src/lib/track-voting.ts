@@ -231,3 +231,11 @@ export async function reorderTracksByVotes(roomId: string): Promise<boolean> {
     return false
   }
 }
+
+// Calculate track score for testing
+export function calculateTrackScore(
+  votesUp: number,
+  votesDown: number
+): number {
+  return votesUp - votesDown
+}

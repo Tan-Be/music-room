@@ -35,6 +35,7 @@ https://syxjqxfoycmttcmrasgq.supabase.co/auth/v1/callback
 **Важно:** Замените `syxjqxfoycmttcmrasgq` на ID вашего проекта Supabase!
 
 Для локальной разработки также добавьте:
+
 ```
 http://localhost:3000/auth/callback
 ```
@@ -42,6 +43,7 @@ http://localhost:3000/auth/callback
 ### 3. Получите Client ID и Client Secret
 
 После создания вы получите:
+
 - **Client ID** - например: `123456789-abc.apps.googleusercontent.com`
 - **Client Secret** - например: `GOCSPX-abc123def456`
 
@@ -66,7 +68,7 @@ http://localhost:3000/auth/callback
 3. Заполните форму:
    - **Application name:** `Music Room`
    - **Homepage URL:** `http://localhost:3000`
-   - **Authorization callback URL:** 
+   - **Authorization callback URL:**
      ```
      https://syxjqxfoycmttcmrasgq.supabase.co/auth/v1/callback
      ```
@@ -76,6 +78,7 @@ http://localhost:3000/auth/callback
 ### 2. Получите Client ID и Client Secret
 
 После создания:
+
 1. Скопируйте **Client ID**
 2. Нажмите **Generate a new client secret**
 3. Скопируйте **Client Secret** (он показывается только один раз!)
@@ -122,6 +125,7 @@ npm run dev
 ### Callback URL
 
 Ваш Callback URL должен быть:
+
 ```
 https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 ```
@@ -137,6 +141,7 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 **Проблема:** Redirect URI не совпадает с настройками в Google/GitHub
 
 **Решение:**
+
 1. Проверьте, что в Google/GitHub указан правильный Callback URL
 2. URL должен быть точно таким: `https://syxjqxfoycmttcmrasgq.supabase.co/auth/v1/callback`
 
@@ -145,6 +150,7 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 **Проблема:** Провайдер не включён в Supabase
 
 **Решение:**
+
 1. Откройте Supabase Dashboard → Authentication → Providers
 2. Включите нужный провайдер
 3. Добавьте Client ID и Client Secret
@@ -155,6 +161,7 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 **Проблема:** Неправильные учётные данные
 
 **Решение:**
+
 1. Проверьте, что скопировали правильные Client ID и Secret
 2. Убедитесь, что нет лишних пробелов
 3. Пересоздайте Client Secret если нужно
@@ -174,6 +181,7 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 ### Отключите подтверждение Email
 
 В Supabase Dashboard:
+
 1. **Authentication** → **Settings**
 2. Найдите **Enable email confirmations**
 3. **Отключите** эту опцию
@@ -184,6 +192,7 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 ## 📝 Итоговый чеклист
 
 ### Google OAuth:
+
 - [ ] Создан проект в Google Cloud Console
 - [ ] Создан OAuth Client ID
 - [ ] Добавлен Redirect URI в Google
@@ -191,12 +200,14 @@ https://[YOUR-PROJECT-ID].supabase.co/auth/v1/callback
 - [ ] Провайдер включён в Supabase
 
 ### GitHub OAuth:
+
 - [ ] Создано OAuth App в GitHub
 - [ ] Добавлен Callback URL в GitHub
 - [ ] Client ID и Secret добавлены в Supabase
 - [ ] Провайдер включён в Supabase
 
 ### Тестирование:
+
 - [ ] Приложение перезапущено
 - [ ] Кнопка "Войти через Google" работает
 - [ ] Кнопка "Войти через GitHub" работает

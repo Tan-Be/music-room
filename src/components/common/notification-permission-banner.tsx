@@ -17,7 +17,7 @@ export function NotificationPermissionBanner() {
     // 2. Разрешение не дано
     // 3. Пользователь не отклонил баннер
     const dismissed = localStorage.getItem('notification-banner-dismissed')
-    
+
     if (isSupported && permission === 'default' && !dismissed) {
       // Показываем через 5 секунд после загрузки
       const timer = setTimeout(() => {
@@ -52,27 +52,28 @@ export function NotificationPermissionBanner() {
           <div className="h-10 w-10 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
             <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
-          
+
           <div className="flex-1">
             <h3 className="font-semibold mb-1 text-blue-900 dark:text-blue-100">
               Включить уведомления?
             </h3>
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-              Получайте уведомления о новых сообщениях и треках, даже когда вкладка неактивна
+              Получайте уведомления о новых сообщениях и треках, даже когда
+              вкладка неактивна
             </p>
-            
+
             <div className="flex gap-2">
-              <Button 
-                onClick={handleRequestPermission} 
-                size="sm" 
+              <Button
+                onClick={handleRequestPermission}
+                size="sm"
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
                 <Bell className="h-4 w-4 mr-2" />
                 Разрешить
               </Button>
-              <Button 
-                onClick={handleDismiss} 
-                size="sm" 
+              <Button
+                onClick={handleDismiss}
+                size="sm"
                 variant="ghost"
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900"
               >
@@ -105,19 +106,19 @@ export function NotificationStatus() {
         return {
           icon: <Bell className="h-4 w-4 text-green-600" />,
           text: 'Уведомления включены',
-          color: 'text-green-600'
+          color: 'text-green-600',
         }
       case 'denied':
         return {
           icon: <BellOff className="h-4 w-4 text-red-600" />,
           text: 'Уведомления заблокированы',
-          color: 'text-red-600'
+          color: 'text-red-600',
         }
       default:
         return {
           icon: <Bell className="h-4 w-4 text-yellow-600" />,
           text: 'Разрешение не запрошено',
-          color: 'text-yellow-600'
+          color: 'text-yellow-600',
         }
     }
   }

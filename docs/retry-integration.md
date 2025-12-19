@@ -11,9 +11,11 @@ Retry логика полностью реализована и интегрир
 Три основные функции для работы с retry:
 
 #### `retryWithBackoff<T>`
+
 Базовая функция с exponential backoff и jitter.
 
 **Параметры:**
+
 - `maxRetries` - максимальное количество попыток (по умолчанию: 3)
 - `baseDelay` - базовая задержка в мс (по умолчанию: 1000)
 - `maxDelay` - максимальная задержка в мс (по умолчанию: 10000)
@@ -22,6 +24,7 @@ Retry логика полностью реализована и интегрир
 - `onRetry` - callback при каждой попытке
 
 **Пример:**
+
 ```typescript
 const data = await retryWithBackoff(async () => {
   const { data, error } = await supabase.from('users').select('*')
@@ -31,14 +34,17 @@ const data = await retryWithBackoff(async () => {
 ```
 
 #### `retrySupabaseQuery<T>`
+
 Обёртка для SELECT запросов с автоматическими toast уведомлениями.
 
 **Особенности:**
+
 - Показывает toast при первой попытке retry
 - Возвращает `null` при неудаче вместо выброса ошибки
 - Логирует все ошибки
 
 **Пример:**
+
 ```typescript
 const room = await retrySupabaseQuery(async () => {
   const { data, error } = await supabase
@@ -52,19 +58,20 @@ const room = await retrySupabaseQuery(async () => {
 ```
 
 #### `retryMutation`
+
 Обёртка для INSERT/UPDATE/DELETE с меньшим количеством попыток.
 
 **Особенности:**
+
 - Только 2 retry попытки (вместо 3)
 - Возвращает `boolean` вместо данных
 - Безопасна для мутаций
 
 **Пример:**
+
 ```typescript
 const success = await retryMutation(async () => {
-  const { error } = await supabase
-    .from('tracks')
-    .insert([track])
+  const { error } = await supabase.from('tracks').insert([track])
   if (error) throw error
 })
 ```
@@ -74,11 +81,13 @@ const success = await retryMutation(async () => {
 Автоматически определяет, когда нужен retry:
 
 **Retry выполняется для:**
+
 - ✅ Сетевых ошибок (network, timeout, fetch)
 - ✅ 5xx ошибок сервера
 - ✅ Временных проблем с подключением
 
 **Retry НЕ выполняется для:**
+
 - ❌ PGRST116 (Not found)
 - ❌ 23505 (Unique violation)
 - ❌ 23503 (Foreign key violation)
@@ -89,6 +98,7 @@ const success = await retryMutation(async () => {
 ### 3. Exponential Backoff с Jitter
 
 Задержки между попытками:
+
 - Попытка 1: ~1000ms (1s + jitter)
 - Попытка 2: ~2000ms (2s + jitter)
 - Попытка 3: ~4000ms (4s + jitter)
@@ -100,10 +110,12 @@ Jitter (случайная вариация 30%) предотвращает "thu
 ### Файлы с интегрированной retry логикой:
 
 #### 1. `src/lib/auth.ts`
+
 - ✅ `getUserProfile()` - использует `retrySupabaseQuery`
 - ✅ `updateUserProfile()` - использует `retryMutation`
 
 #### 2. `src/lib/chat-realtime.ts`
+
 - ✅ `loadRecentMessages()` - использует `retrySupabaseQuery`
 - ✅ `getMessageWithUserInfo()` - использует `retrySupabaseQuery`
 - ✅ `sendMessage()` - использует `retryMutation`
@@ -119,6 +131,7 @@ npm test -- src/lib/retry.test.ts
 ```
 
 **Тесты проверяют:**
+
 - ✅ Успешное выполнение с первой попытки
 - ✅ Retry при сетевых ошибках
 - ✅ Отсутствие retry для PGRST116
@@ -156,6 +169,7 @@ npm test -- src/lib/retry.test.ts
 ## 🔧 Рекомендации по использованию
 
 ### Для SELECT запросов:
+
 ```typescript
 const data = await retrySupabaseQuery(async () => {
   const { data, error } = await supabase.from('table').select('*')
@@ -165,6 +179,7 @@ const data = await retrySupabaseQuery(async () => {
 ```
 
 ### Для INSERT/UPDATE/DELETE:
+
 ```typescript
 const success = await retryMutation(async () => {
   const { error } = await supabase.from('table').insert([item])
@@ -173,6 +188,7 @@ const success = await retryMutation(async () => {
 ```
 
 ### Для кастомной логики:
+
 ```typescript
 const data = await retryWithBackoff(
   async () => {
@@ -181,9 +197,9 @@ const data = await retryWithBackoff(
   {
     maxRetries: 5,
     baseDelay: 500,
-    shouldRetry: (error) => {
+    shouldRetry: error => {
       // ваша логика
-    }
+    },
   }
 )
 ```
@@ -198,6 +214,7 @@ const data = await retryWithBackoff(
 ## 🚀 Следующие шаги
 
 Можно дополнительно интегрировать retry логику в:
+
 - Компоненты с прямыми Supabase запросами
 - API routes
 - Server actions

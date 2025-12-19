@@ -25,7 +25,7 @@ export function ResponsiveDialog({
 }: ResponsiveDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const [isDesktop, setIsDesktop] = useState(false)
-  
+
   const open = controlledOpen ?? internalOpen
   const setOpen = onOpenChange ?? setInternalOpen
 
@@ -33,10 +33,10 @@ export function ResponsiveDialog({
     const checkIsDesktop = () => {
       setIsDesktop(window.innerWidth >= 768)
     }
-    
+
     checkIsDesktop()
     window.addEventListener('resize', checkIsDesktop)
-    
+
     return () => window.removeEventListener('resize', checkIsDesktop)
   }, [])
 
@@ -49,26 +49,22 @@ export function ResponsiveDialog({
   }
 
   if (!open) {
-    return (
-      <div onClick={handleTriggerClick}>
-        {trigger}
-      </div>
-    )
+    return <div onClick={handleTriggerClick}>{trigger}</div>
   }
 
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      
+
       {/* Dialog/Drawer */}
       <div
         className={cn(
           'fixed z-50 bg-background border shadow-lg',
-          isDesktop 
+          isDesktop
             ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg max-w-md w-full mx-4'
             : 'bottom-0 left-0 right-0 rounded-t-lg animate-in slide-in-from-bottom-80 duration-300'
         )}
@@ -77,14 +73,16 @@ export function ResponsiveDialog({
         {!isDesktop && (
           <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
         )}
-        
+
         {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold">{title}</h3>
               {description && (
-                <p className="text-sm text-muted-foreground mt-1">{description}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {description}
+                </p>
               )}
             </div>
             <Button
@@ -97,11 +95,9 @@ export function ResponsiveDialog({
             </Button>
           </div>
         </div>
-        
+
         {/* Content */}
-        <div className="px-6 pb-6">
-          {children}
-        </div>
+        <div className="px-6 pb-6">{children}</div>
       </div>
     </>
   )

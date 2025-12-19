@@ -18,7 +18,16 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant = 'default',
+      size = 'default',
+      asChild = false,
+      ...props
+    },
+    ref
+  ) => {
     const Comp = asChild ? Slot : 'button'
     return (
       <Comp
@@ -32,7 +41,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-primary hover:scale-105 active:scale-95',
           variant === 'secondary' &&
             'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:scale-105 active:scale-95',
-          variant === 'ghost' && 'hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95',
+          variant === 'ghost' &&
+            'hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95',
           variant === 'link' &&
             'text-primary underline-offset-4 hover:underline',
           size === 'default' && 'h-10 px-4 py-2',

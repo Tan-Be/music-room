@@ -45,6 +45,7 @@ import { RoomCardSkeleton } from '@/components/common/skeleton-loaders'
 Компонент спиннера для индикации загрузки.
 
 **Размеры:**
+
 - `sm` - маленький (16px)
 - `md` - средний (32px)
 - `lg` - большой (48px)
@@ -72,15 +73,15 @@ import { Spinner } from '@/components/ui/spinner'
 import { useOptimistic } from '@/hooks/use-optimistic'
 
 const { state, isLoading, execute } = useOptimistic(initialTracks, {
-  onSuccess: (result) => {
+  onSuccess: result => {
     toast.success('Трек добавлен')
   },
-  onError: (error) => {
+  onError: error => {
     toast.error('Ошибка добавления трека')
   },
 })
 
-const addTrack = async (track) => {
+const addTrack = async track => {
   await execute(
     [...state, track], // Оптимистичное значение
     async () => {
@@ -188,6 +189,7 @@ const handleVote = async (trackId, value) => {
 Использует `animate-pulse` и `bg-muted` из Tailwind.
 
 Можно кастомизировать:
+
 ```typescript
 <Skeleton className="h-4 w-full bg-primary/10" />
 ```
@@ -197,6 +199,7 @@ const handleVote = async (trackId, value) => {
 Использует `animate-spin` и цвет `border-primary`.
 
 Можно изменить цвет:
+
 ```typescript
 <Spinner className="border-blue-500" />
 ```
@@ -247,7 +250,7 @@ const handleVote = async (trackId, value) => {
 ### 4. Оптимистичное добавление трека
 
 ```typescript
-const addTrackOptimistic = async (track) => {
+const addTrackOptimistic = async track => {
   await execute(
     [...tracks, { ...track, id: 'temp-' + Date.now() }],
     async () => {

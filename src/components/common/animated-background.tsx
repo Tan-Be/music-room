@@ -81,8 +81,7 @@ export function AnimatedBackground() {
             Math.sin(x * waveFrequency + time + i * 1.5) * waveAmplitude +
             Math.sin(x * waveFrequency * 2 + time * 1.2 + i * 0.8) *
               (waveAmplitude / 3) +
-            Math.sin(x * waveFrequency * 0.5 + time * 0.8) *
-              (waveAmplitude / 4)
+            Math.sin(x * waveFrequency * 0.5 + time * 0.8) * (waveAmplitude / 4)
           ctx.lineTo(x, y)
         }
 

@@ -14,10 +14,10 @@ export function PWAInstall() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
-        .then((registration) => {
+        .then(registration => {
           console.log('SW registered:', registration)
         })
-        .catch((error) => {
+        .catch(error => {
           console.error('SW registration failed:', error)
         })
     }
@@ -37,7 +37,10 @@ export function PWAInstall() {
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt
+      )
     }
   }, [])
 
@@ -46,7 +49,7 @@ export function PWAInstall() {
 
     deferredPrompt.prompt()
     const { outcome } = await deferredPrompt.userChoice
-    
+
     console.log(`User response: ${outcome}`)
     setDeferredPrompt(null)
     setShowInstall(false)
@@ -58,7 +61,10 @@ export function PWAInstall() {
   }
 
   // Не показываем если пользователь уже отклонил
-  if (typeof window !== 'undefined' && localStorage.getItem('pwa-install-dismissed')) {
+  if (
+    typeof window !== 'undefined' &&
+    localStorage.getItem('pwa-install-dismissed')
+  ) {
     return null
   }
 
@@ -73,13 +79,13 @@ export function PWAInstall() {
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Download className="h-5 w-5 text-primary" />
           </div>
-          
+
           <div className="flex-1">
             <h3 className="font-semibold mb-1">Установить приложение</h3>
             <p className="text-sm text-muted-foreground mb-3">
               Установите Music Room для быстрого доступа и работы офлайн
             </p>
-            
+
             <div className="flex gap-2">
               <Button onClick={handleInstall} size="sm" className="flex-1">
                 Установить

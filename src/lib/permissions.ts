@@ -67,3 +67,30 @@ export function canPerformAction(
 ): boolean {
   return hasPermission(role, action)
 }
+
+// Legacy function for backward compatibility
+export function checkPermissions(
+  user: any,
+  room: any,
+  action: string,
+  targetId?: string
+): boolean {
+  if (!user || !room) return false
+
+  const userRole = user.role || 'member'
+
+  switch (action) {
+    case 'deleteRoom':
+      return userRole === 'owner'
+    case 'kickUser':
+      return userRole === 'owner' || userRole === 'moderator'
+    case 'addTrack':
+      return userRole !== 'guest'
+    case 'removeTrack':
+      return userRole === 'owner' || userRole === 'moderator'
+    case 'leaveRoom':
+      return true
+    default:
+      return false
+  }
+}

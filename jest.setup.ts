@@ -71,9 +71,9 @@ beforeAll(() => {
     if (
       typeof args[0] === 'string' &&
       (args[0].includes('Invalid Supabase URL') ||
-       args[0].includes('Missing Supabase anon key') ||
-       args[0].includes('Current URL value') ||
-       args[0].includes('Current key value'))
+        args[0].includes('Missing Supabase anon key') ||
+        args[0].includes('Current URL value') ||
+        args[0].includes('Current key value'))
     ) {
       return
     }

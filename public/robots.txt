@@ -1,0 +1,32 @@
+# robots.txt для Music Room
+
+# Разрешить всем роботам
+User-agent: *
+Allow: /
+
+# Запретить доступ к служебным страницам
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /auth/callback
+
+# Разрешить доступ к статическим ресурсам
+Allow: /_next/static/
+Allow: /icons/
+Allow: /images/
+
+# Sitemap
+Sitemap: https://music-room.vercel.app/sitemap.xml
+
+# Специальные правила для поисковых роботов
+User-agent: Googlebot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Частота сканирования
+Crawl-delay: 1

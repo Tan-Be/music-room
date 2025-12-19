@@ -10,9 +10,6 @@ import Link from 'next/link'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { BackgroundMusic } from '@/components/common/background-music'
 
-
-
-
 // Тип данных для RoomCard
 interface Room {
   id: string
@@ -91,14 +88,16 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
       {/* Анимированный фон с фиолетовыми волнами */}
       <AnimatedBackground />
-      
+
       {/* Фоновая музыка */}
       <BackgroundMusic />
 
       <div className="relative z-10 w-full items-center justify-between font-mono text-sm lg:flex mb-8">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-border/50 bg-background/95 backdrop-blur-md pb-6 pt-8 lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-card/95 lg:p-4 shadow-lg">
           Добро пожаловать в&nbsp;
-          <code className="font-mono font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Music Room</code>
+          <code className="font-mono font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Music Room
+          </code>
         </p>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-background via-background lg:static lg:h-auto lg:w-auto lg:bg-none">
           <a
@@ -151,13 +150,17 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-4 py-3 md:px-6 border border-blue-500/20 hover:border-blue-500 transition-all hover:scale-105 touch-manipulation">
-                  <p className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">5</p>
+                  <p className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    5
+                  </p>
                   <p className="text-xs text-muted-foreground font-medium">
                     Комнат создано
                   </p>
                 </div>
                 <div className="text-center bg-card/80 backdrop-blur-sm rounded-lg px-4 py-3 md:px-6 border border-green-500/20 hover:border-green-500 transition-all hover:scale-105 touch-manipulation">
-                  <p className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">12</p>
+                  <p className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">
+                    12
+                  </p>
                   <p className="text-xs text-muted-foreground font-medium">
                     Участие в комнатах
                   </p>
@@ -180,8 +183,8 @@ export default function Home() {
             </p>
           </div>
           {user ? (
-            <Button 
-              asChild 
+            <Button
+              asChild
               size="lg"
               className="mt-4 md:mt-0 shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
@@ -191,15 +194,13 @@ export default function Home() {
               </Link>
             </Button>
           ) : (
-            <Button 
-              asChild 
+            <Button
+              asChild
               size="lg"
               variant="outline"
               className="mt-4 md:mt-0 shadow-lg border-2 border-primary"
             >
-              <Link href="/login">
-                Войти для создания комнаты
-              </Link>
+              <Link href="/login">Войти для создания комнаты</Link>
             </Button>
           )}
         </div>
@@ -222,9 +223,12 @@ export default function Home() {
               <Icons.music className="h-20 w-20 text-primary mb-6 animate-pulse" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
             </div>
-            <h3 className="text-2xl font-bold mb-3 text-center">Комнаты не найдены</h3>
+            <h3 className="text-2xl font-bold mb-3 text-center">
+              Комнаты не найдены
+            </h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Попробуйте изменить поисковый запрос или создайте новую комнату прямо сейчас
+              Попробуйте изменить поисковый запрос или создайте новую комнату
+              прямо сейчас
             </p>
             {user ? (
               <Button asChild size="lg" className="shadow-lg">
@@ -234,10 +238,13 @@ export default function Home() {
                 </Link>
               </Button>
             ) : (
-              <Button asChild size="lg" variant="outline" className="shadow-lg border-2">
-                <Link href="/login">
-                  Войти для создания комнаты
-                </Link>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="shadow-lg border-2"
+              >
+                <Link href="/login">Войти для создания комнаты</Link>
               </Button>
             )}
           </div>

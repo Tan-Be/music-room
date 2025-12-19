@@ -1,171 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Generate PWA Icons</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background: #f0f0f0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        canvas {
-            border: 1px solid #ddd;
-            margin: 10px;
-        }
-        button {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background: #7c3aed;
-        }
-        .icons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .icon-item {
-            text-align: center;
-            padding: 10px;
-            background: #f9f9f9;
-            border-radius: 4px;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f0f0f0;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+      }
+      canvas {
+        border: 1px solid #ddd;
+        margin: 10px;
+      }
+      button {
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background: #7c3aed;
+      }
+      .icons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .icon-item {
+        text-align: center;
+        padding: 10px;
+        background: #f9f9f9;
+        border-radius: 4px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>🎵 Music Room - Генератор иконок PWA</h1>
-        <p>Нажмите кнопку для генерации и скачивания всех иконок</p>
-        
-        <button onclick="generateAllIcons()">Сгенерировать все иконки</button>
-        
-        <div class="icons-grid" id="icons-grid"></div>
+      <h1>🎵 Music Room - Генератор иконок PWA</h1>
+      <p>Нажмите кнопку для генерации и скачивания всех иконок</p>
+
+      <button onclick="generateAllIcons()">Сгенерировать все иконки</button>
+
+      <div class="icons-grid" id="icons-grid"></div>
     </div>
 
     <script>
-        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+      const sizes = [72, 96, 128, 144, 152, 192, 384, 512]
 
-        function drawIcon(canvas, size) {
-            const ctx = canvas.getContext('2d');
-            canvas.width = size;
-            canvas.height = size;
+      function drawIcon(canvas, size) {
+        const ctx = canvas.getContext('2d')
+        canvas.width = size
+        canvas.height = size
 
-            // Градиентный фон
-            const gradient = ctx.createLinearGradient(0, 0, size, size);
-            gradient.addColorStop(0, '#8b5cf6');
-            gradient.addColorStop(1, '#3b82f6');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, size, size);
+        // Градиентный фон
+        const gradient = ctx.createLinearGradient(0, 0, size, size)
+        gradient.addColorStop(0, '#8b5cf6')
+        gradient.addColorStop(1, '#3b82f6')
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, size, size)
 
-            // Музыкальная нота
-            ctx.fillStyle = 'white';
-            
-            const noteSize = size * 0.6;
-            const centerX = size / 2;
-            const centerY = size / 2;
+        // Музыкальная нота
+        ctx.fillStyle = 'white'
 
-            // Стебель ноты
-            const stemWidth = noteSize * 0.1;
-            const stemHeight = noteSize * 0.7;
-            const stemX = centerX + noteSize * 0.15;
-            const stemY = centerY - noteSize * 0.15;
-            
-            ctx.fillRect(stemX, stemY - stemHeight, stemWidth, stemHeight);
+        const noteSize = size * 0.6
+        const centerX = size / 2
+        const centerY = size / 2
 
-            // Головка ноты
-            ctx.beginPath();
-            ctx.ellipse(
-                centerX,
-                centerY,
-                noteSize * 0.2,
-                noteSize * 0.15,
-                -Math.PI / 6,
-                0,
-                2 * Math.PI
-            );
-            ctx.fill();
+        // Стебель ноты
+        const stemWidth = noteSize * 0.1
+        const stemHeight = noteSize * 0.7
+        const stemX = centerX + noteSize * 0.15
+        const stemY = centerY - noteSize * 0.15
 
-            // Флажок
-            ctx.beginPath();
-            ctx.moveTo(stemX + stemWidth, stemY - stemHeight);
-            ctx.quadraticCurveTo(
-                stemX + noteSize * 0.3,
-                stemY - stemHeight * 0.8,
-                stemX + noteSize * 0.25,
-                stemY - stemHeight * 0.5
-            );
-            ctx.quadraticCurveTo(
-                stemX + noteSize * 0.2,
-                stemY - stemHeight * 0.3,
-                stemX + stemWidth,
-                stemY - stemHeight * 0.4
-            );
-            ctx.fill();
-        }
+        ctx.fillRect(stemX, stemY - stemHeight, stemWidth, stemHeight)
 
-        function downloadCanvas(canvas, filename) {
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
+        // Головка ноты
+        ctx.beginPath()
+        ctx.ellipse(
+          centerX,
+          centerY,
+          noteSize * 0.2,
+          noteSize * 0.15,
+          -Math.PI / 6,
+          0,
+          2 * Math.PI
+        )
+        ctx.fill()
 
-        function generateAllIcons() {
-            const grid = document.getElementById('icons-grid');
-            grid.innerHTML = '';
+        // Флажок
+        ctx.beginPath()
+        ctx.moveTo(stemX + stemWidth, stemY - stemHeight)
+        ctx.quadraticCurveTo(
+          stemX + noteSize * 0.3,
+          stemY - stemHeight * 0.8,
+          stemX + noteSize * 0.25,
+          stemY - stemHeight * 0.5
+        )
+        ctx.quadraticCurveTo(
+          stemX + noteSize * 0.2,
+          stemY - stemHeight * 0.3,
+          stemX + stemWidth,
+          stemY - stemHeight * 0.4
+        )
+        ctx.fill()
+      }
 
-            sizes.forEach(size => {
-                const canvas = document.createElement('canvas');
-                drawIcon(canvas, size);
+      function downloadCanvas(canvas, filename) {
+        const link = document.createElement('a')
+        link.download = filename
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+      }
 
-                const item = document.createElement('div');
-                item.className = 'icon-item';
-                
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL();
-                img.style.width = '100px';
-                img.style.height = '100px';
-                
-                const label = document.createElement('div');
-                label.textContent = `${size}x${size}`;
-                label.style.marginTop = '5px';
-                label.style.fontSize = '12px';
-                
-                const downloadBtn = document.createElement('button');
-                downloadBtn.textContent = 'Скачать';
-                downloadBtn.style.fontSize = '12px';
-                downloadBtn.style.padding = '5px 10px';
-                downloadBtn.style.marginTop = '5px';
-                downloadBtn.onclick = () => {
-                    downloadCanvas(canvas, `icon-${size}x${size}.png`);
-                };
-                
-                item.appendChild(img);
-                item.appendChild(label);
-                item.appendChild(downloadBtn);
-                grid.appendChild(item);
-            });
+      function generateAllIcons() {
+        const grid = document.getElementById('icons-grid')
+        grid.innerHTML = ''
 
-            alert('Иконки сгенерированы! Нажмите "Скачать" под каждой иконкой.');
-        }
+        sizes.forEach(size => {
+          const canvas = document.createElement('canvas')
+          drawIcon(canvas, size)
 
-        // Генерируем при загрузке
-        window.onload = () => {
-            generateAllIcons();
-        };
+          const item = document.createElement('div')
+          item.className = 'icon-item'
+
+          const img = document.createElement('img')
+          img.src = canvas.toDataURL()
+          img.style.width = '100px'
+          img.style.height = '100px'
+
+          const label = document.createElement('div')
+          label.textContent = `${size}x${size}`
+          label.style.marginTop = '5px'
+          label.style.fontSize = '12px'
+
+          const downloadBtn = document.createElement('button')
+          downloadBtn.textContent = 'Скачать'
+          downloadBtn.style.fontSize = '12px'
+          downloadBtn.style.padding = '5px 10px'
+          downloadBtn.style.marginTop = '5px'
+          downloadBtn.onclick = () => {
+            downloadCanvas(canvas, `icon-${size}x${size}.png`)
+          }
+
+          item.appendChild(img)
+          item.appendChild(label)
+          item.appendChild(downloadBtn)
+          grid.appendChild(item)
+        })
+
+        alert('Иконки сгенерированы! Нажмите "Скачать" под каждой иконкой.')
+      }
+
+      // Генерируем при загрузке
+      window.onload = () => {
+        generateAllIcons()
+      }
     </script>
-</body>
+  </body>
 </html>

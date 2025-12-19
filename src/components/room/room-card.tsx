@@ -119,19 +119,21 @@ const RoomCardComponent = memo(({ room, className }: RoomCardProps) => {
   }
 
   return (
-    <Card className={cn(
-      'w-full transition-all duration-300 cursor-pointer group',
-      'hover:shadow-2xl hover:scale-105 hover:border-primary/50',
-      'border-2 bg-card/95 backdrop-blur-sm',
-      className
-    )}>
+    <Card
+      className={cn(
+        'w-full transition-all duration-300 cursor-pointer group',
+        'hover:shadow-2xl hover:scale-105 hover:border-primary/50',
+        'border-2 bg-card/95 backdrop-blur-sm',
+        className
+      )}
+    >
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <CardTitle className="flex items-center gap-2 text-lg group-hover:text-primary transition-colors">
               {room.name}
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className="text-xs flex items-center gap-1 bg-primary/10 text-primary border border-primary/20"
               >
                 {getPrivacyIcon()}
@@ -158,12 +160,14 @@ const RoomCardComponent = memo(({ room, className }: RoomCardProps) => {
             </div>
             <span className="truncate text-xs">
               <span className="text-muted-foreground">от</span>{' '}
-              <span className="font-medium text-foreground">{room.owner.name}</span>
+              <span className="font-medium text-foreground">
+                {room.owner.name}
+              </span>
             </span>
           </div>
 
-          <Button 
-            onClick={handleJoinRoom} 
+          <Button
+            onClick={handleJoinRoom}
             size="lg"
             className="ml-2 flex-shrink-0 font-semibold shadow-md"
           >

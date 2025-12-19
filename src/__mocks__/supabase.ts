@@ -1,34 +1,44 @@
 // Улучшенный мок для Supabase
 export const supabase = {
   auth: {
-    getSession: jest.fn(() => Promise.resolve({ 
-      data: { session: null }, 
-      error: null 
-    })),
-    getUser: jest.fn(() => Promise.resolve({ 
-      data: { user: null }, 
-      error: null 
-    })),
-    signInWithPassword: jest.fn(() => Promise.resolve({ 
-      data: { user: null, session: null }, 
-      error: null 
-    })),
-    signUp: jest.fn(() => Promise.resolve({ 
-      data: { user: null, session: null }, 
-      error: null 
-    })),
+    getSession: jest.fn(() =>
+      Promise.resolve({
+        data: { session: null },
+        error: null,
+      })
+    ),
+    getUser: jest.fn(() =>
+      Promise.resolve({
+        data: { user: null },
+        error: null,
+      })
+    ),
+    signInWithPassword: jest.fn(() =>
+      Promise.resolve({
+        data: { user: null, session: null },
+        error: null,
+      })
+    ),
+    signUp: jest.fn(() =>
+      Promise.resolve({
+        data: { user: null, session: null },
+        error: null,
+      })
+    ),
     signOut: jest.fn(() => Promise.resolve({ error: null })),
-    onAuthStateChange: jest.fn(() => ({ 
-      data: { 
-        subscription: { 
-          unsubscribe: jest.fn() 
-        } 
-      } 
+    onAuthStateChange: jest.fn(() => ({
+      data: {
+        subscription: {
+          unsubscribe: jest.fn(),
+        },
+      },
     })),
-    signInWithOAuth: jest.fn(() => Promise.resolve({ 
-      data: { url: 'https://test-oauth-url.com' }, 
-      error: null 
-    })),
+    signInWithOAuth: jest.fn(() =>
+      Promise.resolve({
+        data: { url: 'https://test-oauth-url.com' },
+        error: null,
+      })
+    ),
   },
   from: jest.fn((table: string) => ({
     select: jest.fn().mockReturnThis(),
@@ -48,18 +58,24 @@ export const supabase = {
     order: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
     range: jest.fn().mockReturnThis(),
-    single: jest.fn(() => Promise.resolve({ 
-      data: getMockData(table), 
-      error: null 
-    })),
-    maybeSingle: jest.fn(() => Promise.resolve({ 
-      data: getMockData(table), 
-      error: null 
-    })),
-    then: jest.fn((callback) => callback({ 
-      data: [getMockData(table)], 
-      error: null 
-    })),
+    single: jest.fn(() =>
+      Promise.resolve({
+        data: getMockData(table),
+        error: null,
+      })
+    ),
+    maybeSingle: jest.fn(() =>
+      Promise.resolve({
+        data: getMockData(table),
+        error: null,
+      })
+    ),
+    then: jest.fn(callback =>
+      callback({
+        data: [getMockData(table)],
+        error: null,
+      })
+    ),
   })),
   channel: jest.fn((name: string) => ({
     on: jest.fn().mockReturnThis(),
@@ -69,21 +85,29 @@ export const supabase = {
   })),
   storage: {
     from: jest.fn((bucket: string) => ({
-      upload: jest.fn(() => Promise.resolve({ 
-        data: { path: 'test-path/file.jpg' }, 
-        error: null 
+      upload: jest.fn(() =>
+        Promise.resolve({
+          data: { path: 'test-path/file.jpg' },
+          error: null,
+        })
+      ),
+      remove: jest.fn(() =>
+        Promise.resolve({
+          data: null,
+          error: null,
+        })
+      ),
+      getPublicUrl: jest.fn((path: string) => ({
+        data: {
+          publicUrl: `https://test.supabase.co/storage/v1/object/public/${bucket}/${path}`,
+        },
       })),
-      remove: jest.fn(() => Promise.resolve({ 
-        data: null, 
-        error: null 
-      })),
-      getPublicUrl: jest.fn((path: string) => ({ 
-        data: { publicUrl: `https://test.supabase.co/storage/v1/object/public/${bucket}/${path}` } 
-      })),
-      list: jest.fn(() => Promise.resolve({ 
-        data: [], 
-        error: null 
-      })),
+      list: jest.fn(() =>
+        Promise.resolve({
+          data: [],
+          error: null,
+        })
+      ),
     })),
   },
 }
@@ -150,7 +174,7 @@ function getMockData(table: string) {
       added_at: new Date().toISOString(),
     },
   }
-  
+
   return mockData[table] || {}
 }
 

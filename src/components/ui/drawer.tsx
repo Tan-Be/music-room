@@ -21,7 +21,11 @@ const DrawerContext = React.createContext<{
   onOpenChange: () => {},
 })
 
-const Drawer = ({ open = false, onOpenChange = () => {}, children }: DrawerProps) => {
+const Drawer = ({
+  open = false,
+  onOpenChange = () => {},
+  children,
+}: DrawerProps) => {
   return (
     <DrawerContext.Provider value={{ open, onOpenChange }}>
       {children}
@@ -34,7 +38,7 @@ const DrawerTrigger = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
 >(({ onClick, asChild, children, ...props }, ref) => {
   const { onOpenChange } = React.useContext(DrawerContext)
-  
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     onOpenChange(true)
     onClick?.(e)
@@ -65,11 +69,11 @@ const DrawerContent = React.forwardRef<HTMLDivElement, DrawerContentProps>(
     return (
       <>
         {/* Overlay */}
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           onClick={() => onOpenChange(false)}
         />
-        
+
         {/* Drawer */}
         <div
           ref={ref}
@@ -120,7 +124,10 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-lg font-semibold leading-none tracking-tight', className)}
+    className={cn(
+      'text-lg font-semibold leading-none tracking-tight',
+      className
+    )}
     {...props}
   />
 ))
@@ -143,7 +150,7 @@ const DrawerClose = React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
 >(({ onClick, asChild, children, ...props }, ref) => {
   const { onOpenChange } = React.useContext(DrawerContext)
-  
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     onOpenChange(false)
     onClick?.(e)

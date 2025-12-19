@@ -9,15 +9,18 @@
 ## 📦 Что было сделано
 
 ### 1. Основная библиотека
+
 - ✅ `src/lib/retry.ts` - 3 функции для retry логики
 - ✅ `src/lib/retry.test.ts` - 13 тестов (покрытие 93.33%)
 - ✅ `src/lib/retry-example.ts` - 10 практических примеров
 
 ### 2. Интеграция в проект
+
 - ✅ `src/lib/auth.ts` - getUserProfile, updateUserProfile
 - ✅ `src/lib/chat-realtime.ts` - loadRecentMessages, sendMessage, getMessageWithUserInfo
 
 ### 3. Документация
+
 - ✅ `docs/retry-integration.md` - полное описание
 - ✅ `docs/retry-summary.md` - краткая сводка
 - ✅ Обновлён `docs/error-handling-check.md`
@@ -28,6 +31,7 @@
 ## 🚀 Ключевые функции
 
 ### retryWithBackoff
+
 Базовая функция с exponential backoff и jitter.
 
 ```typescript
@@ -39,6 +43,7 @@ const data = await retryWithBackoff(async () => {
 ```
 
 ### retrySupabaseQuery
+
 Для SELECT запросов с toast уведомлениями.
 
 ```typescript
@@ -54,6 +59,7 @@ const room = await retrySupabaseQuery(async () => {
 ```
 
 ### retryMutation
+
 Для INSERT/UPDATE/DELETE с меньшим количеством попыток.
 
 ```typescript
@@ -82,6 +88,7 @@ npm test -- src/lib/retry.test.ts
 ```
 
 **Результат:**
+
 - ✅ 13 тестов пройдено
 - ✅ Покрытие кода: 93.33%
 - ✅ Время выполнения: ~3 секунды
@@ -91,6 +98,7 @@ npm test -- src/lib/retry.test.ts
 ## 📝 Примеры интеграции
 
 ### До:
+
 ```typescript
 const { data, error } = await supabase
   .from('profiles')
@@ -103,6 +111,7 @@ return data
 ```
 
 ### После:
+
 ```typescript
 return await retrySupabaseQuery(async () => {
   const { data, error } = await supabase
@@ -121,11 +130,13 @@ return await retrySupabaseQuery(async () => {
 ## 🎓 Где использовать
 
 ### Рекомендуется:
+
 - ✅ SELECT запросы (используйте `retrySupabaseQuery`)
 - ✅ INSERT/UPDATE/DELETE (используйте `retryMutation`)
 - ✅ Критичные операции (используйте `retryWithBackoff` с кастомными настройками)
 
 ### Не рекомендуется:
+
 - ❌ Realtime subscriptions (могут создать дубликаты)
 - ❌ Операции с побочными эффектами (платежи, email)
 - ❌ Middleware (критический путь)

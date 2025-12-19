@@ -12,6 +12,7 @@
 **Проблема**: Страница не обрабатывала OAuth токены из URL
 
 **Решение**:
+
 - ✅ Добавлена обработка `code` параметра из URL
 - ✅ Обмен кода на сессию через `exchangeCodeForSession()`
 - ✅ Обработка ошибок OAuth провайдера
@@ -52,6 +53,7 @@
 ### Настроить GitHub OAuth в Supabase:
 
 1. **Создать GitHub OAuth App**: https://github.com/settings/developers
+
    ```
    Application name: Music Room
    Homepage URL: http://localhost:3000
@@ -69,6 +71,7 @@
 ## ✅ Результат
 
 После настройки GitHub OAuth в Supabase:
+
 - ✅ Вход через GitHub работает
 - ✅ Профиль создается автоматически
 - ✅ Пользователь попадает на `/rooms`

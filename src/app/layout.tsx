@@ -11,23 +11,17 @@ import { PWAInstall } from '@/components/common/pwa-install'
 import { NetworkStatus } from '@/components/common/network-status'
 import { NotificationManager } from '@/components/common/notification-manager'
 import { NotificationPermissionBanner } from '@/components/common/notification-permission-banner'
+import { PerformanceMonitor } from '@/components/common/performance-optimized'
+import { generateMetadata, generateJsonLd } from '@/lib/seo'
 
 const fontSans = FontSans({
-  subsets: ['latin'],
+  subsets: ['latin', 'cyrillic'],
   variable: '--font-sans',
+  display: 'swap',
+  preload: true,
 })
 
-export const metadata: Metadata = {
-  title: 'Music Room - Совместное прослушивание музыки',
-  description:
-    'Платформа для создания совместных плейлистов в реальном времени',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Music Room',
-  },
-}
+export const metadata: Metadata = generateMetadata()
 
 export const viewport = {
   width: 'device-width',
@@ -41,8 +35,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const jsonLd = generateJsonLd('webapp')
+
   return (
     <html lang="ru" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="dns-prefetch" href="//syxjqxfoycmttcmrasgq.supabase.co" />
+        <link
+          rel="preload"
+          href="/icons/icon-192x192.png"
+          as="image"
+          type="image/png"
+        />
+      </head>
       <body
         className={cn(
           'min-h-screen bg-background font-sans antialiased',
@@ -58,9 +73,9 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <MainLayout>{children}</MainLayout>
-              <Toaster 
-                position="top-right" 
-                richColors 
+              <Toaster
+                position="top-right"
+                richColors
                 closeButton
                 toastOptions={{
                   style: {
@@ -74,6 +89,7 @@ export default function RootLayout({
               <PWAInstall />
               <NotificationManager />
               <NotificationPermissionBanner />
+              <PerformanceMonitor />
             </ThemeProvider>
           </AuthProvider>
         </ErrorBoundary>

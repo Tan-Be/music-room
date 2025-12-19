@@ -1,3 +1,5 @@
+'use client'
+
 import { WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -17,13 +19,10 @@ export default function OfflinePage() {
         </div>
 
         <div className="space-y-3">
-          <Button
-            onClick={() => window.location.reload()}
-            className="w-full"
-          >
+          <Button onClick={() => window.location.reload()} className="w-full">
             Попробовать снова
           </Button>
-          
+
           <Button
             variant="outline"
             onClick={() => window.history.back()}
@@ -35,7 +34,8 @@ export default function OfflinePage() {
 
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <p className="text-sm text-muted-foreground">
-            💡 <strong>Совет:</strong> Некоторые функции могут работать в автономном режиме
+            💡 <strong>Совет:</strong> Некоторые функции могут работать в
+            автономном режиме
           </p>
         </div>
       </Card>

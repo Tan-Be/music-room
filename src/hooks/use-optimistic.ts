@@ -20,7 +20,7 @@ export function useOptimistic<T>(
       asyncFn: () => Promise<T>
     ): Promise<T | null> => {
       const previousState = state
-      
+
       // Оптимистично обновляем состояние
       setState(optimisticValue)
       setIsLoading(true)
@@ -29,24 +29,24 @@ export function useOptimistic<T>(
       try {
         // Выполняем асинхронную операцию
         const result = await asyncFn()
-        
+
         // Обновляем состояние с реальным результатом
         setState(result)
         setIsLoading(false)
-        
+
         options.onSuccess?.(result)
         return result
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error')
-        
+
         // Откатываем к предыдущему состоянию
         setTimeout(() => {
           setState(previousState)
         }, options.rollbackDelay || 0)
-        
+
         setError(error)
         setIsLoading(false)
-        
+
         options.onError?.(error)
         return null
       }

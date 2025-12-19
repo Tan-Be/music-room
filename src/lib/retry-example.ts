@@ -109,10 +109,7 @@ export async function fetchWithCustomRetryLogic(userId: string) {
 // Пример 6: Обновление с retry
 // ============================================
 
-export async function updateUserProfileWithRetry(
-  userId: string,
-  updates: any
-) {
+export async function updateUserProfileWithRetry(userId: string, updates: any) {
   return await retryMutation(async () => {
     const { error } = await supabase
       .from('profiles')
@@ -129,7 +126,10 @@ export async function updateUserProfileWithRetry(
 
 export async function deleteTrackWithRetry(trackId: string) {
   return await retryMutation(async () => {
-    const { error } = await supabase.from('tracks').delete().eq('id', trackId) as any
+    const { error } = (await supabase
+      .from('tracks')
+      .delete()
+      .eq('id', trackId)) as any
 
     if (error) throw error
   })

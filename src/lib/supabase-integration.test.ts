@@ -123,9 +123,9 @@ describe('Supabase Integration Tests', () => {
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ 
-          data: { username: 'newusername' }, 
-          error: null 
+        single: jest.fn().mockResolvedValue({
+          data: { username: 'newusername' },
+          error: null,
         }),
       }
 
@@ -197,7 +197,9 @@ describe('Supabase Integration Tests', () => {
         .order('created_at', { ascending: false })
 
       expect(mockQuery.eq).toHaveBeenCalledWith('is_public', true)
-      expect(mockQuery.order).toHaveBeenCalledWith('created_at', { ascending: false })
+      expect(mockQuery.order).toHaveBeenCalledWith('created_at', {
+        ascending: false,
+      })
     })
 
     it('should add participant to room', async () => {
@@ -211,7 +213,9 @@ describe('Supabase Integration Tests', () => {
       const mockQuery = {
         insert: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockParticipant, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockParticipant, error: null }),
       }
 
       mockSupabase.from.mockReturnValue(mockQuery as any)
@@ -302,7 +306,9 @@ describe('Supabase Integration Tests', () => {
       const mockQuery = {
         insert: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockQueueItem, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockQueueItem, error: null }),
       }
 
       mockSupabase.from.mockReturnValue(mockQuery as any)
@@ -362,7 +368,7 @@ describe('Supabase Integration Tests', () => {
       mockSupabase.channel.mockReturnValue(mockChannel as any)
 
       const channel = mockSupabase.channel('chat-room-123')
-      
+
       channel.on(
         'postgres_changes',
         {
@@ -370,7 +376,7 @@ describe('Supabase Integration Tests', () => {
           schema: 'public',
           table: 'chat_messages',
         },
-        (payload) => {
+        payload => {
           console.log('New message:', payload)
         }
       )
@@ -397,7 +403,7 @@ describe('Supabase Integration Tests', () => {
       mockSupabase.channel.mockReturnValue(mockChannel as any)
 
       const channel = mockSupabase.channel('test-channel')
-      
+
       // Подписка
       const subscribeResult = await channel.subscribe()
       expect(subscribeResult.status).toBe('SUBSCRIBED')
@@ -411,14 +417,17 @@ describe('Supabase Integration Tests', () => {
   describe('Storage Operations', () => {
     it('should upload file to storage', async () => {
       const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
-      
+
       mockSupabase.storage.from.mockReturnValue({
         upload: jest.fn().mockResolvedValue({
           data: { path: 'avatars/test-user-id/test.jpg' },
           error: null,
         }),
         getPublicUrl: jest.fn().mockReturnValue({
-          data: { publicUrl: 'https://test.supabase.co/storage/v1/object/public/avatars/test-user-id/test.jpg' },
+          data: {
+            publicUrl:
+              'https://test.supabase.co/storage/v1/object/public/avatars/test-user-id/test.jpg',
+          },
         }),
       } as any)
 
@@ -461,18 +470,15 @@ describe('Supabase Integration Tests', () => {
 
       const mockQuery = {
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ 
-          data: null, 
-          error: mockError 
+        single: jest.fn().mockResolvedValue({
+          data: null,
+          error: mockError,
         }),
       }
 
       mockSupabase.from.mockReturnValue(mockQuery as any)
 
-      const result = await mockSupabase
-        .from('profiles')
-        .select('*')
-        .single()
+      const result = await mockSupabase.from('profiles').select('*').single()
 
       expect(result.error).toEqual(mockError)
       expect(result.data).toBeNull()

@@ -15,11 +15,11 @@ interface ResponsiveGridProps {
   gap?: number
 }
 
-export function ResponsiveGrid({ 
-  children, 
+export function ResponsiveGrid({
+  children,
   className,
   cols = { default: 1, sm: 1, md: 2, lg: 3, xl: 4 },
-  gap = 4
+  gap = 4,
 }: ResponsiveGridProps) {
   const gridClasses = cn(
     'grid w-full',
@@ -32,9 +32,5 @@ export function ResponsiveGrid({
     className
   )
 
-  return (
-    <div className={gridClasses}>
-      {children}
-    </div>
-  )
+  return <div className={gridClasses}>{children}</div>
 }

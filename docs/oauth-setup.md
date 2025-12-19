@@ -3,6 +3,7 @@
 ## Обзор
 
 Проект Music Room поддерживает вход через следующие OAuth провайдеры:
+
 - ✅ **Google** - самый популярный провайдер
 - ✅ **GitHub** - для разработчиков
 - ✅ **Spotify** - для музыкальной интеграции
@@ -123,6 +124,7 @@
 ### Для локальной разработки
 
 Добавьте в `.env.local`:
+
 ```env
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
@@ -130,6 +132,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ### Для продакшена
 
 Добавьте в переменные окружения Vercel:
+
 ```env
 NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 ```
@@ -188,13 +191,15 @@ pnpm dev
 ### Ошибка: "Invalid redirect URI"
 
 **Решение**: Убедитесь, что redirect URI в OAuth приложении точно совпадает с URL в Supabase:
+
 ```
 https://[YOUR-PROJECT-REF].supabase.co/auth/v1/callback
 ```
 
 ### Ошибка: "Access denied"
 
-**Решение**: 
+**Решение**:
+
 1. Проверьте, что OAuth приложение опубликовано (для Google)
 2. Убедитесь, что Client ID и Secret правильные
 3. Проверьте scopes в настройках провайдера

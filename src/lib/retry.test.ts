@@ -95,9 +95,9 @@ describe('Retry Logic', () => {
 
       const shouldRetry = jest.fn().mockReturnValue(false)
 
-      await expect(
-        retryWithBackoff(fn, { shouldRetry })
-      ).rejects.toThrow('custom error')
+      await expect(retryWithBackoff(fn, { shouldRetry })).rejects.toThrow(
+        'custom error'
+      )
 
       expect(fn).toHaveBeenCalledTimes(1)
       expect(shouldRetry).toHaveBeenCalledWith(expect.any(Error))

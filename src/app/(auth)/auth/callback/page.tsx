@@ -9,7 +9,9 @@ import { Spinner } from '@/components/ui/spinner'
 export default function AuthCallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
+    'loading'
+  )
   const [errorMessage, setErrorMessage] = useState<string>('')
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function AuthCallbackPage() {
           setStatus('error')
           setErrorMessage(errorDescription || error)
           toast.error(`Ошибка авторизации: ${errorDescription || error}`)
-          
+
           // Редирект на главную через 3 секунды
           setTimeout(() => router.push('/'), 3000)
           return
@@ -34,8 +36,9 @@ export default function AuthCallbackPage() {
 
         // Если есть код, обмениваем его на сессию
         if (code) {
-          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          
+          const { data, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code)
+
           if (exchangeError) {
             console.error('Session exchange error:', exchangeError)
             setStatus('error')
@@ -48,7 +51,7 @@ export default function AuthCallbackPage() {
           if (data.session) {
             setStatus('success')
             toast.success('Вход выполнен успешно!')
-            
+
             // Проверяем, есть ли профиль пользователя
             const { data: profile, error: profileError } = await supabase
               .from('profiles')
@@ -58,10 +61,11 @@ export default function AuthCallbackPage() {
 
             // Если профиля нет, создаем его
             if (profileError && profileError.code === 'PGRST116') {
-              const username = data.user.user_metadata?.user_name || 
-                              data.user.user_metadata?.full_name || 
-                              data.user.email?.split('@')[0] || 
-                              'user'
+              const username =
+                data.user.user_metadata?.user_name ||
+                data.user.user_metadata?.full_name ||
+                data.user.email?.split('@')[0] ||
+                'user'
 
               try {
                 // @ts-ignore - Supabase типизация
@@ -84,8 +88,10 @@ export default function AuthCallbackPage() {
         }
 
         // Если нет кода, проверяем текущую сессию
-        const { data: { session } } = await supabase.auth.getSession()
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
         if (session) {
           setStatus('success')
           toast.success('Вход выполнен успешно!')
@@ -116,9 +122,7 @@ export default function AuthCallbackPage() {
             <Spinner size="lg" />
             <div>
               <h1 className="text-2xl font-bold mb-2">Завершаем вход...</h1>
-              <p className="text-muted-foreground">
-                Пожалуйста, подождите
-              </p>
+              <p className="text-muted-foreground">Пожалуйста, подождите</p>
             </div>
           </>
         )}

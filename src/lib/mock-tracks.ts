@@ -481,3 +481,46 @@ export const mockTracks: MockTrack[] = [
     genre: 'country',
   },
 ]
+
+// Функция для фильтрации треков
+export function filterTracks(
+  tracks: MockTrack[],
+  query: string,
+  genre?: string
+): MockTrack[] {
+  let filtered = tracks
+
+  if (genre && genre !== 'all') {
+    filtered = filtered.filter(track => track.genre === genre)
+  }
+
+  if (query.trim()) {
+    const searchQuery = query.toLowerCase()
+    filtered = filtered.filter(
+      track =>
+        track.title.toLowerCase().includes(searchQuery) ||
+        track.artist.toLowerCase().includes(searchQuery)
+    )
+  }
+
+  return filtered
+}
+
+// Получить случайные треки
+export function getRandomTracks(count: number = 10): MockTrack[] {
+  const shuffled = [...mockTracks].sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, count)
+}
+
+// Получить треки по жанру
+export function getTracksByGenre(genre: string): MockTrack[] {
+  return mockTracks.filter(track => track.genre === genre)
+}
+
+// Получить все жанры
+export function getAllGenres(): string[] {
+  const genres = new Set(
+    mockTracks.map(track => track.genre).filter(Boolean) as string[]
+  )
+  return Array.from(genres)
+}

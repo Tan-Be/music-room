@@ -1,4 +1,7 @@
-import { NotificationService, notificationService } from './notification-service'
+import {
+  NotificationService,
+  notificationService,
+} from './notification-service'
 
 // Мок для Notification API
 const mockNotification = jest.fn()
@@ -14,13 +17,13 @@ describe('NotificationService', () => {
     service = NotificationService.getInstance()
     localStorage.clear()
     jest.clearAllMocks()
-    
+
     // Мок для Notification.permission
     Object.defineProperty(Notification, 'permission', {
       value: 'default',
       writable: true,
     })
-    
+
     // Мок для Notification.requestPermission
     Object.defineProperty(Notification, 'requestPermission', {
       value: jest.fn(() => Promise.resolve('granted')),
@@ -88,7 +91,7 @@ describe('NotificationService', () => {
       service.updateSettings({ trackAdded: false })
       const saved = localStorage.getItem('notification_settings')
       expect(saved).toBeTruthy()
-      
+
       const parsed = JSON.parse(saved!)
       expect(parsed.trackAdded).toBe(false)
     })
@@ -102,20 +105,23 @@ describe('NotificationService', () => {
         roomInvites: true,
         systemUpdates: true,
       }
-      
-      localStorage.setItem('notification_settings', JSON.stringify(testSettings))
-      
+
+      localStorage.setItem(
+        'notification_settings',
+        JSON.stringify(testSettings)
+      )
+
       // Создаем новый экземпляр для загрузки настроек
       const newService = new (NotificationService as any)()
       const settings = newService.getSettings()
-      
+
       expect(settings).toEqual(testSettings)
     })
 
     it('should enable/disable notifications', () => {
       service.setEnabled(false)
       expect(service.getSettings().enabled).toBe(false)
-      
+
       service.setEnabled(true)
       expect(service.getSettings().enabled).toBe(true)
     })
@@ -128,13 +134,13 @@ describe('NotificationService', () => {
         value: 'hidden',
         writable: true,
       })
-      
+
       // Мок для Notification constructor
       mockNotification.mockImplementation(() => ({
         close: jest.fn(),
         onclick: null,
       }))
-      
+
       Object.defineProperty(Notification, 'permission', {
         value: 'granted',
         writable: true,
@@ -198,18 +204,21 @@ describe('NotificationService', () => {
         roomId: 'room-123',
       })
 
-      expect(mockNotification).toHaveBeenCalledWith('🎉 Приглашение в комнату', {
-        body: 'TestUser приглашает вас в "Test Room"',
-        icon: '/icons/icon-192x192.png',
-        tag: 'invite-room-123',
-        requireInteraction: true,
-        vibrate: [200, 100, 200, 100, 200],
-      })
+      expect(mockNotification).toHaveBeenCalledWith(
+        '🎉 Приглашение в комнату',
+        {
+          body: 'TestUser приглашает вас в "Test Room"',
+          icon: '/icons/icon-192x192.png',
+          tag: 'invite-room-123',
+          requireInteraction: true,
+          vibrate: [200, 100, 200, 100, 200],
+        }
+      )
     })
 
     it('should not show notification if disabled', async () => {
       service.setEnabled(false)
-      
+
       await service.notifyNewMessage({
         username: 'TestUser',
         message: 'Hello world',
@@ -222,7 +231,7 @@ describe('NotificationService', () => {
 
     it('should not show notification if specific type is disabled', async () => {
       service.updateSettings({ newMessages: false })
-      
+
       await service.notifyNewMessage({
         username: 'TestUser',
         message: 'Hello world',
@@ -238,7 +247,7 @@ describe('NotificationService', () => {
         value: 'denied',
         writable: true,
       })
-      
+
       await service.notifyNewMessage({
         username: 'TestUser',
         message: 'Hello world',
@@ -254,7 +263,7 @@ describe('NotificationService', () => {
         value: 'visible',
         writable: true,
       })
-      
+
       await service.notifyNewMessage({
         username: 'TestUser',
         message: 'Hello world',
@@ -287,7 +296,7 @@ describe('NotificationService', () => {
 
     it('should handle invalid JSON in localStorage', () => {
       localStorage.setItem('notification_settings', 'invalid json')
-      
+
       const newService = new (NotificationService as any)()
       const settings = newService.getSettings()
 

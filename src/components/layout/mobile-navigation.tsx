@@ -6,15 +6,15 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { 
-  Home, 
-  Music, 
-  User, 
-  Settings, 
-  Menu, 
+import {
+  Home,
+  Music,
+  User,
+  Settings,
+  Menu,
   X,
   History,
-  Plus
+  Plus,
 } from 'lucide-react'
 
 export function MobileNavigation() {
@@ -25,13 +25,13 @@ export function MobileNavigation() {
   const navigation = [
     { name: 'Главная', href: '/', icon: Home },
     { name: 'Комнаты', href: '/rooms', icon: Music },
-    ...(user ? [
-      { name: 'Создать', href: '/rooms/create', icon: Plus },
-      { name: 'Профиль', href: '/profile', icon: User },
-      { name: 'История', href: '/profile/history', icon: History },
-    ] : [
-      { name: 'Войти', href: '/login', icon: User },
-    ])
+    ...(user
+      ? [
+          { name: 'Создать', href: '/rooms/create', icon: Plus },
+          { name: 'Профиль', href: '/profile', icon: User },
+          { name: 'История', href: '/profile/history', icon: History },
+        ]
+      : [{ name: 'Войти', href: '/login', icon: User }]),
   ]
 
   return (
@@ -50,36 +50,38 @@ export function MobileNavigation() {
 
       {/* Mobile Menu Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Mobile Menu */}
-      <div className={cn(
-        "md:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] z-40 transform transition-transform duration-300 ease-in-out",
-        "bg-background/95 backdrop-blur-md border-l border-border shadow-2xl",
-        isOpen ? "translate-x-0" : "translate-x-full"
-      )}>
+      <div
+        className={cn(
+          'md:hidden fixed top-0 right-0 h-full w-80 max-w-[85vw] z-40 transform transition-transform duration-300 ease-in-out',
+          'bg-background/95 backdrop-blur-md border-l border-border shadow-2xl',
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        )}
+      >
         <div className="flex flex-col h-full pt-20 pb-6 px-6">
           <nav className="flex-1 space-y-2">
-            {navigation.map((item) => {
+            {navigation.map(item => {
               const Icon = item.icon
               const isActive = pathname === item.href
-              
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    "flex items-center gap-4 px-4 py-4 rounded-xl text-base font-medium transition-all duration-200",
-                    "hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95",
-                    "touch-manipulation select-none",
-                    isActive 
-                      ? "bg-primary text-primary-foreground shadow-lg" 
-                      : "text-muted-foreground hover:text-foreground"
+                    'flex items-center gap-4 px-4 py-4 rounded-xl text-base font-medium transition-all duration-200',
+                    'hover:bg-accent hover:text-accent-foreground hover:scale-105 active:scale-95',
+                    'touch-manipulation select-none',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-lg'
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Icon className="h-6 w-6 flex-shrink-0" />
@@ -108,21 +110,21 @@ export function MobileNavigation() {
       {/* Bottom Navigation for Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-background/95 backdrop-blur-md border-t border-border">
         <div className="flex items-center justify-around px-2 py-2">
-          {navigation.slice(0, 5).map((item) => {
+          {navigation.slice(0, 5).map(item => {
             const Icon = item.icon
             const isActive = pathname === item.href
-            
+
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200",
-                  "hover:bg-accent hover:scale-105 active:scale-95 touch-manipulation",
-                  "min-w-0 flex-1 max-w-[80px]",
-                  isActive 
-                    ? "text-primary bg-primary/10" 
-                    : "text-muted-foreground hover:text-foreground"
+                  'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all duration-200',
+                  'hover:bg-accent hover:scale-105 active:scale-95 touch-manipulation',
+                  'min-w-0 flex-1 max-w-[80px]',
+                  isActive
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />

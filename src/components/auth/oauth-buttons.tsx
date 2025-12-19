@@ -9,7 +9,10 @@ interface OAuthButtonsProps {
   showSpotify?: boolean
 }
 
-export function OAuthButtons({ className, showSpotify = true }: OAuthButtonsProps) {
+export function OAuthButtons({
+  className,
+  showSpotify = true,
+}: OAuthButtonsProps) {
   return (
     <div className={className}>
       <div className="space-y-3">

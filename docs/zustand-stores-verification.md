@@ -15,16 +15,18 @@
 **Файл**: `src/stores/useAuthStore.ts`
 
 #### Состояние:
+
 ```typescript
 interface AuthState {
-  user: User | null              // Данные пользователя из Supabase
-  profile: any | null            // Профиль пользователя
-  isLoading: boolean             // Состояние загрузки
-  error: string | null           // Ошибки аутентификации
+  user: User | null // Данные пользователя из Supabase
+  profile: any | null // Профиль пользователя
+  isLoading: boolean // Состояние загрузки
+  error: string | null // Ошибки аутентификации
 }
 ```
 
 #### Действия:
+
 ```typescript
 setUser(user: User | null)           // Установить пользователя
 setProfile(profile: any | null)      // Установить профиль
@@ -34,23 +36,25 @@ signOut()                            // Выход из системы
 ```
 
 #### Особенности:
+
 - ✅ Использует `persist` middleware для сохранения в localStorage
 - ✅ Ключ хранения: `auth-storage`
 - ✅ Автоматическая очистка при выходе
 - ✅ Типизация с TypeScript
 
 #### Пример использования:
+
 ```typescript
 import { useAuthStore } from '@/stores'
 
 function MyComponent() {
   const { user, profile, setUser, signOut } = useAuthStore()
-  
+
   // Проверка авторизации
   if (!user) {
     return <LoginForm />
   }
-  
+
   return (
     <div>
       <p>Привет, {profile?.username}!</p>
@@ -67,16 +71,18 @@ function MyComponent() {
 **Файл**: `src/stores/useRoomStore.ts`
 
 #### Состояние:
+
 ```typescript
 interface RoomState {
-  currentRoom: Room | null       // Текущая комната
-  queue: Track[]                 // Очередь треков
-  participants: Participant[]    // Участники комнаты
-  isParticipant: boolean         // Является ли пользователь участником
+  currentRoom: Room | null // Текущая комната
+  queue: Track[] // Очередь треков
+  participants: Participant[] // Участники комнаты
+  isParticipant: boolean // Является ли пользователь участником
 }
 ```
 
 #### Действия:
+
 ```typescript
 // Комната
 setCurrentRoom(room: Room | null)
@@ -99,6 +105,7 @@ setIsParticipant(isParticipant: boolean)
 ```
 
 #### Типы данных:
+
 ```typescript
 interface Room {
   id: string
@@ -137,6 +144,7 @@ interface Participant {
 ```
 
 #### Особенности:
+
 - ✅ Полное управление состоянием комнаты
 - ✅ Управление очередью треков
 - ✅ Управление участниками
@@ -144,26 +152,27 @@ interface Participant {
 - ✅ Ключ хранения: `room-storage`
 
 #### Пример использования:
+
 ```typescript
 import { useRoomStore } from '@/stores'
 
 function RoomComponent() {
-  const { 
-    currentRoom, 
-    queue, 
+  const {
+    currentRoom,
+    queue,
     participants,
     addTrack,
-    updateTrackVotes 
+    updateTrackVotes
   } = useRoomStore()
-  
+
   const handleAddTrack = (track: Track) => {
     addTrack(track)
   }
-  
+
   const handleVote = (trackId: string, up: number, down: number) => {
     updateTrackVotes(trackId, up, down)
   }
-  
+
   return (
     <div>
       <h1>{currentRoom?.name}</h1>
@@ -181,17 +190,19 @@ function RoomComponent() {
 **Файл**: `src/stores/usePlayerStore.ts`
 
 #### Состояние:
+
 ```typescript
 interface PlayerState {
-  isPlaying: boolean             // Воспроизведение
-  currentTime: number            // Текущее время (секунды)
-  volume: number                 // Громкость (0-100)
-  isMuted: boolean               // Отключен звук
-  playbackRate: number           // Скорость воспроизведения (0.5-2.0)
+  isPlaying: boolean // Воспроизведение
+  currentTime: number // Текущее время (секунды)
+  volume: number // Громкость (0-100)
+  isMuted: boolean // Отключен звук
+  playbackRate: number // Скорость воспроизведения (0.5-2.0)
 }
 ```
 
 #### Действия:
+
 ```typescript
 setIsPlaying(isPlaying: boolean)
 setCurrentTime(currentTime: number)
@@ -203,6 +214,7 @@ toggleMute()                     // Переключить звук
 ```
 
 #### Особенности:
+
 - ✅ Готов для интеграции с реальным плеером
 - ✅ Управление воспроизведением
 - ✅ Управление громкостью
@@ -211,33 +223,34 @@ toggleMute()                     // Переключить звук
 - ✅ Ключ хранения: `player-storage`
 
 #### Пример использования:
+
 ```typescript
 import { usePlayerStore } from '@/stores'
 
 function PlayerControls() {
-  const { 
-    isPlaying, 
-    volume, 
+  const {
+    isPlaying,
+    volume,
     isMuted,
     togglePlay,
     setVolume,
-    toggleMute 
+    toggleMute
   } = usePlayerStore()
-  
+
   return (
     <div>
       <button onClick={togglePlay}>
         {isPlaying ? '⏸️ Пауза' : '▶️ Играть'}
       </button>
-      
-      <input 
-        type="range" 
-        min="0" 
-        max="100" 
+
+      <input
+        type="range"
+        min="0"
+        max="100"
         value={volume}
         onChange={(e) => setVolume(Number(e.target.value))}
       />
-      
+
       <button onClick={toggleMute}>
         {isMuted ? '🔇' : '🔊'}
       </button>
@@ -253,16 +266,18 @@ function PlayerControls() {
 **Файл**: `src/stores/useChatStore.ts`
 
 #### Состояние:
+
 ```typescript
 interface ChatState {
-  messages: Message[]            // Сообщения чата
-  isTyping: boolean              // Пользователь печатает
-  typingUsers: TypingUser[]      // Список печатающих пользователей
-  unreadCount: number            // Количество непрочитанных
+  messages: Message[] // Сообщения чата
+  isTyping: boolean // Пользователь печатает
+  typingUsers: TypingUser[] // Список печатающих пользователей
+  unreadCount: number // Количество непрочитанных
 }
 ```
 
 #### Типы данных:
+
 ```typescript
 interface Message {
   id: string
@@ -271,17 +286,18 @@ interface Message {
   userAvatar?: string
   content: string
   timestamp: Date
-  type: 'user' | 'system'        // Тип сообщения
+  type: 'user' | 'system' // Тип сообщения
 }
 
 interface TypingUser {
   userId: string
   userName: string
-  timeoutId: NodeJS.Timeout      // Таймер для автоочистки
+  timeoutId: NodeJS.Timeout // Таймер для автоочистки
 }
 ```
 
 #### Действия:
+
 ```typescript
 // Сообщения
 addMessage(message: Message)
@@ -300,6 +316,7 @@ resetUnreadCount()
 ```
 
 #### Особенности:
+
 - ✅ Управление сообщениями
 - ✅ Индикаторы печати
 - ✅ Счетчик непрочитанных
@@ -308,18 +325,19 @@ resetUnreadCount()
 - ✅ Ключ хранения: `chat-storage`
 
 #### Пример использования:
+
 ```typescript
 import { useChatStore } from '@/stores'
 
 function ChatComponent() {
-  const { 
-    messages, 
+  const {
+    messages,
     unreadCount,
     typingUsers,
     addMessage,
-    resetUnreadCount 
+    resetUnreadCount
   } = useChatStore()
-  
+
   const handleSendMessage = (content: string) => {
     const message: Message = {
       id: Date.now().toString(),
@@ -331,7 +349,7 @@ function ChatComponent() {
     }
     addMessage(message)
   }
-  
+
   return (
     <div>
       <div className="messages">
@@ -341,11 +359,11 @@ function ChatComponent() {
           </div>
         ))}
       </div>
-      
+
       {typingUsers.length > 0 && (
         <p>{typingUsers[0].userName} печатает...</p>
       )}
-      
+
       {unreadCount > 0 && (
         <span className="badge">{unreadCount}</span>
       )}
@@ -363,6 +381,7 @@ function ChatComponent() {
 ### Покрытие тестами:
 
 #### useAuthStore (5 тестов)
+
 - ✅ Установка и получение пользователя
 - ✅ Выход из системы
 - ✅ Установка профиля
@@ -370,6 +389,7 @@ function ChatComponent() {
 - ✅ Установка ошибки
 
 #### useRoomStore (8 тестов)
+
 - ✅ Установка текущей комнаты
 - ✅ Очистка комнаты
 - ✅ Добавление трека в очередь
@@ -380,6 +400,7 @@ function ChatComponent() {
 - ✅ Обновление участника
 
 #### usePlayerStore (5 тестов)
+
 - ✅ Переключение воспроизведения
 - ✅ Установка громкости
 - ✅ Установка текущего времени
@@ -387,6 +408,7 @@ function ChatComponent() {
 - ✅ Установка скорости воспроизведения
 
 #### useChatStore (6 тестов)
+
 - ✅ Добавление сообщения
 - ✅ Очистка чата
 - ✅ Установка сообщений
@@ -395,6 +417,7 @@ function ChatComponent() {
 - ✅ Счетчик непрочитанных
 
 ### Запуск тестов:
+
 ```bash
 pnpm test src/stores/__tests__/stores.test.ts
 ```
@@ -404,6 +427,7 @@ pnpm test src/stores/__tests__/stores.test.ts
 ## 📊 Статистика
 
 ### Файлы:
+
 - `src/stores/useAuthStore.ts` - 35 строк
 - `src/stores/useRoomStore.ts` - 130 строк
 - `src/stores/usePlayerStore.ts` - 40 строк
@@ -414,6 +438,7 @@ pnpm test src/stores/__tests__/stores.test.ts
 - `src/stores/__examples__/usage-example.tsx` - примеры
 
 ### Общая статистика:
+
 - **Stores**: 4
 - **Тестов**: 24
 - **Строк кода**: ~500
@@ -427,6 +452,7 @@ pnpm test src/stores/__tests__/stores.test.ts
 ### Текущее использование:
 
 #### 1. AuthContext использует useAuthStore
+
 ```typescript
 // src/contexts/auth-context.tsx
 import { useAuthStore } from '@/stores'
@@ -438,6 +464,7 @@ export function AuthProvider({ children }) {
 ```
 
 #### 2. Компоненты комнаты могут использовать useRoomStore
+
 ```typescript
 // src/app/room/[id]/page.tsx
 import { useRoomStore } from '@/stores'
@@ -449,6 +476,7 @@ export default function RoomPage() {
 ```
 
 #### 3. Компоненты чата используют useChatStore
+
 ```typescript
 // src/components/room/chat.tsx
 import { useChatStore } from '@/stores'
@@ -482,6 +510,7 @@ export function Chat() {
    - Добавить строгую типизацию для всех действий
 
 ### Пример оптимизации:
+
 ```typescript
 // Вместо
 const { user, profile, isLoading } = useAuthStore()
@@ -496,6 +525,7 @@ const profile = useAuthStore(state => state.profile)
 ## ✅ Выводы
 
 ### Что работает:
+
 1. ✅ **useAuthStore** - полностью реализован
 2. ✅ **useRoomStore** - полностью реализован
 3. ✅ **usePlayerStore** - готов к интеграции с плеером
@@ -505,6 +535,7 @@ const profile = useAuthStore(state => state.profile)
 7. ✅ **Persist** - сохранение в localStorage
 
 ### Готовность:
+
 - **Реализация**: 100% ✅
 - **Тестирование**: 100% ✅
 - **Документация**: 100% ✅

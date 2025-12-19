@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Генератор PNG иконок</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .icon-preview {
+        display: flex;
+        gap: 20px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      .icon-item {
+        text-align: center;
+        padding: 15px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+      .icon-item img {
+        display: block;
+        margin: 0 auto 10px;
+        border-radius: 8px;
+      }
+      .generate-btn {
+        background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 10px;
+        transition: transform 0.2s;
+      }
+      .generate-btn:hover {
+        transform: translateY(-2px);
+      }
+      .instructions {
+        background: #e3f2fd;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        border-left: 4px solid #2196f3;
+      }
+      .success {
+        background: #e8f5e8;
+        color: #2e7d32;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid #4caf50;
+      }
+      canvas {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎵 Генератор PNG иконок для Music Room</h1>
+
+      <div class="instructions">
+        <h3>📋 Инструкция:</h3>
+        <ol>
+          <li>Нажмите кнопки ниже для генерации иконок нужных размеров</li>
+          <li>Иконки автоматически скачаются в папку Downloads</li>
+          <li>
+            Переместите скачанные файлы в папку <code>public/icons/</code>
+          </li>
+          <li>
+            Переименуйте файлы согласно размерам (например:
+            <code>icon-192x192.png</code>)
+          </li>
+        </ol>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0">
+        <button class="generate-btn" onclick="generateIcon(192)">
+          📱 Генерировать 192x192
+        </button>
+        <button class="generate-btn" onclick="generateIcon(512)">
+          🖥️ Генерировать 512x512
+        </button>
+        <button class="generate-btn" onclick="generateAllIcons()">
+          ⚡ Генерировать все размеры
+        </button>
+      </div>
+
+      <div class="icon-preview" id="preview">
+        <!-- Превью иконок будет здесь -->
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const svgContent = `<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Музыкальная нота -->
+  <path d="M320 128C320 119.163 327.163 112 336 112H368C376.837 112 384 119.163 384 128V320C384 355.346 355.346 384 320 384C284.654 384 256 355.346 256 320C256 284.654 284.654 256 320 256C328.837 256 336 248.837 336 240V192L384 176V240C384 248.837 391.163 256 400 256C435.346 256 464 284.654 464 320C464 355.346 435.346 384 400 384C364.654 384 336 355.346 336 320V128H320Z" fill="white"/>
+  
+  <!-- Волны звука -->
+  <path d="M128 192C136.837 192 144 199.163 144 208V304C144 312.837 136.837 320 128 320C119.163 320 112 312.837 112 304V208C112 199.163 119.163 192 128 192Z" fill="white" opacity="0.8"/>
+  <path d="M176 160C184.837 160 192 167.163 192 176V336C192 344.837 184.837 352 176 352C167.163 352 160 344.837 160 336V176C160 167.163 167.163 160 176 160Z" fill="white" opacity="0.6"/>
+  <path d="M224 128C232.837 128 240 135.163 240 144V368C240 376.837 232.837 384 224 384C215.163 384 208 376.837 208 368V144C208 135.163 215.163 128 224 128Z" fill="white" opacity="0.4"/>
+</svg>`
+
+      function generateIcon(size) {
+        const canvas = document.getElementById('canvas')
+        const ctx = canvas.getContext('2d')
+
+        canvas.width = size
+        canvas.height = size
+
+        const img = new Image()
+        const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(svgBlob)
+
+        img.onload = function () {
+          ctx.drawImage(img, 0, 0, size, size)
+
+          canvas.toBlob(function (blob) {
+            const link = document.createElement('a')
+            link.download = `icon-${size}x${size}.png`
+            link.href = URL.createObjectURL(blob)
+            link.click()
+
+            showSuccess(`Иконка ${size}x${size} сгенерирована и скачана!`)
+            addPreview(canvas.toDataURL(), size)
+
+            URL.revokeObjectURL(link.href)
+          }, 'image/png')
+
+          URL.revokeObjectURL(url)
+        }
+
+        img.src = url
+      }
+
+      function generateAllIcons() {
+        const sizes = [192, 512]
+        let completed = 0
+
+        sizes.forEach((size, index) => {
+          setTimeout(() => {
+            generateIcon(size)
+            completed++
+            if (completed === sizes.length) {
+              showSuccess('Все иконки сгенерированы! 🎉')
+            }
+          }, index * 500)
+        })
+      }
+
+      function showSuccess(message) {
+        const status = document.getElementById('status')
+        const div = document.createElement('div')
+        div.className = 'success'
+        div.textContent = message
+        status.appendChild(div)
+
+        setTimeout(() => {
+          div.remove()
+        }, 5000)
+      }
+
+      function addPreview(dataUrl, size) {
+        const preview = document.getElementById('preview')
+        const item = document.createElement('div')
+        item.className = 'icon-item'
+
+        const img = document.createElement('img')
+        img.src = dataUrl
+        img.width = Math.min(size, 128)
+        img.height = Math.min(size, 128)
+
+        const label = document.createElement('div')
+        label.textContent = `${size}x${size}`
+        label.style.fontWeight = 'bold'
+        label.style.color = '#666'
+
+        item.appendChild(img)
+        item.appendChild(label)
+        preview.appendChild(item)
+      }
+
+      // Показать превью при загрузке
+      window.onload = function () {
+        const img = new Image()
+        const svgBlob = new Blob([svgContent], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(svgBlob)
+
+        img.onload = function () {
+          addPreview(url, 256)
+          URL.revokeObjectURL(url)
+        }
+
+        img.src = url
+      }
+    </script>
+  </body>
+</html>

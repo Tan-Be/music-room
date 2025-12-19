@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, Database } from '@/lib/supabase'
 import { useAuth } from '@/contexts/auth-context'
@@ -46,22 +46,7 @@ export default function ProfilePage() {
     tracksAddedToday: 0,
   })
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/')
-      return
-    }
-
-    if (profile) {
-      setUsername(profile.username || '')
-      setAvatarUrl(profile.avatar_url || '')
-    }
-
-    loadStats()
-    loadNotificationSettings()
-  }, [user, profile, router])
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!user) return
 
     try {
@@ -90,7 +75,22 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error loading stats:', error)
     }
-  }
+  }, [user, profile])
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/')
+      return
+    }
+
+    if (profile) {
+      setUsername(profile.username || '')
+      setAvatarUrl(profile.avatar_url || '')
+    }
+
+    loadStats()
+    loadNotificationSettings()
+  }, [user, profile, router, loadStats])
 
   const loadNotificationSettings = () => {
     // Загружаем из localStorage
@@ -134,7 +134,7 @@ export default function ProfilePage() {
     if (!user || !e.target.files || e.target.files.length === 0) return
 
     const file = e.target.files[0]
-    
+
     // Проверка размера (макс 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Файл слишком большой. Максимум 2MB')
@@ -153,7 +153,9 @@ export default function ProfilePage() {
       if (avatarUrl) {
         const oldPath = avatarUrl.split('/').pop()
         if (oldPath) {
-          await supabase.storage.from('avatars').remove([`${user.id}/${oldPath}`])
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`])
         }
       }
 
@@ -244,7 +246,9 @@ export default function ProfilePage() {
         {/* Вкладка: Профиль */}
         <TabsContent value="profile" className="space-y-6">
           <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Редактирование профиля</h2>
+            <h2 className="text-xl font-semibold mb-6">
+              Редактирование профиля
+            </h2>
 
             {/* Аватар */}
             <div className="flex items-center gap-6 mb-6">
@@ -282,7 +286,7 @@ export default function ProfilePage() {
               <Input
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 placeholder="Введите имя"
                 disabled={isSaving}
               />
@@ -315,7 +319,9 @@ export default function ProfilePage() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Комнат посещено</p>
+                  <p className="text-sm text-muted-foreground">
+                    Комнат посещено
+                  </p>
                   <p className="text-3xl font-bold mt-2">{stats.roomsJoined}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
@@ -327,7 +333,9 @@ export default function ProfilePage() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Треков добавлено</p>
+                  <p className="text-sm text-muted-foreground">
+                    Треков добавлено
+                  </p>
                   <p className="text-3xl font-bold mt-2">{stats.tracksAdded}</p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
@@ -339,8 +347,12 @@ export default function ProfilePage() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Сообщений отправлено</p>
-                  <p className="text-3xl font-bold mt-2">{stats.messagesCount}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Сообщений отправлено
+                  </p>
+                  <p className="text-3xl font-bold mt-2">
+                    {stats.messagesCount}
+                  </p>
                 </div>
                 <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
                   <Bell className="h-6 w-6 text-green-600 dark:text-green-400" />
@@ -351,7 +363,9 @@ export default function ProfilePage() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Треков сегодня</p>
+                  <p className="text-sm text-muted-foreground">
+                    Треков сегодня
+                  </p>
                   <p className="text-3xl font-bold mt-2">
                     {stats.tracksAddedToday} / 8
                   </p>
@@ -397,7 +411,7 @@ export default function ProfilePage() {
                 </div>
                 <Switch
                   checked={notifications.newMessages}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={checked =>
                     setNotifications({ ...notifications, newMessages: checked })
                   }
                 />
@@ -412,7 +426,7 @@ export default function ProfilePage() {
                 </div>
                 <Switch
                   checked={notifications.trackAdded}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={checked =>
                     setNotifications({ ...notifications, trackAdded: checked })
                   }
                 />
@@ -427,8 +441,11 @@ export default function ProfilePage() {
                 </div>
                 <Switch
                   checked={notifications.trackStarted}
-                  onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, trackStarted: checked })
+                  onCheckedChange={checked =>
+                    setNotifications({
+                      ...notifications,
+                      trackStarted: checked,
+                    })
                   }
                 />
               </div>
@@ -442,7 +459,7 @@ export default function ProfilePage() {
                 </div>
                 <Switch
                   checked={notifications.roomInvites}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={checked =>
                     setNotifications({ ...notifications, roomInvites: checked })
                   }
                 />
@@ -457,8 +474,11 @@ export default function ProfilePage() {
                 </div>
                 <Switch
                   checked={notifications.systemUpdates}
-                  onCheckedChange={(checked) =>
-                    setNotifications({ ...notifications, systemUpdates: checked })
+                  onCheckedChange={checked =>
+                    setNotifications({
+                      ...notifications,
+                      systemUpdates: checked,
+                    })
                   }
                 />
               </div>

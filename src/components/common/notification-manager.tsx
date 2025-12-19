@@ -57,11 +57,11 @@ export function NotificationManager() {
           table: 'chat_messages',
           filter: `user_id=neq.${user.id}`, // Не наши сообщения
         },
-        async (payload) => {
+        async payload => {
           if (!settings.newMessages) return
 
           const message = payload.new as any
-          
+
           // Получаем информацию о пользователе и комнате
           const { data: userData } = await supabase
             .from('profiles')
@@ -100,11 +100,11 @@ export function NotificationManager() {
           table: 'room_queue',
           filter: `added_by=neq.${user.id}`, // Не наши треки
         },
-        async (payload) => {
+        async payload => {
           if (!settings.trackAdded) return
 
           const queueItem = payload.new as any
-          
+
           // Получаем информацию о треке, пользователе и комнате
           const [trackResult, userResult, roomResult] = await Promise.all([
             supabase
@@ -121,7 +121,7 @@ export function NotificationManager() {
               .from('rooms')
               .select('name')
               .eq('id', queueItem.room_id)
-              .single()
+              .single(),
           ])
 
           const trackTitle = (trackResult.data as any)?.title || 'Трек'
@@ -151,11 +151,11 @@ export function NotificationManager() {
           table: 'rooms',
           filter: 'is_playing=eq.true',
         },
-        async (payload) => {
+        async payload => {
           if (!settings.trackStarted) return
 
           const room = payload.new as any
-          
+
           // Получаем информацию о текущем треке
           if (room.current_track_id) {
             const { data: trackData } = await supabase
@@ -190,11 +190,11 @@ export function NotificationManager() {
           table: 'room_participants',
           filter: `user_id=eq.${user.id}`, // Только наши приглашения
         },
-        async (payload) => {
+        async payload => {
           if (!settings.roomInvites) return
 
           const participant = payload.new as any
-          
+
           // Получаем информацию о комнате
           const { data: roomData } = await supabase
             .from('rooms')
@@ -204,7 +204,8 @@ export function NotificationManager() {
 
           if (roomData) {
             const roomName = (roomData as any).name
-            const inviterName = (roomData as any).profiles?.username || 'Пользователь'
+            const inviterName =
+              (roomData as any).profiles?.username || 'Пользователь'
 
             showNotification({
               title: '🎉 Приглашение в комнату',

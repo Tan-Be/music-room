@@ -29,9 +29,7 @@ jest.mock('@/lib/supabase')
 // Компонент-обертка для тестов
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <ThemeProvider attribute="class" defaultTheme="light">
-    <AuthProvider>
-      {children}
-    </AuthProvider>
+    <AuthProvider>{children}</AuthProvider>
   </ThemeProvider>
 )
 
@@ -43,10 +41,12 @@ describe('E2E User Scenarios', () => {
   describe('User Authentication Flow', () => {
     it('should complete full registration flow', async () => {
       const user = userEvent.setup()
-      
+
       // Импортируем компоненты динамически чтобы избежать проблем с мокингом
-      const { default: RegisterForm } = await import('@/components/auth/register-form')
-      
+      const { default: RegisterForm } = await import(
+        '@/components/auth/register-form'
+      )
+
       render(
         <TestWrapper>
           <RegisterForm />
@@ -57,12 +57,14 @@ describe('E2E User Scenarios', () => {
       const emailInput = screen.getByLabelText(/email/i)
       const passwordInput = screen.getByLabelText(/пароль/i)
       const usernameInput = screen.getByLabelText(/имя пользователя/i)
-      const submitButton = screen.getByRole('button', { name: /зарегистрироваться/i })
+      const submitButton = screen.getByRole('button', {
+        name: /зарегистрироваться/i,
+      })
 
       await user.type(emailInput, 'test@example.com')
       await user.type(passwordInput, 'password123')
       await user.type(usernameInput, 'testuser')
-      
+
       await user.click(submitButton)
 
       // Проверяем, что форма была отправлена
@@ -73,9 +75,11 @@ describe('E2E User Scenarios', () => {
 
     it('should complete OAuth login flow', async () => {
       const user = userEvent.setup()
-      
-      const { default: GitHubLoginButton } = await import('@/components/auth/github-login-button')
-      
+
+      const { default: GitHubLoginButton } = await import(
+        '@/components/auth/github-login-button'
+      )
+
       render(
         <TestWrapper>
           <GitHubLoginButton />
@@ -95,9 +99,11 @@ describe('E2E User Scenarios', () => {
   describe('Room Management Flow', () => {
     it('should create and join room successfully', async () => {
       const user = userEvent.setup()
-      
-      const { default: CreateRoomDialog } = await import('@/components/room/create-room-dialog')
-      
+
+      const { default: CreateRoomDialog } = await import(
+        '@/components/room/create-room-dialog'
+      )
+
       render(
         <TestWrapper>
           <CreateRoomDialog />
@@ -105,13 +111,15 @@ describe('E2E User Scenarios', () => {
       )
 
       // Открываем диалог создания комнаты
-      const createButton = screen.getByRole('button', { name: /создать комнату/i })
+      const createButton = screen.getByRole('button', {
+        name: /создать комнату/i,
+      })
       await user.click(createButton)
 
       // Заполняем форму
       const nameInput = screen.getByLabelText(/название комнаты/i)
       const descriptionInput = screen.getByLabelText(/описание/i)
-      
+
       await user.type(nameInput, 'Test Room')
       await user.type(descriptionInput, 'Test room description')
 
@@ -130,9 +138,9 @@ describe('E2E User Scenarios', () => {
 
     it('should browse and join existing room', async () => {
       const user = userEvent.setup()
-      
+
       const { default: RoomCard } = await import('@/components/room/room-card')
-      
+
       const mockRoom = {
         id: 'test-room-id',
         name: 'Test Room',
@@ -163,9 +171,9 @@ describe('E2E User Scenarios', () => {
   describe('Chat Interaction Flow', () => {
     it('should send and receive messages', async () => {
       const user = userEvent.setup()
-      
+
       const { default: Chat } = await import('@/components/room/chat')
-      
+
       const mockMessages = [
         {
           id: '1',
@@ -211,9 +219,9 @@ describe('E2E User Scenarios', () => {
 
     it('should handle message validation', async () => {
       const user = userEvent.setup()
-      
+
       const { default: Chat } = await import('@/components/room/chat')
-      
+
       const mockCurrentUser = {
         id: 'current-user',
         name: 'Current User',
@@ -234,15 +242,17 @@ describe('E2E User Scenarios', () => {
 
       // Попытка отправить пустое сообщение
       await user.click(sendButton)
-      
+
       await waitFor(() => {
-        expect(screen.getByText(/сообщение не может быть пустым/i)).toBeInTheDocument()
+        expect(
+          screen.getByText(/сообщение не может быть пустым/i)
+        ).toBeInTheDocument()
       })
 
       // Попытка отправить слишком длинное сообщение
       const longMessage = 'a'.repeat(501)
       await user.type(messageInput, longMessage)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/500/)).toBeInTheDocument()
       })
@@ -252,9 +262,11 @@ describe('E2E User Scenarios', () => {
   describe('Track Management Flow', () => {
     it('should search and add tracks to queue', async () => {
       const user = userEvent.setup()
-      
-      const { default: TrackSearch } = await import('@/components/track/track-search')
-      
+
+      const { default: TrackSearch } = await import(
+        '@/components/track/track-search'
+      )
+
       const mockOnAddToQueue = jest.fn()
 
       render(
@@ -281,9 +293,11 @@ describe('E2E User Scenarios', () => {
 
     it('should handle track voting', async () => {
       const user = userEvent.setup()
-      
-      const { default: TrackItem } = await import('@/components/room/track-item')
-      
+
+      const { default: TrackItem } = await import(
+        '@/components/room/track-item'
+      )
+
       const mockTrack = {
         id: 'track-1',
         title: 'Test Song',
@@ -333,7 +347,7 @@ describe('E2E User Scenarios', () => {
   describe('Profile Management Flow', () => {
     it('should update user profile', async () => {
       const user = userEvent.setup()
-      
+
       // Мокаем useAuth хук
       const mockRefreshProfile = jest.fn()
       jest.doMock('@/contexts/auth-context', () => ({
@@ -345,7 +359,7 @@ describe('E2E User Scenarios', () => {
       }))
 
       const { default: ProfilePage } = await import('@/app/profile/page')
-      
+
       render(
         <TestWrapper>
           <ProfilePage />
@@ -367,12 +381,12 @@ describe('E2E User Scenarios', () => {
 
     it('should handle avatar upload', async () => {
       const user = userEvent.setup()
-      
+
       // Создаем мок файла
       const mockFile = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' })
-      
+
       const { default: ProfilePage } = await import('@/app/profile/page')
-      
+
       render(
         <TestWrapper>
           <ProfilePage />
@@ -392,15 +406,17 @@ describe('E2E User Scenarios', () => {
   describe('Notification System Flow', () => {
     it('should request and handle notification permissions', async () => {
       const user = userEvent.setup()
-      
+
       // Мокаем Notification API
       const mockRequestPermission = jest.fn().mockResolvedValue('granted')
       Object.defineProperty(Notification, 'requestPermission', {
         value: mockRequestPermission,
       })
 
-      const { default: NotificationPermissionBanner } = await import('@/components/common/notification-permission-banner')
-      
+      const { default: NotificationPermissionBanner } = await import(
+        '@/components/common/notification-permission-banner'
+      )
+
       render(
         <TestWrapper>
           <NotificationPermissionBanner />
@@ -416,9 +432,9 @@ describe('E2E User Scenarios', () => {
 
     it('should update notification settings', async () => {
       const user = userEvent.setup()
-      
+
       const { default: ProfilePage } = await import('@/app/profile/page')
-      
+
       render(
         <TestWrapper>
           <ProfilePage />
@@ -430,15 +446,21 @@ describe('E2E User Scenarios', () => {
       await user.click(notificationsTab)
 
       // Отключаем уведомления о новых сообщениях
-      const messageNotificationsSwitch = screen.getByRole('switch', { name: /новые сообщения/i })
+      const messageNotificationsSwitch = screen.getByRole('switch', {
+        name: /новые сообщения/i,
+      })
       await user.click(messageNotificationsSwitch)
 
       // Сохраняем настройки
-      const saveButton = screen.getByRole('button', { name: /сохранить настройки/i })
+      const saveButton = screen.getByRole('button', {
+        name: /сохранить настройки/i,
+      })
       await user.click(saveButton)
 
       await waitFor(() => {
-        expect(screen.getByText(/настройки уведомлений сохранены/i)).toBeInTheDocument()
+        expect(
+          screen.getByText(/настройки уведомлений сохранены/i)
+        ).toBeInTheDocument()
       })
     })
   })
@@ -448,9 +470,11 @@ describe('E2E User Scenarios', () => {
       // Мокаем сетевую ошибку
       const mockError = new Error('Network error')
       jest.spyOn(console, 'error').mockImplementation(() => {})
-      
-      const { default: ErrorBoundary } = await import('@/components/common/error-boundary')
-      
+
+      const { default: ErrorBoundary } = await import(
+        '@/components/common/error-boundary'
+      )
+
       const ThrowError = () => {
         throw mockError
       }
@@ -462,17 +486,21 @@ describe('E2E User Scenarios', () => {
       )
 
       expect(screen.getByText(/что-то пошло не так/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /попробовать снова/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole('button', { name: /попробовать снова/i })
+      ).toBeInTheDocument()
     })
 
     it('should handle authentication errors', async () => {
       const user = userEvent.setup()
-      
+
       // Мокаем ошибку аутентификации
       const mockError = { message: 'Invalid credentials' }
-      
-      const { default: LoginForm } = await import('@/components/auth/login-form')
-      
+
+      const { default: LoginForm } = await import(
+        '@/components/auth/login-form'
+      )
+
       render(
         <TestWrapper>
           <LoginForm />
@@ -496,7 +524,7 @@ describe('E2E User Scenarios', () => {
   describe('Performance Scenarios', () => {
     it('should handle large message lists efficiently', async () => {
       const { default: Chat } = await import('@/components/room/chat')
-      
+
       // Создаем большой список сообщений
       const manyMessages = Array.from({ length: 1000 }, (_, i) => ({
         id: `msg-${i}`,
@@ -513,7 +541,7 @@ describe('E2E User Scenarios', () => {
       }
 
       const startTime = performance.now()
-      
+
       render(
         <TestWrapper>
           <Chat
@@ -529,16 +557,18 @@ describe('E2E User Scenarios', () => {
 
       // Проверяем, что рендеринг занял разумное время (< 100ms)
       expect(renderTime).toBeLessThan(100)
-      
+
       // Проверяем, что последние сообщения отображаются
       expect(screen.getByText('Message 999')).toBeInTheDocument()
     })
 
     it('should handle rapid user interactions', async () => {
       const user = userEvent.setup()
-      
-      const { default: TrackItem } = await import('@/components/room/track-item')
-      
+
+      const { default: TrackItem } = await import(
+        '@/components/room/track-item'
+      )
+
       const mockTrack = {
         id: 'track-1',
         title: 'Test Song',

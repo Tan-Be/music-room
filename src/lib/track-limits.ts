@@ -131,3 +131,13 @@ export function getTrackLimitMessage(remainingTracks: number): string {
 
   return `Вы можете добавить еще ${remainingTracks} треков сегодня`
 }
+
+// Legacy exports for backward compatibility
+export const DAILY_TRACK_LIMIT = MAX_TRACKS_PER_DAY
+export const checkDailyLimit = checkTrackLimit
+export const updateDailyCount = incrementTrackCount
+export const resetDailyCount = resetDailyTrackLimits
+export const getRemainingTracks = (tracksAddedToday: number) =>
+  Math.max(0, MAX_TRACKS_PER_DAY - tracksAddedToday)
+export const canAddTrack = (tracksAddedToday: number) =>
+  tracksAddedToday < MAX_TRACKS_PER_DAY

@@ -5,6 +5,7 @@
 На главной странице добавлена фоновая музыка с красивым плеером в правом нижнем углу.
 
 ### Функции:
+
 - ✅ **Play/Pause** - включение/выключение музыки
 - ✅ **Mute/Unmute** - отключение звука
 - ✅ **Автоповтор** - музыка играет по кругу
@@ -17,6 +18,7 @@
 ### Вариант 1: Локальный файл (рекомендуется)
 
 1. **Создайте папку для музыки:**
+
 ```bash
 mkdir public/music
 ```
@@ -52,11 +54,7 @@ audio.src = 'https://your-cdn.com/music.mp3'
 Создайте плейлист:
 
 ```typescript
-const playlist = [
-  '/music/track1.mp3',
-  '/music/track2.mp3',
-  '/music/track3.mp3',
-]
+const playlist = ['/music/track1.mp3', '/music/track2.mp3', '/music/track3.mp3']
 
 let currentTrack = 0
 
@@ -71,6 +69,7 @@ audio.addEventListener('ended', () => {
 ## 🎨 Рекомендации по музыке
 
 ### Жанры для фона:
+
 - 🎹 **Lofi Hip-Hop** - расслабляющий, не отвлекает
 - 🎺 **Jazz** - элегантный, атмосферный
 - 🎻 **Classical** - спокойный, приятный
@@ -134,10 +133,13 @@ useEffect(() => {
 
 1. Откройте нужную страницу (например, `src/app/rooms/page.tsx`)
 2. Добавьте импорт:
+
 ```typescript
 import { BackgroundMusic } from '@/components/common/background-music'
 ```
+
 3. Добавьте компонент:
+
 ```typescript
 <BackgroundMusic />
 ```
@@ -156,13 +158,14 @@ import { BackgroundMusic } from '@/components/common/background-music'
 ### Изменить цвета:
 
 ```typescript
-className="bg-background/80 backdrop-blur-md border-2 border-primary/20"
+className = 'bg-background/80 backdrop-blur-md border-2 border-primary/20'
 // Измените border-primary/20 на другой цвет
 ```
 
 ### Убрать подсказку:
 
 Удалите блок:
+
 ```typescript
 {!hasInteracted && (
   <div className="absolute bottom-full...">
@@ -190,6 +193,7 @@ className="bg-background/80 backdrop-blur-md border-2 border-primary/20"
 ### Музыка слишком громкая/тихая
 
 Измените значение `volume`:
+
 ```typescript
 audio.volume = 0.2 // Тише (20%)
 audio.volume = 0.5 // Громче (50%)
@@ -211,7 +215,7 @@ export default function Home() {
   return (
     <main>
       {/* Ваш контент */}
-      
+
       {/* Фоновая музыка */}
       <BackgroundMusic />
     </main>
@@ -222,6 +226,7 @@ export default function Home() {
 ## 🎵 Рекомендуемые треки
 
 Для Music Room подойдут:
+
 - **Lofi Beats** - расслабляющие биты
 - **Chill Jazz** - спокойный джаз
 - **Ambient Electronic** - электронная музыка

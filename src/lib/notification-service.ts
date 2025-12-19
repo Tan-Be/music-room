@@ -79,11 +79,15 @@ export class NotificationService {
     // Не показываем если вкладка активна
     if (document.visibilityState === 'visible') return
 
+    // Вибрация
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200])
+    }
+
     new Notification('💬 Новое сообщение', {
       body: `${data.username} в ${data.roomName}: ${data.message}`,
       icon: '/icons/icon-192x192.png',
       tag: `chat-${data.roomId}`,
-      vibrate: [200, 100, 200],
     })
   }
 
@@ -102,11 +106,15 @@ export class NotificationService {
 
     if (document.visibilityState === 'visible') return
 
+    // Вибрация
+    if ('vibrate' in navigator) {
+      navigator.vibrate([100, 50, 100])
+    }
+
     new Notification('🎵 Новый трек добавлен', {
       body: `${data.username} добавил "${data.trackTitle}" от ${data.trackArtist} в ${data.roomName}`,
       icon: '/icons/icon-192x192.png',
       tag: `track-added-${data.roomId}`,
-      vibrate: [100, 50, 100],
     })
   }
 
@@ -124,12 +132,16 @@ export class NotificationService {
 
     if (document.visibilityState === 'visible') return
 
+    // Вибрация
+    if ('vibrate' in navigator) {
+      navigator.vibrate([300])
+    }
+
     new Notification('▶️ Начал играть трек', {
       body: `"${data.trackTitle}" от ${data.trackArtist} в ${data.roomName}`,
       icon: '/icons/icon-192x192.png',
       tag: `track-started-${data.roomId}`,
       requireInteraction: false,
-      vibrate: [300],
     })
   }
 
@@ -144,18 +156,27 @@ export class NotificationService {
     const permission = await this.checkPermission()
     if (permission !== 'granted') return
 
+    // Вибрация
+    if ('vibrate' in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 200])
+    }
+
     new Notification('🎉 Приглашение в комнату', {
       body: `${data.inviterName} приглашает вас в "${data.roomName}"`,
       icon: '/icons/icon-192x192.png',
       tag: `invite-${data.roomId}`,
       requireInteraction: true,
-      vibrate: [200, 100, 200, 100, 200],
     })
   }
 
   // Обновить настройки
   updateSettings(newSettings: Partial<Record<string, boolean>>) {
-    this.settings = { ...this.settings, ...newSettings }
+    Object.keys(newSettings).forEach(key => {
+      const value = newSettings[key]
+      if (value !== undefined) {
+        this.settings[key] = value
+      }
+    })
     this.saveSettings()
   }
 

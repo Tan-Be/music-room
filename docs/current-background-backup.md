@@ -5,6 +5,7 @@
 ## Текущая конфигурация
 
 ### Компоненты
+
 - ✅ `AnimatedBackground` - включён
 - ✅ Фиолетовые волны с эффектом свечения
 - ✅ Плавающие музыкальные ноты
@@ -16,7 +17,7 @@
 // src/app/page.tsx
 <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
   <AnimatedBackground />
-  
+
   <div className="relative z-10 w-full items-center justify-between font-mono text-sm lg:flex mb-8">
     <p className="fixed left-0 top-0 flex w-full justify-center border-b border-border/50 bg-background/95 backdrop-blur-md pb-6 pt-8 lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-card/95 lg:p-4 shadow-lg">
 ```
@@ -50,13 +51,14 @@
 
 ```tsx
 // Основная кнопка
-className="mt-4 md:mt-0 shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+className =
+  'mt-4 md:mt-0 shadow-lg hover:shadow-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
 
 // Outline кнопка
-className="mt-4 md:mt-0 shadow-lg border-2 border-primary"
+className = 'mt-4 md:mt-0 shadow-lg border-2 border-primary'
 
 // Кнопка в пустом состоянии
-className="shadow-lg"
+className = 'shadow-lg'
 ```
 
 ### Пустое состояние
@@ -74,11 +76,13 @@ className="shadow-lg"
 Если нужно вернуть этот фон:
 
 1. Убедитесь, что импортирован `AnimatedBackground`:
+
 ```tsx
 import { AnimatedBackground } from '@/components/common/animated-background'
 ```
 
 2. Добавьте в main:
+
 ```tsx
 <main className="flex min-h-screen flex-col items-center p-4 md:p-8 relative">
   <AnimatedBackground />

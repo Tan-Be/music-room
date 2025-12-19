@@ -10,7 +10,10 @@ interface TouchButtonProps extends ButtonProps {
 }
 
 const TouchButton = React.forwardRef<HTMLButtonElement, TouchButtonProps>(
-  ({ className, touchFeedback = true, haptic = false, children, ...props }, ref) => {
+  (
+    { className, touchFeedback = true, haptic = false, children, ...props },
+    ref
+  ) => {
     const [isPressed, setIsPressed] = React.useState(false)
 
     const handleTouchStart = () => {

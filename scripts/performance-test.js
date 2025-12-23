@@ -39,15 +39,16 @@ async function runLighthouseAudit() {
 
     // Сначала собираем проект
     console.log('📦 Сборка проекта...')
-    execSync('pnpm run build', { stdio: 'inherit' })
+    execSync('npm run build', { stdio: 'inherit' })
 
     // Запускаем production сервер в фоне
     const serverProcess = require('child_process').spawn(
-      'pnpm',
+      process.platform === 'win32' ? 'npm.cmd' : 'npm',
       ['run', 'start'],
       {
         stdio: 'pipe',
         detached: true,
+        shell: true,
       }
     )
 
@@ -158,7 +159,7 @@ function testBuildPerformance() {
   const startTime = Date.now()
 
   try {
-    execSync('pnpm run build', { stdio: 'pipe' })
+    execSync('npm run build', { stdio: 'pipe' })
     const buildTime = Date.now() - startTime
 
     console.log(`✅ Сборка завершена за ${buildTime}ms`)
@@ -228,7 +229,7 @@ function testTypeScriptPerformance() {
   const startTime = Date.now()
 
   try {
-    execSync('pnpm run type-check:build', { stdio: 'pipe' })
+    execSync('npm run type-check:build', { stdio: 'pipe' })
     const typeCheckTime = Date.now() - startTime
 
     console.log(`✅ Проверка типов завершена за ${typeCheckTime}ms`)

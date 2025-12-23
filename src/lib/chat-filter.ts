@@ -37,6 +37,41 @@ export const MAX_MESSAGE_LENGTH = 500
 // Минимальный интервал между сообщениями (в миллисекундах)
 export const MIN_MESSAGE_INTERVAL = 1000 // 1 секунда
 
+// Максимальное количество сообщений в минуту
+export const MAX_MESSAGES_PER_MINUTE = 10
+
+// Rate limiting для пользователей
+const userMessageTimes = new Map<string, number[]>()
+
+// Проверка rate limiting
+export function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const userTimes = userMessageTimes.get(userId) || []
+
+  // Удаляем старые записи (старше минуты)
+  const recentTimes = userTimes.filter(time => now - time < 60000)
+
+  // Проверяем лимит сообщений в минуту
+  if (recentTimes.length >= MAX_MESSAGES_PER_MINUTE) {
+    return false
+  }
+
+  // Добавляем текущее время
+  recentTimes.push(now)
+  userMessageTimes.set(userId, recentTimes)
+
+  return true
+}
+
+// Проверка интервала между сообщениями
+export function checkMessageInterval(
+  userId: string,
+  lastMessageTime: number
+): boolean {
+  const now = Date.now()
+  return now - lastMessageTime >= MIN_MESSAGE_INTERVAL
+}
+
 // Фильтрация нецензурной лексики
 export function filterProfanity(text: string): string {
   let filteredText = text
@@ -64,8 +99,9 @@ export function isSendingTooFast(lastMessageTime: number): boolean {
 // Валидация сообщения
 export function validateMessage(
   text: string,
-  lastMessageTime: number
-): { isValid: boolean; error?: string } {
+  lastMessageTime: number,
+  userId?: string
+): { isValid: boolean; error?: string; filteredMessage?: string } {
   // Проверка на пустое сообщение
   if (!text.trim()) {
     return { isValid: false, error: 'Сообщение не может быть пустым' }
@@ -79,6 +115,14 @@ export function validateMessage(
     }
   }
 
+  // Проверка rate limiting
+  if (userId && !checkRateLimit(userId)) {
+    return {
+      isValid: false,
+      error: 'Слишком много сообщений. Подождите немного.',
+    }
+  }
+
   // Проверка частоты отправки
   if (isSendingTooFast(lastMessageTime)) {
     return {
@@ -87,5 +131,11 @@ export function validateMessage(
     }
   }
 
-  return { isValid: true }
+  // Фильтрация контента
+  const filteredMessage = filterProfanity(text.trim())
+
+  return {
+    isValid: true,
+    filteredMessage,
+  }
 }

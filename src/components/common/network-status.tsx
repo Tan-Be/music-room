@@ -7,8 +7,15 @@ import { toast } from 'sonner'
 export function NetworkStatus() {
   const [isOnline, setIsOnline] = useState(true)
   const [showOffline, setShowOffline] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     // Проверяем начальное состояние
     setIsOnline(navigator.onLine)
 
@@ -36,9 +43,9 @@ export function NetworkStatus() {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [])
+  }, [mounted])
 
-  if (!showOffline) return null
+  if (!mounted || !showOffline) return null
 
   return (
     <div className="fixed bottom-4 left-4 z-50 bg-destructive text-destructive-foreground px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-bottom-5">

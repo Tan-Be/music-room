@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useNotifications } from '@/hooks/use-notifications'
 import { supabase } from '@/lib/supabase'
@@ -8,9 +8,14 @@ import { supabase } from '@/lib/supabase'
 export function NotificationManager() {
   const { user } = useAuth()
   const { showNotification, permission, requestPermission } = useNotifications()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!user) return
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted || !user) return
 
     // Запрашиваем разрешение при первом входе
     if (permission === 'default') {
@@ -20,10 +25,10 @@ export function NotificationManager() {
 
       return () => clearTimeout(timer)
     }
-  }, [user, permission, requestPermission])
+  }, [mounted, user, permission, requestPermission])
 
   useEffect(() => {
-    if (!user || permission !== 'granted') return
+    if (!mounted || !user || permission !== 'granted') return
 
     // Загружаем настройки уведомлений
     const getNotificationSettings = () => {
@@ -227,7 +232,7 @@ export function NotificationManager() {
       playbackSubscription.unsubscribe()
       inviteSubscription.unsubscribe()
     }
-  }, [user, permission, showNotification])
+  }, [mounted, user, permission, showNotification])
 
   return null // Компонент не рендерит UI
 }

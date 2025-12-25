@@ -5,7 +5,7 @@ export const siteConfig = {
   name: 'Music Room',
   description:
     'Платформа для совместного прослушивания музыки в реальном времени. Создавайте комнаты, слушайте музыку с друзьями и общайтесь в чате.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://music-room.vercel.app',
+  url: 'https://music-room.vercel.app',
   ogImage: '/og-image.jpg',
   creator: '@musicroom',
   keywords: [
@@ -97,11 +97,11 @@ export function generateMetadata({
       },
     },
 
-    // Verification
-    verification: {
-      google: process.env.GOOGLE_SITE_VERIFICATION,
-      yandex: process.env.YANDEX_VERIFICATION,
-    },
+    // Verification - убираем зависимости от process.env
+    // verification: {
+    //   google: process.env.GOOGLE_SITE_VERIFICATION,
+    //   yandex: process.env.YANDEX_VERIFICATION,
+    // },
 
     // Canonical URL
     alternates: {

@@ -6,66 +6,46 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 47.4% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 47.4% 11.2%;
-
-    --primary: 258 90% 66%; /* фиолетовый как у Spotify */
+    --primary: 258 90% 66%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 221 83% 53%; /* синий */
+    --secondary: 221 83% 53%;
     --secondary-foreground: 0 0% 100%;
-
-    --accent: 262 83% 58%; /* светло-фиолетовый */
+    --accent: 262 83% 58%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
-
     --ring: 258 90% 66%;
-
     --radius: 0.5rem;
   }
 
   .dark {
     --background: 224 71% 4%;
     --foreground: 213 31% 91%;
-
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
-
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-
     --popover: 224 71% 4%;
     --popover-foreground: 215 20.2% 65.1%;
-
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-
     --card: 224 71% 4%;
     --card-foreground: 213 31% 91%;
-
-    --primary: 266 100% 70%; /* светлый фиолетовый */
+    --primary: 266 100% 70%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 216 80% 60%; /* светлый синий */
+    --secondary: 216 80% 60%;
     --secondary-foreground: 0 0% 100%;
-
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-
     --ring: 216 80% 60%;
-
     --radius: 0.5rem;
   }
 }
@@ -76,29 +56,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings:
-      'rlig' 1,
-      'calt' 1;
-    /* Фиолетовый градиентный фон */
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
-    background-attachment: fixed;
-    min-height: 100vh;
-  }
-
-  /* Для светлой темы - более мягкий градиент */
-  body.light {
-    background: linear-gradient(135deg, #c4b5fd 0%, #a5b4fc 50%, #818cf8 100%);
-    background-attachment: fixed;
-  }
-
-  /* Для темной темы - насыщенный градиент */
-  body.dark {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #4338ca 100%);
-    background-attachment: fixed;
-  }
-
-  /* Контент должен иметь фон, чтобы градиент не мешал чтению */
-  .bg-background {
-    background-color: hsl(var(--background));
   }
 }

@@ -10,8 +10,15 @@ export function NotificationPermissionBanner() {
   const { permission, isSupported, requestPermission } = useNotifications()
   const [isDismissed, setIsDismissed] = useState(false)
   const [showBanner, setShowBanner] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     // Показываем баннер только если:
     // 1. Уведомления поддерживаются
     // 2. Разрешение не дано
@@ -26,7 +33,7 @@ export function NotificationPermissionBanner() {
 
       return () => clearTimeout(timer)
     }
-  }, [isSupported, permission])
+  }, [mounted, isSupported, permission])
 
   const handleRequestPermission = async () => {
     const result = await requestPermission()
@@ -41,7 +48,7 @@ export function NotificationPermissionBanner() {
     localStorage.setItem('notification-banner-dismissed', 'true')
   }
 
-  if (!showBanner || isDismissed || !isSupported || permission !== 'default') {
+  if (!mounted || !showBanner || isDismissed || !isSupported || permission !== 'default') {
     return null
   }
 
@@ -90,6 +97,13 @@ export function NotificationPermissionBanner() {
 // Компонент для показа статуса уведомлений
 export function NotificationStatus() {
   const { permission, isSupported } = useNotifications()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
 
   if (!isSupported) {
     return (

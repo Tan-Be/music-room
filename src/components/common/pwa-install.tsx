@@ -8,8 +8,15 @@ import { Download, X } from 'lucide-react'
 export function PWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showInstall, setShowInstall] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -42,7 +49,7 @@ export function PWAInstall() {
         handleBeforeInstallPrompt
       )
     }
-  }, [])
+  }, [mounted])
 
   const handleInstall = async () => {
     if (!deferredPrompt) return
@@ -60,11 +67,10 @@ export function PWAInstall() {
     localStorage.setItem('pwa-install-dismissed', 'true')
   }
 
+  if (!mounted) return null
+
   // Не показываем если пользователь уже отклонил
-  if (
-    typeof window !== 'undefined' &&
-    localStorage.getItem('pwa-install-dismissed')
-  ) {
+  if (localStorage.getItem('pwa-install-dismissed')) {
     return null
   }
 

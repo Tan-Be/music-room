@@ -27,12 +27,18 @@ interface UseNotificationsReturn {
 }
 
 export function useNotifications(): UseNotificationsReturn {
-  const [permission, setPermission] =
-    useState<NotificationPermission>('default')
+  const [permission, setPermission] = useState<NotificationPermission>('default')
   const [isSupported, setIsSupported] = useState(false)
   const [isEnabled, setIsEnabled] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     // Проверяем поддержку уведомлений
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setIsSupported(true)
@@ -49,32 +55,31 @@ export function useNotifications(): UseNotificationsReturn {
         console.error('Error parsing notification settings:', error)
       }
     }
-  }, [])
+  }, [mounted])
 
-  const requestPermission =
-    useCallback(async (): Promise<NotificationPermission> => {
-      if (!isSupported) {
-        toast.error('Уведомления не поддерживаются в этом браузере')
-        return 'denied'
+  const requestPermission = useCallback(async (): Promise<NotificationPermission> => {
+    if (!isSupported) {
+      toast.error('Уведомления не поддерживаются в этом браузере')
+      return 'denied'
+    }
+
+    try {
+      const result = await Notification.requestPermission()
+      setPermission(result)
+
+      if (result === 'granted') {
+        toast.success('Уведомления разрешены!')
+      } else if (result === 'denied') {
+        toast.error('Уведомления заблокированы')
       }
 
-      try {
-        const result = await Notification.requestPermission()
-        setPermission(result)
-
-        if (result === 'granted') {
-          toast.success('Уведомления разрешены!')
-        } else if (result === 'denied') {
-          toast.error('Уведомления заблокированы')
-        }
-
-        return result
-      } catch (error) {
-        console.error('Error requesting notification permission:', error)
-        toast.error('Ошибка при запросе разрешений')
-        return 'denied'
-      }
-    }, [isSupported])
+      return result
+    } catch (error) {
+      console.error('Error requesting notification permission:', error)
+      toast.error('Ошибка при запросе разрешений')
+      return 'denied'
+    }
+  }, [isSupported])
 
   const showNotification = useCallback(
     async (options: NotificationOptions): Promise<void> => {
@@ -136,6 +141,8 @@ export function useNotifications(): UseNotificationsReturn {
   )
 
   const setEnabledWithStorage = useCallback((enabled: boolean) => {
+    if (!mounted) return
+    
     setIsEnabled(enabled)
 
     // Сохраняем в localStorage
@@ -150,7 +157,7 @@ export function useNotifications(): UseNotificationsReturn {
 
     const newSettings = { ...settings, enabled }
     localStorage.setItem('notification_settings', JSON.stringify(newSettings))
-  }, [])
+  }, [mounted])
 
   return {
     permission,

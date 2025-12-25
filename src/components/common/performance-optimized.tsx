@@ -245,17 +245,24 @@ export const PerformanceMonitor = memo(() => {
   const { getMetrics, getScore } = usePerformanceMonitor()
   const [metrics, setMetrics] = React.useState(getMetrics())
   const [score, setScore] = React.useState(getScore())
+  const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  React.useEffect(() => {
+    if (!mounted) return
+    
     const interval = setInterval(() => {
       setMetrics(getMetrics())
       setScore(getScore())
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [getMetrics, getScore])
+  }, [mounted, getMetrics, getScore])
 
-  if (process.env.NODE_ENV !== 'development') {
+  if (!mounted || process.env.NODE_ENV !== 'development') {
     return null
   }
 

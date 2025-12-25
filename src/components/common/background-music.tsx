@@ -9,8 +9,15 @@ export function BackgroundMusic() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    
     // Создаём аудио контекст для генерации крутой музыки
     const AudioContext =
       window.AudioContext || (window as any).webkitAudioContext
@@ -341,7 +348,7 @@ export function BackgroundMusic() {
       }
       audioContext.close()
     }
-  }, [])
+  }, [mounted])
 
   const togglePlay = () => {
     if (!audioRef.current) return
@@ -362,6 +369,10 @@ export function BackgroundMusic() {
     if (!audioRef.current) return
     audioRef.current.muted = !isMuted
     setIsMuted(!isMuted)
+  }
+
+  if (!mounted) {
+    return null
   }
 
   return (

@@ -1,3 +1,5 @@
+'use client'
+
 const mockRooms = [
   {
     id: '1',

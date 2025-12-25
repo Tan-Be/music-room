@@ -14,8 +14,9 @@ export default function RootLayout({
         margin: 0, 
         padding: 0, 
         fontFamily: 'system-ui, sans-serif',
-        backgroundColor: '#f5f5f5',
-        minHeight: '100vh'
+        backgroundColor: '#0f0f23',
+        minHeight: '100vh',
+        color: '#e2e8f0'
       }}>
         {children}
       </body>

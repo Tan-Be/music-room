@@ -72,13 +72,19 @@ export default function RegisterPage() {
 
   return (
     <main style={{ position: 'relative', minHeight: '100vh', padding: '2rem' }}>
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
       <AnimatedBackground />
+      
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .spinner {
+            animation: spin 1s linear infinite;
+          }
+        `
+      }} />
       
       <div style={{ 
         position: 'relative', 
@@ -348,14 +354,16 @@ export default function RegisterPage() {
               }}
             >
               {isLoading && (
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid transparent',
-                  borderTop: '2px solid white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
+                <div 
+                  className="spinner"
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid transparent',
+                    borderTop: '2px solid white',
+                    borderRadius: '50%'
+                  }} 
+                />
               )}
               {isLoading ? 'Создаем аккаунт...' : success ? 'Аккаунт создан!' : 'Создать аккаунт'}
             </button>

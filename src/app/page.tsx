@@ -124,7 +124,7 @@ export default function Home() {
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
           gap: '1rem',
-          maxWidth: '800px',
+          maxWidth: '1000px',
           margin: '0 auto'
         }}>
           <a
@@ -190,6 +190,39 @@ export default function Home() {
             <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>🔐 Войти</h3>
             <p style={{ fontSize: '0.9rem', color: '#a1a1aa', margin: 0 }}>
               Вход в аккаунт
+            </p>
+          </a>
+
+          <a
+            href="/register"
+            style={{
+              display: 'block',
+              padding: '1.5rem',
+              border: '2px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: '#22c55e',
+              backgroundColor: 'rgba(34, 197, 94, 0.05)',
+              backdropFilter: 'blur(10px)',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-3px)'
+              e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.6)'
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(34, 197, 94, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.05)'
+              e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.3)'
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'
+            }}
+          >
+            <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>✨ Регистрация</h3>
+            <p style={{ fontSize: '0.9rem', color: '#a1a1aa', margin: 0 }}>
+              Создать новый аккаунт
             </p>
           </a>
         </div>

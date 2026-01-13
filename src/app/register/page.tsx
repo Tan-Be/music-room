@@ -10,18 +10,57 @@ export default function RegisterPage() {
     confirmPassword: '',
     username: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<string[]>([])
+  const [success, setSuccess] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    setErrors([])
+    
+    // Валидация
+    const newErrors: string[] = []
+    
+    if (formData.username.length < 3) {
+      newErrors.push('Имя пользователя должно содержать минимум 3 символа')
+    }
+    
+    if (formData.password.length < 6) {
+      newErrors.push('Пароль должен содержать минимум 6 символов')
+    }
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Пароли не совпадают!')
+      newErrors.push('Пароли не совпадают')
+    }
+    
+    if (!formData.email.includes('@')) {
+      newErrors.push('Введите корректный email адрес')
+    }
+    
+    if (newErrors.length > 0) {
+      setErrors(newErrors)
+      setIsLoading(false)
       return
     }
 
-    // Здесь будет логика регистрации
-    console.log('Регистрация:', formData)
-    alert('Регистрация пока не реализована. Это демо-версия.')
+    // Имитация отправки данных
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      console.log('Регистрация:', formData)
+      setSuccess(true)
+      
+      // Через 3 секунды перенаправляем на страницу входа
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 3000)
+      
+    } catch (error) {
+      setErrors(['Произошла ошибка при регистрации. Попробуйте еще раз.'])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +72,12 @@ export default function RegisterPage() {
 
   return (
     <main style={{ position: 'relative', minHeight: '100vh', padding: '2rem' }}>
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
       <AnimatedBackground />
       
       <div style={{ 
@@ -72,6 +117,53 @@ export default function RegisterPage() {
           }}>
             Создайте аккаунт для Music Room
           </p>
+
+          {errors.length > 0 && (
+            <div style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '1rem',
+              marginBottom: '1rem'
+            }}>
+              {errors.map((error, index) => (
+                <p key={index} style={{ 
+                  color: '#ef4444', 
+                  fontSize: '0.9rem', 
+                  margin: '0.25rem 0' 
+                }}>
+                  • {error}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {success && (
+            <div style={{
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              border: '1px solid rgba(34, 197, 94, 0.3)',
+              borderRadius: '8px',
+              padding: '1rem',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              <p style={{ 
+                color: '#22c55e', 
+                fontSize: '1rem', 
+                margin: '0',
+                fontWeight: '600'
+              }}>
+                ✅ Аккаунт успешно создан!
+              </p>
+              <p style={{ 
+                color: '#a1a1aa', 
+                fontSize: '0.9rem', 
+                margin: '0.5rem 0 0 0'
+              }}>
+                Перенаправляем на страницу входа...
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
@@ -220,29 +312,52 @@ export default function RegisterPage() {
 
             <button
               type="submit"
+              disabled={isLoading || success}
               style={{
-                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                background: isLoading || success 
+                  ? 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)'
+                  : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                 color: 'white',
                 border: 'none',
                 padding: '0.75rem 1.5rem',
                 borderRadius: '8px',
-                cursor: 'pointer',
+                cursor: isLoading || success ? 'not-allowed' : 'pointer',
                 fontSize: '1rem',
                 fontWeight: '600',
-                boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)',
+                boxShadow: isLoading || success 
+                  ? '0 2px 8px rgba(0,0,0,0.2)'
+                  : '0 4px 15px rgba(34, 197, 94, 0.4)',
                 transition: 'all 0.2s ease',
-                marginTop: '0.5rem'
+                marginTop: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(34, 197, 94, 0.6)'
+                if (!isLoading && !success) {
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(34, 197, 94, 0.6)'
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 4px 15px rgba(34, 197, 94, 0.4)'
+                if (!isLoading && !success) {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(34, 197, 94, 0.4)'
+                }
               }}
             >
-              Создать аккаунт
+              {isLoading && (
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid transparent',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+              )}
+              {isLoading ? 'Создаем аккаунт...' : success ? 'Аккаунт создан!' : 'Создать аккаунт'}
             </button>
           </form>
 

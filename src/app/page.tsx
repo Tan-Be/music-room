@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatedBackground } from '@/components/common/animated-background'
+import { GitHubButton } from '@/components/auth/github-button'
 
 const mockRooms = [
   {
@@ -225,6 +226,40 @@ export default function Home() {
               Создать новый аккаунт
             </p>
           </a>
+        </div>
+
+        {/* GitHub OAuth Section */}
+        <div style={{
+          marginTop: '3rem',
+          padding: '2rem',
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(10px)',
+          border: '2px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '16px',
+          maxWidth: '400px',
+          margin: '3rem auto 0',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ 
+            fontSize: '1.5rem', 
+            marginBottom: '1rem', 
+            color: '#e2e8f0',
+            textShadow: '0 0 10px rgba(226, 232, 240, 0.3)'
+          }}>
+            Быстрый вход
+          </h3>
+          <p style={{ 
+            fontSize: '0.9rem', 
+            color: '#a1a1aa', 
+            marginBottom: '1.5rem' 
+          }}>
+            Войдите или зарегистрируйтесь через GitHub
+          </p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <GitHubButton mode="login" />
+            <GitHubButton mode="register" />
+          </div>
         </div>
       </div>
     </main>

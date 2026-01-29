@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatedBackground } from '@/components/common/animated-background'
+import { GitHubButton } from '@/components/auth/github-button'
 import { useState } from 'react'
 
 export default function RegisterPage() {
@@ -368,6 +369,18 @@ export default function RegisterPage() {
               {isLoading ? 'Создаем аккаунт...' : success ? 'Аккаунт создан!' : 'Создать аккаунт'}
             </button>
           </form>
+
+          <div style={{ 
+            marginTop: '1.5rem', 
+            textAlign: 'center',
+            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            paddingTop: '1.5rem'
+          }}>
+            <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              Или зарегистрируйтесь через GitHub
+            </p>
+            <GitHubButton mode="register" />
+          </div>
 
           <div style={{ 
             marginTop: '1.5rem', 

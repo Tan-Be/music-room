@@ -25,8 +25,13 @@ export function GitHubButton({ mode, className = '' }: GitHubButtonProps) {
       
       const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${mode}`
       
-      // В демо режиме просто показываем alert
-      alert(`Перенаправление на GitHub OAuth для ${mode === 'login' ? 'входа' : 'регистрации'}.\n\nURL: ${githubUrl}`)
+      // В демо режиме показываем alert, в продакшене будет редирект
+      if (clientId === 'demo_client_id') {
+        alert(`Демо режим GitHub OAuth для ${mode === 'login' ? 'входа' : 'регистрации'}.\n\nURL: ${githubUrl}\n\nДля настройки реального OAuth:\n1. Создайте GitHub App\n2. Добавьте CLIENT_ID в .env.local`)
+      } else {
+        // Реальный редирект на GitHub
+        window.location.href = githubUrl
+      }
       
     } catch (error) {
       console.error('GitHub auth error:', error)

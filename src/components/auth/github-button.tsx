@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 
 interface GitHubButtonProps {
   mode: 'login' | 'register'
@@ -9,28 +10,30 @@ interface GitHubButtonProps {
 
 export function GitHubButton({ mode, className = '' }: GitHubButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const { data: session } = useSession()
+
+  // Проверяем, настроен ли GitHub OAuth
+  const isGitHubConfigured = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID && 
+                            process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID !== 'demo_client_id'
 
   const handleGitHubAuth = async () => {
+    if (!isGitHubConfigured) {
+      alert('GitHub OAuth не настроен. Создайте GitHub OAuth приложение.')
+      return
+    }
+
     setIsLoading(true)
     
     try {
-      // В реальном приложении здесь будет редирект на GitHub OAuth
-      // Пока что имитируем процесс
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Редирект на GitHub OAuth URL
-      const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || 'demo_client_id'
-      const redirectUri = encodeURIComponent(window.location.origin + '/auth/callback')
-      const scope = 'user:email'
-      
-      const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${mode}`
-      
-      // В демо режиме показываем alert, в продакшене будет редирект
-      if (clientId === 'demo_client_id') {
-        alert(`Демо режим GitHub OAuth для ${mode === 'login' ? 'входа' : 'регистрации'}.\n\nURL: ${githubUrl}\n\nДля настройки реального OAuth:\n1. Создайте GitHub App\n2. Добавьте CLIENT_ID в .env.local`)
-      } else {
-        // Реальный редирект на GitHub
-        window.location.href = githubUrl
+      const result = await signIn('github', {
+        callbackUrl: '/',
+        redirect: false,
+      })
+
+      if (result?.error) {
+        alert(`Ошибка ${mode === 'login' ? 'входа' : 'регистрации'}: ${result.error}`)
+      } else if (result?.url) {
+        window.location.href = result.url
       }
       
     } catch (error) {
@@ -39,6 +42,41 @@ export function GitHubButton({ mode, className = '' }: GitHubButtonProps) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Если пользователь уже авторизован
+  if (session) {
+    return (
+      <div style={{
+        padding: '0.75rem',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        border: '1px solid rgba(34, 197, 94, 0.3)',
+        borderRadius: '8px',
+        textAlign: 'center',
+        color: '#22c55e'
+      }}>
+        ✅ Вы вошли как {session.user?.name || session.user?.email}
+      </div>
+    )
+  }
+
+  // Если GitHub OAuth не настроен
+  if (!isGitHubConfigured) {
+    return (
+      <div style={{
+        padding: '0.75rem',
+        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+        border: '1px solid rgba(255, 193, 7, 0.3)',
+        borderRadius: '8px',
+        textAlign: 'center',
+        color: '#ffc107'
+      }}>
+        ⚠️ GitHub OAuth требует настройки
+        <div style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: '#a1a1aa' }}>
+          Создайте GitHub OAuth App для активации
+        </div>
+      </div>
+    )
   }
 
   const buttonText = mode === 'login' ? 'Войти через GitHub' : 'Зарегистрироваться через GitHub'

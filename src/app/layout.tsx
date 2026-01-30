@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { AuthProvider } from '@/components/providers/session-provider'
 
 export const metadata: Metadata = {
   title: 'Music Room',
@@ -28,7 +29,9 @@ export default function RootLayout({
         minHeight: '100vh',
         color: '#e2e8f0'
       }}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

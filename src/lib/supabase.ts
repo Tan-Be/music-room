@@ -1,9 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Проверяем, настроен ли Supabase корректно
+export const isSupabaseConfigured = (): boolean => {
+  return !!(
+    supabaseUrl && 
+    supabaseAnonKey && 
+    supabaseUrl !== 'your_supabase_url' &&
+    supabaseUrl !== 'https://your-project.supabase.co' &&
+    supabaseUrl.startsWith('https://')
+  )
+}
+
+if (!isSupabaseConfigured()) {
+  console.warn('⚠️ Supabase не настроен. Установите NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY в .env.local')
+}
+
+export const supabase = createClient(
+  supabaseUrl || '',
+  supabaseAnonKey || ''
+)
 
 // Типы для базы данных
 export interface Room {
@@ -35,18 +53,31 @@ export interface Profile {
 export const roomsApi = {
   // Получить все публичные комнаты
   async getPublicRooms() {
-    const { data, error } = await supabase
-      .from('rooms')
-      .select(`
-        *,
-        profiles:owner_id (username),
-        room_participants (count)
-      `)
-      .eq('is_public', true)
-      .order('created_at', { ascending: false })
+    // Если Supabase не настроен, сразу выбрасываем ошибку
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase не настроен. Проверьте переменные окружения NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
+    
+    try {
+      const { data, error } = await supabase
+        .from('rooms')
+        .select(`
+          *,
+          profiles:owner_id (username),
+          room_participants (id)
+        `)
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
 
-    if (error) throw error
-    return data
+      if (error) {
+        console.error('Supabase getPublicRooms error:', error)
+        throw new Error(error.message || 'Ошибка при загрузке комнат')
+      }
+      return data || []
+    } catch (err: any) {
+      console.error('Error in getPublicRooms:', err?.message || err)
+      throw err
+    }
   },
 
   // Создать новую комнату
@@ -86,24 +117,33 @@ export const roomsApi = {
 
   // Получить комнату по ID
   async getRoomById(roomId: string) {
-    const { data, error } = await supabase
-      .from('rooms')
-      .select(`
-        *,
-        profiles:owner_id (username),
-        room_participants (
-          id,
-          user_id,
-          role,
-          joined_at,
-          profiles:user_id (username, avatar_url)
-        )
-      `)
-      .eq('id', roomId)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('rooms')
+        .select(`
+          *,
+          profiles:owner_id (username),
+          room_participants (
+            id,
+            user_id,
+            role,
+            joined_at,
+            profiles:user_id (username, avatar_url)
+          )
+        `)
+        .eq('id', roomId)
+        .single()
 
-    if (error) throw error
-    return data
+      if (error) {
+        console.error('Supabase getRoomById error:', error)
+        throw new Error(error.message || 'Ошибка базы данных')
+      }
+      
+      return data
+    } catch (err: any) {
+      console.error('Error in getRoomById:', err)
+      throw err
+    }
   },
 
   // Присоединиться к комнате

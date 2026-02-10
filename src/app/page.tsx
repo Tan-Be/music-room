@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatedBackground } from '@/components/common/animated-background'
+import { BackgroundMusicPlayer } from '@/components/common/background-music-player'
 import { GitHubButton } from '@/components/auth/github-button'
 
 const mockRooms = [
@@ -28,8 +29,9 @@ export default function Home() {
   return (
     <main style={{ position: 'relative', minHeight: '100vh', padding: '2rem' }}>
       <AnimatedBackground />
+      <BackgroundMusicPlayer />
       
-      <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+      <div style={{ position: 'relative', zIndex: 20, textAlign: 'center' }}>
         <h1 style={{ 
           fontSize: '3rem', 
           marginBottom: '1rem', 

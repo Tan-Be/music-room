@@ -31,6 +31,19 @@ export default function RoomsPage() {
 
   // Загрузка комнат при монтировании компонента
   useEffect(() => {
+    // Проверяем localStorage для демо-режима
+    const savedRooms = localStorage.getItem('demoRooms')
+    if (savedRooms && !isSupabaseConfigured()) {
+      try {
+        const parsed = JSON.parse(savedRooms)
+        setRooms(parsed)
+        setIsDemoMode(true)
+        setLoading(false)
+        return
+      } catch (e) {
+        console.error('Ошибка загрузки из localStorage:', e)
+      }
+    }
     loadRooms()
   }, [])
 
@@ -159,7 +172,14 @@ export default function RoomsPage() {
         created_at: new Date().toISOString()
       }
 
-      setRooms([room, ...rooms])
+      const updatedRooms = [room, ...rooms]
+      setRooms(updatedRooms)
+      
+      // Сохраняем в localStorage для демо-режима
+      if (isDemoMode) {
+        localStorage.setItem('demoRooms', JSON.stringify(updatedRooms))
+      }
+      
       setNewRoom({ name: '', description: '', is_public: true, password: '' })
       setShowCreateDialog(false)
       

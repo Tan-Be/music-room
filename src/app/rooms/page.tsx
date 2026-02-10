@@ -82,7 +82,7 @@ export default function RoomsPage() {
       
       setRooms(formattedRooms)
     } catch (error: any) {
-      console.error('⚠️ Ошибка загрузки комнат:', error?.message || error)
+      console.error('⚠️ Ошибка загрузки комнат:', error?.message || JSON.stringify(error))
       console.log('🔄 Переключаемся в демо-режим')
       setIsDemoMode(true)
       // Показываем моковые данные в случае ошибки

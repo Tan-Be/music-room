@@ -70,8 +70,8 @@ export const roomsApi = {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Supabase getPublicRooms error:', error)
-        throw new Error(error.message || 'Ошибка при загрузке комнат')
+        console.error('Supabase getPublicRooms error:', JSON.stringify(error, null, 2))
+        throw new Error(error.message || error.code || 'Ошибка при загрузке комнат')
       }
       return data || []
     } catch (err: any) {

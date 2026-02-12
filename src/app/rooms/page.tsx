@@ -106,32 +106,8 @@ export default function RoomsPage() {
   }
   
   const loadDemoRooms = () => {
-    setRooms([
-      {
-        id: '1',
-        name: 'Chill Vibes',
-        description: 'Расслабляющая музыка для работы и отдыха',
-        participants: 12,
-        is_public: true,
-        owner: 'user1',
-        created_at: new Date().toISOString(),
-        rating: 0,
-        likes: 0,
-        dislikes: 0
-      },
-      {
-        id: '2',
-        name: 'Party Hits',
-        description: 'Лучшие хиты для вечеринок',
-        participants: 8,
-        is_public: true,
-        owner: 'user2',
-        created_at: new Date().toISOString(),
-        rating: 0,
-        likes: 0,
-        dislikes: 0
-      }
-    ])
+    // Начинаем с пустого списка - пользователь создаст свои комнаты
+    setRooms([])
     setLoading(false)
   }
 

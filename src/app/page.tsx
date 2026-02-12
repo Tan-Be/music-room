@@ -3,6 +3,7 @@
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { BackgroundMusicPlayer } from '@/components/common/background-music-player'
 import { GitHubButton } from '@/components/auth/github-button'
+import { useSession, signOut } from 'next-auth/react'
 
 const mockRooms = [
   {
@@ -26,12 +27,39 @@ const mockRooms = [
 ]
 
 export default function Home() {
+  const { data: session } = useSession()
+  
   return (
     <main style={{ position: 'relative', minHeight: '100vh', padding: '2rem' }}>
       <AnimatedBackground />
       <BackgroundMusicPlayer />
       
       <div style={{ position: 'relative', zIndex: 20, textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          {session && (
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              style={{
+                background: 'rgba(239, 68, 68, 0.2)',
+                color: '#ef4444',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+              }}
+            >
+              🚪 Выйти
+            </button>
+          )}
+        </div>
         <h1 style={{ 
           fontSize: '3rem', 
           marginBottom: '1rem', 

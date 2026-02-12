@@ -25,7 +25,6 @@ export default function RoomsPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [creating, setCreating] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
-  const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'participants'>('rating')
   const [userVotes, setUserVotes] = useState<Record<string, 'like' | 'dislike'>>({})
   const [newRoom, setNewRoom] = useState({
     name: '',
@@ -163,18 +162,9 @@ export default function RoomsPage() {
     localStorage.setItem('userVotes', JSON.stringify(newVotes))
   }
 
-  // Сортировка комнат
+  // Сортировка комнат по рейтингу (по убыванию)
   const getSortedRooms = () => {
-    const sorted = [...rooms]
-    switch (sortBy) {
-      case 'rating':
-        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
-      case 'participants':
-        return sorted.sort((a, b) => b.participants - a.participants)
-      case 'newest':
-      default:
-        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    }
+    return [...rooms].sort((a, b) => (b.rating || 0) - (a.rating || 0))
   }
 
   const handleCreateRoom = async () => {
@@ -403,50 +393,22 @@ export default function RoomsPage() {
           )}
         </div>
 
-        {/* Rating & Sort Controls */}
+        {/* Rating Header */}
         <div style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
+          gap: '0.5rem',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '20px',
+          border: '1px solid rgba(139, 92, 246, 0.3)',
           marginBottom: '1.5rem',
-          flexWrap: 'wrap',
-          gap: '1rem'
+          width: 'fit-content'
         }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'rgba(139, 92, 246, 0.1)',
-            padding: '0.5rem 1rem',
-            borderRadius: '20px',
-            border: '1px solid rgba(139, 92, 246, 0.3)'
-          }}>
-            <span style={{ fontSize: '1.2rem' }}>🏆</span>
-            <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>
-              Рейтинговое соревнование
-            </span>
-          </div>
-          
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>Сортировать:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                border: '2px solid rgba(139, 92, 246, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: '#e2e8f0',
-                cursor: 'pointer',
-                fontSize: '0.9rem'
-              }}
-            >
-              <option value="rating">⭐ По рейтингу</option>
-              <option value="participants">👥 По участникам</option>
-              <option value="newest">🆕 По новизне</option>
-            </select>
-          </div>
+          <span style={{ fontSize: '1.2rem' }}>🏆</span>
+          <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>
+            Рейтинговое соревнование по популярности
+          </span>
         </div>
 
         {/* Rooms Grid */}

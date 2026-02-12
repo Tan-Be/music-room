@@ -264,9 +264,7 @@ export default function RoomPage() {
             <h2 style={{ color: '#e2e8f0', marginBottom: '1.5rem' }}>
               🎶 Музыкальный плеер
             </h2>
-            <p style={{ color: '#a1a1aa', textAlign: 'center', padding: '4rem 0' }}>
-              Функционал плеера в разработке...
-            </p>
+            <MusicPlayer roomId={roomId} isDemoMode={isDemoMode} />
           </div>
 
           {/* Participants */}

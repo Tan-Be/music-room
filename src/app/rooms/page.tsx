@@ -13,6 +13,9 @@ interface Room {
   is_public: boolean
   owner: string
   created_at: string
+  rating?: number
+  likes?: number
+  dislikes?: number
 }
 
 export default function RoomsPage() {
@@ -22,6 +25,8 @@ export default function RoomsPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [creating, setCreating] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [sortBy, setSortBy] = useState<'rating' | 'newest' | 'participants'>('rating')
+  const [userVotes, setUserVotes] = useState<Record<string, 'like' | 'dislike'>>({})
   const [newRoom, setNewRoom] = useState({
     name: '',
     description: '',
@@ -29,8 +34,18 @@ export default function RoomsPage() {
     password: ''
   })
 
-  // Загрузка комнат при монтировании компонента
+  // Загрузка комнат и голосов при монтировании компонента
   useEffect(() => {
+    // Загружаем голоса пользователя
+    const savedVotes = localStorage.getItem('userVotes')
+    if (savedVotes) {
+      try {
+        setUserVotes(JSON.parse(savedVotes))
+      } catch (e) {
+        console.error('Ошибка загрузки голосов:', e)
+      }
+    }
+    
     // Проверяем localStorage для демо-режима
     const savedRooms = localStorage.getItem('demoRooms')
     if (savedRooms && !isSupabaseConfigured()) {
@@ -99,7 +114,10 @@ export default function RoomsPage() {
         participants: 12,
         is_public: true,
         owner: 'user1',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        rating: 156,
+        likes: 160,
+        dislikes: 4
       },
       {
         id: '2',
@@ -108,10 +126,81 @@ export default function RoomsPage() {
         participants: 8,
         is_public: true,
         owner: 'user2',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        rating: 89,
+        likes: 92,
+        dislikes: 3
       }
     ])
     setLoading(false)
+  }
+
+  // Функция голосования
+  const handleVote = (roomId: string, voteType: 'like' | 'dislike') => {
+    const currentVote = userVotes[roomId]
+    
+    setRooms(prevRooms => {
+      const updatedRooms = prevRooms.map(room => {
+        if (room.id !== roomId) return room
+        
+        let newLikes = room.likes || 0
+        let newDislikes = room.dislikes || 0
+        
+        // Если уже голосовали - убираем предыдущий голос
+        if (currentVote === 'like') {
+          newLikes = Math.max(0, newLikes - 1)
+        } else if (currentVote === 'dislike') {
+          newDislikes = Math.max(0, newDislikes - 1)
+        }
+        
+        // Добавляем новый голос
+        if (currentVote !== voteType) {
+          if (voteType === 'like') {
+            newLikes += 1
+          } else {
+            newDislikes += 1
+          }
+        }
+        
+        return {
+          ...room,
+          likes: newLikes,
+          dislikes: newDislikes,
+          rating: newLikes - newDislikes
+        }
+      })
+      
+      // Сохраняем в localStorage
+      if (isDemoMode) {
+        localStorage.setItem('demoRooms', JSON.stringify(updatedRooms))
+      }
+      
+      return updatedRooms
+    })
+    
+    // Обновляем голоса пользователя
+    const newVotes = { ...userVotes }
+    if (currentVote === voteType) {
+      delete newVotes[roomId] // Убираем голос если кликнули тот же
+    } else {
+      newVotes[roomId] = voteType
+    }
+    setUserVotes(newVotes)
+    localStorage.setItem('userVotes', JSON.stringify(newVotes))
+  }
+
+  // Сортировка комнат
+  const getSortedRooms = () => {
+    const sorted = [...rooms]
+    switch (sortBy) {
+      case 'rating':
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      case 'participants':
+        return sorted.sort((a, b) => b.participants - a.participants)
+      case 'newest':
+      default:
+        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }
   }
 
   const handleCreateRoom = async () => {
@@ -159,6 +248,9 @@ export default function RoomsPage() {
         participants: 1,
         is_public: newRoom.is_public,
         owner: session.user?.name || 'Вы',
+        rating: 0,
+        likes: 0,
+        dislikes: 0,
         created_at: new Date().toISOString()
       }
 
@@ -311,6 +403,52 @@ export default function RoomsPage() {
           </button>
         </div>
 
+        {/* Rating & Sort Controls */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1.5rem',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            padding: '0.5rem 1rem',
+            borderRadius: '20px',
+            border: '1px solid rgba(139, 92, 246, 0.3)'
+          }}>
+            <span style={{ fontSize: '1.2rem' }}>🏆</span>
+            <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>
+              Рейтинговое соревнование
+            </span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>Сортировать:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                border: '2px solid rgba(139, 92, 246, 0.3)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                color: '#e2e8f0',
+                cursor: 'pointer',
+                fontSize: '0.9rem'
+              }}
+            >
+              <option value="rating">⭐ По рейтингу</option>
+              <option value="participants">👥 По участникам</option>
+              <option value="newest">🆕 По новизне</option>
+            </select>
+          </div>
+        </div>
+
         {/* Rooms Grid */}
         {rooms.length === 0 ? (
           <div style={{
@@ -352,7 +490,7 @@ export default function RoomsPage() {
             gap: '1.5rem',
             marginBottom: '2rem'
           }}>
-            {rooms.map(room => (
+            {getSortedRooms().map((room, index) => (
               <div
                 key={room.id}
                 style={{
@@ -399,11 +537,85 @@ export default function RoomsPage() {
                 
                 <p style={{ 
                   color: '#a1a1aa', 
-                  marginBottom: '1.5rem',
+                  marginBottom: '1rem',
                   lineHeight: '1.5'
                 }}>
                   {room.description || 'Описание отсутствует'}
                 </p>
+                
+                {/* Rating & Voting */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '1rem',
+                  padding: '0.75rem',
+                  backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                  borderRadius: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {index < 3 && (
+                      <span style={{ fontSize: '1.5rem' }}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                      </span>
+                    )}
+                    <span style={{
+                      color: '#fbbf24',
+                      fontWeight: 'bold',
+                      fontSize: '1.1rem'
+                    }}>
+                      ⭐ {room.rating || 0}
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleVote(room.id, 'like')
+                      }}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        backgroundColor: userVotes[room.id] === 'like' 
+                          ? 'rgba(34, 197, 94, 0.5)' 
+                          : 'rgba(34, 197, 94, 0.2)',
+                        color: '#22c55e',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                    >
+                      👍 {room.likes || 0}
+                    </button>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleVote(room.id, 'dislike')
+                      }}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        backgroundColor: userVotes[room.id] === 'dislike' 
+                          ? 'rgba(239, 68, 68, 0.5)' 
+                          : 'rgba(239, 68, 68, 0.2)',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                    >
+                      👎 {room.dislikes || 0}
+                    </button>
+                  </div>
+                </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

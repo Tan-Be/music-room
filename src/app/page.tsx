@@ -231,6 +231,39 @@ export default function Home() {
               Создать новый аккаунт
             </p>
           </a>
+
+          <a
+            href="/rating"
+            style={{
+              display: 'block',
+              padding: '1.5rem',
+              border: '2px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: '12px',
+              textDecoration: 'none',
+              color: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.05)',
+              backdropFilter: 'blur(10px)',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-3px)'
+              e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.6)'
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(245, 158, 11, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.05)'
+              e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)'
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)'
+            }}
+          >
+            <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>🏆 Рейтинг</h3>
+            <p style={{ fontSize: '0.9rem', color: '#a1a1aa', margin: 0 }}>
+              Топ популярных комнат
+            </p>
+          </a>
         </div>
 
         {/* GitHub OAuth Section */}

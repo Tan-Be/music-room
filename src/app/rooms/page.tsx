@@ -79,8 +79,6 @@ export default function RoomsPage() {
       try {
         data = await roomsApi.getPublicRooms()
       } catch (supabaseError: any) {
-        console.error('⚠️ Ошибка подключения к Supabase:', supabaseError?.message || supabaseError)
-        console.log('🔄 Переключаемся в демо-режим')
         setIsDemoMode(true)
         loadDemoRooms()
         return

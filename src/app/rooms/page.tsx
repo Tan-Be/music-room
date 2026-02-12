@@ -115,9 +115,9 @@ export default function RoomsPage() {
         is_public: true,
         owner: 'user1',
         created_at: new Date().toISOString(),
-        rating: 156,
-        likes: 160,
-        dislikes: 4
+        rating: 0,
+        likes: 0,
+        dislikes: 0
       },
       {
         id: '2',
@@ -127,9 +127,9 @@ export default function RoomsPage() {
         is_public: true,
         owner: 'user2',
         created_at: new Date().toISOString(),
-        rating: 89,
-        likes: 92,
-        dislikes: 3
+        rating: 0,
+        likes: 0,
+        dislikes: 0
       }
     ])
     setLoading(false)

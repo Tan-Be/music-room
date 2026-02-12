@@ -70,12 +70,10 @@ export const roomsApi = {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Supabase getPublicRooms error:', JSON.stringify(error, null, 2))
         throw new Error(error.message || error.code || 'Ошибка при загрузке комнат')
       }
       return data || []
     } catch (err: any) {
-      console.error('Error in getPublicRooms:', err?.message || err)
       throw err
     }
   },
@@ -135,13 +133,11 @@ export const roomsApi = {
         .single()
 
       if (error) {
-        console.error('Supabase getRoomById error:', error)
         throw new Error(error.message || 'Ошибка базы данных')
       }
       
       return data
     } catch (err: any) {
-      console.error('Error in getRoomById:', err)
       throw err
     }
   },

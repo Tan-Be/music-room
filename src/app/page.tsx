@@ -35,31 +35,6 @@ export default function Home() {
       <BackgroundMusicPlayer />
       
       <div style={{ position: 'relative', zIndex: 20, textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-          {session && (
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                color: '#ef4444',
-                border: '2px solid rgba(239, 68, 68, 0.3)',
-                padding: '0.5rem 1rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
-              }}
-            >
-              🚪 Выйти
-            </button>
-          )}
-        </div>
         <h1 style={{ 
           fontSize: '3rem', 
           marginBottom: '1rem', 
@@ -276,19 +251,45 @@ export default function Home() {
             color: '#e2e8f0',
             textShadow: '0 0 10px rgba(226, 232, 240, 0.3)'
           }}>
-            Быстрый вход
+            {session ? '👋 Вы вошли в систему' : 'Быстрый вход'}
           </h3>
           <p style={{ 
             fontSize: '0.9rem', 
             color: '#a1a1aa', 
             marginBottom: '1.5rem' 
           }}>
-            Войдите или зарегистрируйтесь через GitHub
+            {session ? 'Нажмите кнопку ниже для выхода' : 'Войдите или зарегистрируйтесь через GitHub'}
           </p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <GitHubButton mode="login" />
-            <GitHubButton mode="register" />
+            {session ? (
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  color: '#ef4444',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontSize: '1rem',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+                }}
+              >
+                🚪 Выйти
+              </button>
+            ) : (
+              <>
+                <GitHubButton mode="login" />
+                <GitHubButton mode="register" />
+              </>
+            )}
           </div>
         </div>
       </div>

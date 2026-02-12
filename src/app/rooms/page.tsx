@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
 
@@ -401,6 +401,32 @@ export default function RoomsPage() {
           >
             {session ? '✨ Создать комнату' : '🔒 Войдите для создания'}
           </button>
+          
+          {session && (
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              style={{
+                background: 'rgba(239, 68, 68, 0.2)',
+                color: '#ef4444',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
+                padding: '1rem 2rem',
+                borderRadius: '12px',
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.3)'
+                e.currentTarget.style.transform = 'translateY(-3px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
+            >
+              🚪 Выйти
+            </button>
+          )}
         </div>
 
         {/* Rating & Sort Controls */}

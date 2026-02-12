@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
 import MusicPlayer from '@/components/music-player'
@@ -230,19 +230,38 @@ export default function RoomPage() {
             </p>
           </div>
           
-          <a
-            href="/rooms"
-            style={{
-              padding: '0.75rem 1.5rem',
-              border: '2px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '12px',
-              textDecoration: 'none',
-              color: '#8b5cf6',
-              backgroundColor: 'rgba(139, 92, 246, 0.05)'
-            }}
-          >
-            ← Назад
-          </a>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <a
+              href="/rooms"
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: '2px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                color: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.05)'
+              }}
+            >
+              ← Назад
+            </a>
+            
+            {session && (
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
+                🚪 Выйти
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Room Info */}

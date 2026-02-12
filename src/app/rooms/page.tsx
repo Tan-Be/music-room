@@ -54,7 +54,6 @@ export default function RoomsPage() {
       
       // Проверяем, настроен ли Supabase
       if (!isSupabaseConfigured()) {
-        console.warn('⚠️ Supabase не настроен, используем демо-данные')
         setIsDemoMode(true)
         loadDemoRooms()
         return
@@ -86,8 +85,6 @@ export default function RoomsPage() {
       setRooms(formattedRooms)
       setLoading(false)
     } catch (error: any) {
-      console.error('⚠️ Ошибка загрузки комнат:', error?.message || JSON.stringify(error))
-      console.log('🔄 Переключаемся в демо-режим')
       setIsDemoMode(true)
       loadDemoRooms()
     }

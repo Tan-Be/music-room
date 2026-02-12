@@ -53,7 +53,6 @@ export default function RoomPage() {
       
       // Проверяем, настроен ли Supabase
       if (!isSupabaseConfigured()) {
-        console.warn('⚠️ Supabase не настроен, используем демо-данные')
         setIsDemoMode(true)
         loadDemoRoom()
         return
@@ -71,13 +70,10 @@ export default function RoomPage() {
         setLoading(false)
       } catch (supabaseError: any) {
         // Если ошибка сети - переключаемся в демо-режим
-        console.error('⚠️ Ошибка подключения к Supabase:', supabaseError?.message || supabaseError)
-        console.log('🔄 Переключаемся в демо-режим')
         setIsDemoMode(true)
         loadDemoRoom()
       }
     } catch (err: any) {
-      console.error('⚠️ Критическая ошибка:', err)
       setIsDemoMode(true)
       loadDemoRoom()
     }

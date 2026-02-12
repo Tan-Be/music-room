@@ -56,31 +56,21 @@ export default function RoomsPage() {
       if (!isSupabaseConfigured()) {
         console.warn('⚠️ Supabase не настроен, используем демо-данные')
         setIsDemoMode(true)
-        // Показываем моковые данные
-        setRooms([
-          {
-            id: '1',
-            name: 'Chill Vibes',
-            description: 'Расслабляющая музыка для работы и отдыха',
-            participants: 12,
-            is_public: true,
-            owner: 'user1',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            name: 'Party Hits',
-            description: 'Лучшие хиты для вечеринок',
-            participants: 8,
-            is_public: true,
-            owner: 'user2',
-            created_at: new Date().toISOString()
-          }
-        ])
+        loadDemoRooms()
         return
       }
       
-      const data = await roomsApi.getPublicRooms()
+      // Пробуем загрузить из Supabase
+      let data
+      try {
+        data = await roomsApi.getPublicRooms()
+      } catch (supabaseError: any) {
+        console.error('⚠️ Ошибка подключения к Supabase:', supabaseError?.message || supabaseError)
+        console.log('🔄 Переключаемся в демо-режим')
+        setIsDemoMode(true)
+        loadDemoRooms()
+        return
+      }
       
       // Преобразуем данные в нужный формат
       const formattedRooms: Room[] = data.map((room: any) => ({
@@ -94,34 +84,37 @@ export default function RoomsPage() {
       }))
       
       setRooms(formattedRooms)
+      setLoading(false)
     } catch (error: any) {
       console.error('⚠️ Ошибка загрузки комнат:', error?.message || JSON.stringify(error))
       console.log('🔄 Переключаемся в демо-режим')
       setIsDemoMode(true)
-      // Показываем моковые данные в случае ошибки
-      setRooms([
-        {
-          id: '1',
-          name: 'Chill Vibes',
-          description: 'Расслабляющая музыка для работы и отдыха',
-          participants: 12,
-          is_public: true,
-          owner: 'user1',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Party Hits',
-          description: 'Лучшие хиты для вечеринок',
-          participants: 8,
-          is_public: true,
-          owner: 'user2',
-          created_at: new Date().toISOString()
-        }
-      ])
-    } finally {
-      setLoading(false)
+      loadDemoRooms()
     }
+  }
+  
+  const loadDemoRooms = () => {
+    setRooms([
+      {
+        id: '1',
+        name: 'Chill Vibes',
+        description: 'Расслабляющая музыка для работы и отдыха',
+        participants: 12,
+        is_public: true,
+        owner: 'user1',
+        created_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        name: 'Party Hits',
+        description: 'Лучшие хиты для вечеринок',
+        participants: 8,
+        is_public: true,
+        owner: 'user2',
+        created_at: new Date().toISOString()
+      }
+    ])
+    setLoading(false)
   }
 
   const handleCreateRoom = async () => {

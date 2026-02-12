@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
+import MusicPlayer from '@/components/music-player'
 
 interface Room {
   id: string
@@ -54,48 +55,47 @@ export default function RoomPage() {
       if (!isSupabaseConfigured()) {
         console.warn('⚠️ Supabase не настроен, используем демо-данные')
         setIsDemoMode(true)
-        // Демо-данные для тестирования
-        setRoom({
-          id: roomId,
-          name: `Комната #${roomId.slice(0, 8)}`,
-          description: 'Демо-комната (Supabase не настроен)',
-          is_public: true,
-          owner_id: 'demo',
-          max_participants: 10,
-          created_at: new Date().toISOString(),
-          profiles: { username: 'Demo User' },
-          room_participants: []
-        })
+        loadDemoRoom()
         return
       }
       
-      const data = await roomsApi.getRoomById(roomId)
-      
-      if (!data) {
-        throw new Error('Комната не найдена')
+      // Пробуем загрузить из Supabase
+      try {
+        const data = await roomsApi.getRoomById(roomId)
+        
+        if (!data) {
+          throw new Error('Комната не найдена')
+        }
+        
+        setRoom(data)
+        setLoading(false)
+      } catch (supabaseError: any) {
+        // Если ошибка сети - переключаемся в демо-режим
+        console.error('⚠️ Ошибка подключения к Supabase:', supabaseError?.message || supabaseError)
+        console.log('🔄 Переключаемся в демо-режим')
+        setIsDemoMode(true)
+        loadDemoRoom()
       }
-      
-      setRoom(data)
     } catch (err: any) {
-      const errorMessage = err?.message || err?.toString() || 'Неизвестная ошибка'
-      console.error('⚠️ Ошибка загрузки комнаты:', errorMessage)
-      console.log('🔄 Переключаемся в демо-режим для комнаты')
+      console.error('⚠️ Критическая ошибка:', err)
       setIsDemoMode(true)
-      // Вместо ошибки показываем демо-комнату
-      setRoom({
-        id: roomId,
-        name: `Комната #${roomId.slice(0, 8)}`,
-        description: 'Демо-комната (ошибка подключения к Supabase)',
-        is_public: true,
-        owner_id: 'demo',
-        max_participants: 10,
-        created_at: new Date().toISOString(),
-        profiles: { username: 'Demo User' },
-        room_participants: []
-      })
-    } finally {
-      setLoading(false)
+      loadDemoRoom()
     }
+  }
+  
+  const loadDemoRoom = () => {
+    setRoom({
+      id: roomId,
+      name: `Комната #${roomId.slice(0, 8)}`,
+      description: 'Демо-комната',
+      is_public: true,
+      owner_id: 'demo',
+      max_participants: 10,
+      created_at: new Date().toISOString(),
+      profiles: { username: 'Demo User' },
+      room_participants: []
+    })
+    setLoading(false)
   }
 
   if (loading) {

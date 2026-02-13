@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { QRCodeSVG } from 'qrcode.react'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
 import MusicPlayer from '@/components/music-player'
@@ -36,8 +37,10 @@ export default function RoomPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [showQRCode, setShowQRCode] = useState(false)
 
   const roomId = params.id as string
+  const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}` : ''
 
   useEffect(() => {
     if (roomId) {
@@ -230,20 +233,105 @@ export default function RoomPage() {
             </p>
           </div>
           
-          <a
-            href="/rooms"
-            style={{
-              padding: '0.75rem 1.5rem',
-              border: '2px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '12px',
-              textDecoration: 'none',
-              color: '#8b5cf6',
-              backgroundColor: 'rgba(139, 92, 246, 0.05)'
-            }}
-          >
-            ← Назад
-          </a>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              onClick={() => setShowQRCode(!showQRCode)}
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: '2px solid rgba(34, 197, 94, 0.3)',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                color: '#22c55e',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              📱 {showQRCode ? 'Скрыть QR' : 'Пригласить'}
+            </button>
+            
+            <a
+              href="/rooms"
+              style={{
+                padding: '0.75rem 1.5rem',
+                border: '2px solid rgba(139, 92, 246, 0.3)',
+                borderRadius: '12px',
+                textDecoration: 'none',
+                color: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.05)'
+              }}
+            >
+              ← Назад
+            </a>
+          </div>
         </div>
+
+        {/* QR Code Section */}
+        {showQRCode && (
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '16px',
+            padding: '2rem',
+            marginBottom: '2rem',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: '#1f2937', marginBottom: '1rem' }}>
+              📱 Отсканируйте QR-код для входа в комнату
+            </h3>
+            <div style={{ 
+              display: 'inline-block', 
+              padding: '1rem', 
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              marginBottom: '1rem'
+            }}>
+              <QRCodeSVG 
+                value={roomUrl} 
+                size={200}
+                level="M"
+                includeMargin={true}
+              />
+            </div>
+            <p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+              Или поделитесь ссылкой:
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <code style={{
+                backgroundColor: '#f3f4f6',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                color: '#374151',
+                wordBreak: 'break-all'
+              }}>
+                {roomUrl}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(roomUrl)
+                  alert('Ссылка скопирована!')
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#8b5cf6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Копировать
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Room Info */}
         <div style={{ 

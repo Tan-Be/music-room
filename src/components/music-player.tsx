@@ -55,7 +55,18 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
   }, [isPlaying, currentTrack])
 
   const handleAddTrack = () => {
-    if (!newTrack.title.trim()) return
+    if (!newTrack.title.trim() || !newTrack.url.trim()) {
+      alert('Введите название трека и URL аудио файла')
+      return
+    }
+
+    // Проверка URL
+    try {
+      new URL(newTrack.url)
+    } catch {
+      alert('Введите корректный URL (например: https://example.com/music.mp3)')
+      return
+    }
 
     const track: Track = {
       id: Date.now().toString(),
@@ -71,29 +82,6 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
     setShowAddForm(false)
 
     // Автоматически начинаем играть первый трек
-    if (!currentTrack) {
-      setCurrentTrack(track)
-    }
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Создаем URL для локального файла
-    const url = URL.createObjectURL(file)
-    
-    const track: Track = {
-      id: Date.now().toString(),
-      title: file.name.replace(/\.[^/.]+$/, ''), // Убираем расширение
-      artist: 'Локальный файл',
-      url: url,
-      addedBy: 'Вы',
-      addedAt: new Date().toISOString()
-    }
-
-    setTracks([...tracks, track])
-    
     if (!currentTrack) {
       setCurrentTrack(track)
     }
@@ -207,29 +195,8 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
             gap: '0.5rem'
           }}
         >
-          ➕ Добавить трек
+          ➕ Добавить трек по ссылке
         </button>
-        
-        <label style={{
-          padding: '0.75rem 1.5rem',
-          background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-          border: 'none',
-          borderRadius: '12px',
-          color: 'white',
-          cursor: 'pointer',
-          fontSize: '1rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          📁 Загрузить файл
-          <input
-            type="file"
-            accept="audio/*"
-            onChange={handleFileUpload}
-            style={{ display: 'none' }}
-          />
-        </label>
       </div>
 
       {/* Форма добавления */}
@@ -240,7 +207,10 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
           borderRadius: '12px',
           padding: '1.5rem'
         }}>
-          <h4 style={{ color: '#e2e8f0', marginBottom: '1rem' }}>Добавить трек</h4>
+          <h4 style={{ color: '#e2e8f0', marginBottom: '1rem' }}>Добавить трек по ссылке</h4>
+          <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '1rem' }}>
+            Вставьте прямую ссылку на аудио файл (MP3, WAV и т.д.)
+          </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input
               type="text"
@@ -272,7 +242,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
             />
             <input
               type="text"
-              placeholder="URL аудио файла (необязательно)"
+              placeholder="URL аудио файла * (например: https://example.com/song.mp3)"
               value={newTrack.url}
               onChange={(e) => setNewTrack({ ...newTrack, url: e.target.value })}
               style={{
@@ -301,17 +271,17 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
               </button>
               <button
                 onClick={handleAddTrack}
-                disabled={!newTrack.title.trim()}
+                disabled={!newTrack.title.trim() || !newTrack.url.trim()}
                 style={{
                   flex: 1,
                   padding: '0.75rem',
                   border: 'none',
                   borderRadius: '8px',
-                  background: newTrack.title.trim() 
+                  background: newTrack.title.trim() && newTrack.url.trim()
                     ? 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
                     : 'rgba(107, 114, 128, 0.5)',
                   color: 'white',
-                  cursor: newTrack.title.trim() ? 'pointer' : 'not-allowed'
+                  cursor: newTrack.title.trim() && newTrack.url.trim() ? 'pointer' : 'not-allowed'
                 }}
               >
                 Добавить
@@ -327,9 +297,12 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
           📋 Плейлист ({tracks.length})
         </h4>
         {tracks.length === 0 ? (
-          <p style={{ color: '#a1a1aa', textAlign: 'center', padding: '2rem' }}>
-            🎵 Пока нет треков. Добавьте первый!
-          </p>
+          <div style={{ color: '#a1a1aa', textAlign: 'center', padding: '2rem' }}>
+            <p style={{ marginBottom: '0.5rem' }}>🎵 Пока нет треков</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+              Нажмите "Добавить трек по ссылке" и вставьте URL аудио файла
+            </p>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {tracks.map((track, index) => (

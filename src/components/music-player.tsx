@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Track {
   id: string
   title: string
   artist: string
-  url: string
+  youtubeId: string
   addedBy: string
   addedAt: string
 }
@@ -16,13 +16,27 @@ interface MusicPlayerProps {
   isDemoMode: boolean
 }
 
+// Функция для извлечения YouTube ID из разных форматов ссылок
+const extractYoutubeId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
+    /youtube\.com\/watch\?.*v=([^&\s]+)/,
+  ]
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match && match[1]) {
+      return match[1]
+    }
+  }
+  return null
+}
+
 export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
   const [tracks, setTracks] = useState<Track[]>([])
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTrack, setNewTrack] = useState({ title: '', artist: '', url: '' })
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Загрузка треков из localStorage
   useEffect(() => {
@@ -43,28 +57,16 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
     }
   }, [tracks, roomId])
 
-  // Обработка воспроизведения
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch(e => console.error('Ошибка воспроизведения:', e))
-      } else {
-        audioRef.current.pause()
-      }
-    }
-  }, [isPlaying, currentTrack])
-
   const handleAddTrack = () => {
     if (!newTrack.title.trim() || !newTrack.url.trim()) {
-      alert('Введите название трека и URL аудио файла')
+      alert('Введите название трека и ссылку на YouTube')
       return
     }
 
-    // Проверка URL
-    try {
-      new URL(newTrack.url)
-    } catch {
-      alert('Введите корректный URL (например: https://example.com/music.mp3)')
+    // Извлекаем YouTube ID
+    const youtubeId = extractYoutubeId(newTrack.url)
+    if (!youtubeId) {
+      alert('Некорректная ссылка на YouTube. Примеры:\nhttps://www.youtube.com/watch?v=VIDEO_ID\nhttps://youtu.be/VIDEO_ID')
       return
     }
 
@@ -72,7 +74,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
       id: Date.now().toString(),
       title: newTrack.title,
       artist: newTrack.artist || 'Неизвестен',
-      url: newTrack.url,
+      youtubeId: youtubeId,
       addedBy: 'Вы',
       addedAt: new Date().toISOString()
     }
@@ -89,11 +91,6 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
 
   const playTrack = (track: Track) => {
     setCurrentTrack(track)
-    setIsPlaying(true)
-  }
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying)
   }
 
   const removeTrack = (id: string) => {
@@ -102,7 +99,11 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
     
     if (currentTrack?.id === id) {
       setCurrentTrack(null)
-      setIsPlaying(false)
+    }
+    
+    // Очищаем localStorage если треков не осталось
+    if (updated.length === 0) {
+      localStorage.removeItem(`roomTracks-${roomId}`)
     }
   }
 
@@ -121,7 +122,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
             <div style={{
               width: '60px',
               height: '60px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -138,43 +139,30 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                 {currentTrack.artist}
               </p>
             </div>
-            <button
-              onClick={togglePlay}
-              style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                border: 'none',
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-                color: 'white',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {isPlaying ? '⏸' : '▶'}
-            </button>
           </div>
           
-          {/* Аудио плеер */}
-          <audio
-            ref={audioRef}
-            src={currentTrack.url}
-            onEnded={() => {
-              // Играем следующий трек
-              const currentIndex = tracks.findIndex(t => t.id === currentTrack.id)
-              const nextTrack = tracks[currentIndex + 1]
-              if (nextTrack) {
-                playTrack(nextTrack)
-              } else {
-                setIsPlaying(false)
-              }
-            }}
-            style={{ width: '100%' }}
-            controls
-          />
+          {/* YouTube плеер */}
+          <div style={{ 
+            position: 'relative', 
+            paddingBottom: '56.25%', 
+            height: 0, 
+            overflow: 'hidden',
+            borderRadius: '12px'
+          }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${currentTrack.youtubeId}?autoplay=1`}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                border: 'none'
+              }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
         </div>
       )}
 
@@ -184,7 +172,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
           onClick={() => setShowAddForm(!showAddForm)}
           style={{
             padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
             border: 'none',
             borderRadius: '12px',
             color: 'white',
@@ -195,7 +183,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
             gap: '0.5rem'
           }}
         >
-          ➕ Добавить трек по ссылке
+          ➕ Добавить из YouTube
         </button>
       </div>
 
@@ -203,13 +191,15 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
       {showAddForm && (
         <div style={{
           backgroundColor: 'rgba(30, 30, 30, 0.8)',
-          border: '2px solid rgba(139, 92, 246, 0.3)',
+          border: '2px solid rgba(239, 68, 68, 0.3)',
           borderRadius: '12px',
           padding: '1.5rem'
         }}>
-          <h4 style={{ color: '#e2e8f0', marginBottom: '1rem' }}>Добавить трек по ссылке</h4>
-          <p style={{ color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '1rem' }}>
-            Вставьте прямую ссылку на аудио файл (MP3, WAV и т.д.)
+          <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem' }}>Добавить из YouTube</h4>
+          <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            Вставьте ссылку на YouTube видео. Примеры:<br/>
+            https://www.youtube.com/watch?v=ABC123<br/>
+            https://youtu.be/ABC123
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input
@@ -220,7 +210,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
               style={{
                 padding: '0.75rem',
                 borderRadius: '8px',
-                border: '2px solid rgba(139, 92, 246, 0.3)',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 color: '#e2e8f0',
                 fontSize: '1rem'
@@ -234,7 +224,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
               style={{
                 padding: '0.75rem',
                 borderRadius: '8px',
-                border: '2px solid rgba(139, 92, 246, 0.3)',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 color: '#e2e8f0',
                 fontSize: '1rem'
@@ -242,13 +232,13 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
             />
             <input
               type="text"
-              placeholder="URL аудио файла * (например: https://example.com/song.mp3)"
+              placeholder="Ссылка на YouTube *"
               value={newTrack.url}
               onChange={(e) => setNewTrack({ ...newTrack, url: e.target.value })}
               style={{
                 padding: '0.75rem',
                 borderRadius: '8px',
-                border: '2px solid rgba(139, 92, 246, 0.3)',
+                border: '2px solid rgba(239, 68, 68, 0.3)',
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 color: '#e2e8f0',
                 fontSize: '1rem'
@@ -278,7 +268,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                   border: 'none',
                   borderRadius: '8px',
                   background: newTrack.title.trim() && newTrack.url.trim()
-                    ? 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)'
+                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
                     : 'rgba(107, 114, 128, 0.5)',
                   color: 'white',
                   cursor: newTrack.title.trim() && newTrack.url.trim() ? 'pointer' : 'not-allowed'
@@ -300,7 +290,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
           <div style={{ color: '#a1a1aa', textAlign: 'center', padding: '2rem' }}>
             <p style={{ marginBottom: '0.5rem' }}>🎵 Пока нет треков</p>
             <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-              Нажмите "Добавить трек по ссылке" и вставьте URL аудио файла
+              Нажмите "Добавить из YouTube" и вставьте ссылку на видео
             </p>
           </div>
         ) : (
@@ -314,9 +304,9 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                   gap: '1rem',
                   padding: '1rem',
                   backgroundColor: currentTrack?.id === track.id 
-                    ? 'rgba(139, 92, 246, 0.2)' 
+                    ? 'rgba(239, 68, 68, 0.2)' 
                     : 'rgba(255, 255, 255, 0.05)',
-                  border: `2px solid ${currentTrack?.id === track.id ? 'rgba(139, 92, 246, 0.5)' : 'transparent'}`,
+                  border: `2px solid ${currentTrack?.id === track.id ? 'rgba(239, 68, 68, 0.5)' : 'transparent'}`,
                   borderRadius: '12px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
@@ -324,7 +314,7 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                 onClick={() => playTrack(track)}
               >
                 <span style={{ 
-                  color: '#8b5cf6', 
+                  color: '#ef4444', 
                   fontWeight: 'bold',
                   minWidth: '24px'
                 }}>
@@ -338,8 +328,8 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                     {track.artist} • добавлен {new Date(track.addedAt).toLocaleDateString('ru-RU')}
                   </p>
                 </div>
-                {currentTrack?.id === track.id && isPlaying && (
-                  <span style={{ color: '#8b5cf6' }}>▶</span>
+                {currentTrack?.id === track.id && (
+                  <span style={{ color: '#ef4444' }}>▶</span>
                 )}
                 <button
                   onClick={(e) => {

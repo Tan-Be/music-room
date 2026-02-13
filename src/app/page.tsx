@@ -5,27 +5,6 @@ import { BackgroundMusicPlayer } from '@/components/common/background-music-play
 import { GitHubButton } from '@/components/auth/github-button'
 import { useSession, signOut } from 'next-auth/react'
 
-const mockRooms = [
-  {
-    id: '1',
-    name: 'Chill Vibes',
-    description: 'Расслабляющая музыка для работы и отдыха',
-    participants: 12,
-  },
-  {
-    id: '2',
-    name: 'Party Hits',
-    description: 'Лучшие хиты для вечеринок',
-    participants: 8,
-  },
-  {
-    id: '3',
-    name: 'Indie Discoveries',
-    description: 'Новые инди-треки и артисты',
-    participants: 5,
-  },
-]
-
 export default function Home() {
   const { data: session } = useSession()
   
@@ -51,80 +30,6 @@ export default function Home() {
         }}>
           Совместное прослушивание музыки
         </p>
-
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '1.5rem',
-          marginBottom: '3rem'
-        }}>
-          {mockRooms.map(room => (
-            <div
-              key={room.id}
-              style={{
-                border: '2px solid rgba(139, 92, 246, 0.2)',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-5px) scale(1.02)'
-                e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.4)'
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.6)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0) scale(1)'
-                e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'
-                e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.2)'
-              }}
-            >
-              <h3 style={{ 
-                fontSize: '1.25rem', 
-                marginBottom: '0.5rem',
-                color: '#e2e8f0'
-              }}>
-                {room.name}
-              </h3>
-              <p style={{ 
-                color: '#a1a1aa', 
-                marginBottom: '1rem' 
-              }}>
-                {room.description}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.9rem', color: '#a1a1aa' }}>
-                  {room.participants} участников
-                </span>
-                <button
-                  style={{
-                    background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(139, 92, 246, 0.6)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(139, 92, 246, 0.4)'
-                  }}
-                >
-                  Присоединиться
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
 
         <div style={{ 
           display: 'grid', 

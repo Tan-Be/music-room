@@ -544,51 +544,64 @@ export default function RoomsPage() {
                   </div>
                   
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleVote(room.id, 'like')
-                      }}
-                      style={{
+                    {session?.user?.name === room.owner ? (
+                      <span style={{
                         padding: '0.5rem 0.75rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: userVotes[room.id] === 'like' 
-                          ? 'rgba(34, 197, 94, 0.5)' 
-                          : 'rgba(34, 197, 94, 0.2)',
-                        color: '#22c55e',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem'
-                      }}
-                    >
-                      👍 {room.likes || 0}
-                    </button>
-                    
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleVote(room.id, 'dislike')
-                      }}
-                      style={{
-                        padding: '0.5rem 0.75rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: userVotes[room.id] === 'dislike' 
-                          ? 'rgba(239, 68, 68, 0.5)' 
-                          : 'rgba(239, 68, 68, 0.2)',
-                        color: '#ef4444',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem'
-                      }}
-                    >
-                      👎 {room.dislikes || 0}
-                    </button>
+                        color: '#f59e0b',
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic'
+                      }}>
+                        👑 Ваша комната
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleVote(room.id, 'like')
+                          }}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: userVotes[room.id] === 'like' 
+                              ? 'rgba(34, 197, 94, 0.5)' 
+                              : 'rgba(34, 197, 94, 0.2)',
+                            color: '#22c55e',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          👍 {room.likes || 0}
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleVote(room.id, 'dislike')
+                          }}
+                          style={{
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: userVotes[room.id] === 'dislike' 
+                              ? 'rgba(239, 68, 68, 0.5)' 
+                              : 'rgba(239, 68, 68, 0.2)',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          👎 {room.dislikes || 0}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 

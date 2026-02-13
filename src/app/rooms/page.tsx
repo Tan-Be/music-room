@@ -167,6 +167,25 @@ export default function RoomsPage() {
     return [...rooms].sort((a, b) => (b.rating || 0) - (a.rating || 0))
   }
 
+  // Удаление комнаты
+  const handleDeleteRoom = (roomId: string, roomName: string) => {
+    if (confirm(`Вы уверены, что хотите удалить комнату "${roomName}"?`)) {
+      const updatedRooms = rooms.filter(room => room.id !== roomId)
+      setRooms(updatedRooms)
+      
+      // Удаляем из localStorage
+      if (isDemoMode) {
+        localStorage.setItem('demoRooms', JSON.stringify(updatedRooms))
+      }
+      
+      // Удаляем голоса пользователя за эту комнату
+      const newVotes = { ...userVotes }
+      delete newVotes[roomId]
+      setUserVotes(newVotes)
+      localStorage.setItem('userVotes', JSON.stringify(newVotes))
+    }
+  }
+
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim()) {
       alert('Введите название комнаты')
@@ -459,15 +478,35 @@ export default function RoomsPage() {
                   }}>
                     {room.name}
                   </h3>
-                  <div style={{
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '20px',
-                    fontSize: '0.8rem',
-                    backgroundColor: room.is_public ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                    color: room.is_public ? '#22c55e' : '#ef4444',
-                    border: `1px solid ${room.is_public ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                  }}>
-                    {room.is_public ? '🌍 Публичная' : '🔒 Приватная'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      backgroundColor: room.is_public ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: room.is_public ? '#22c55e' : '#ef4444',
+                      border: `1px solid ${room.is_public ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                    }}>
+                      {room.is_public ? '🌍 Публичная' : '🔒 Приватная'}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteRoom(room.id, room.name)
+                      }}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        borderRadius: '6px',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                      title="Удалить комнату"
+                    >
+                      🗑
+                    </button>
                   </div>
                 </div>
                 

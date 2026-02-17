@@ -413,9 +413,28 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
                     border: '2px solid rgba(59, 130, 246, 0.3)',
                     borderRadius: '12px'
                   }}>
-                    <h5 style={{ color: '#e2e8f0', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                      💬 Комментарии ({track.comments?.length || 0})
-                    </h5>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                      <h5 style={{ color: '#e2e8f0', margin: 0, fontSize: '0.9rem' }}>
+                        💬 Комментарии ({track.comments?.length || 0})
+                      </h5>
+                      <span style={{ 
+                        color: '#f59e0b', 
+                        fontSize: '0.75rem', 
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px'
+                      }}>
+                        ⚠️ Только для вас
+                      </span>
+                    </div>
+                    <p style={{ 
+                      color: '#9ca3af', 
+                      fontSize: '0.8rem', 
+                      marginBottom: '0.75rem',
+                      fontStyle: 'italic'
+                    }}>
+                      Комментарии сохраняются локально и видны только вам. Другие пользователи их не увидят.
+                    </p>
                     
                     {/* Список комментариев */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>

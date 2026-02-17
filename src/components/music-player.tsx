@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react'
 
+interface Comment {
+  id: string
+  text: string
+  author: string
+  createdAt: string
+}
+
 interface Track {
   id: string
   title: string
@@ -9,6 +16,7 @@ interface Track {
   youtubeId: string
   addedBy: string
   addedAt: string
+  comments?: Comment[]
 }
 
 interface MusicPlayerProps {
@@ -37,6 +45,8 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTrack, setNewTrack] = useState({ title: '', artist: '', url: '' })
+  const [commentText, setCommentText] = useState('')
+  const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(null)
 
   // Загрузка треков из localStorage
   useEffect(() => {
@@ -105,6 +115,30 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
     if (updated.length === 0) {
       localStorage.removeItem(`roomTracks-${roomId}`)
     }
+  }
+
+  const handleAddComment = (trackId: string) => {
+    if (!commentText.trim()) return
+
+    const updatedTracks = tracks.map(track => {
+      if (track.id === trackId) {
+        const newComment: Comment = {
+          id: Date.now().toString(),
+          text: commentText,
+          author: 'Вы',
+          createdAt: new Date().toISOString()
+        }
+        return {
+          ...track,
+          comments: [...(track.comments || []), newComment]
+        }
+      }
+      return track
+    })
+
+    setTracks(updatedTracks)
+    setCommentText('')
+    setActiveCommentTrack(null)
   }
 
   return (
@@ -296,58 +330,159 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {tracks.map((track, index) => (
-              <div
-                key={track.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1rem',
-                  padding: '1rem',
-                  backgroundColor: currentTrack?.id === track.id 
-                    ? 'rgba(239, 68, 68, 0.2)' 
-                    : 'rgba(255, 255, 255, 0.05)',
-                  border: `2px solid ${currentTrack?.id === track.id ? 'rgba(239, 68, 68, 0.5)' : 'transparent'}`,
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onClick={() => playTrack(track)}
-              >
-                <span style={{ 
-                  color: '#ef4444', 
-                  fontWeight: 'bold',
-                  minWidth: '24px'
-                }}>
-                  {index + 1}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontWeight: 500 }}>
-                    {track.title}
-                  </p>
-                  <p style={{ color: '#a1a1aa', margin: 0, fontSize: '0.85rem' }}>
-                    {track.artist} • добавлен {new Date(track.addedAt).toLocaleDateString('ru-RU')}
-                  </p>
-                </div>
-                {currentTrack?.id === track.id && (
-                  <span style={{ color: '#ef4444' }}>▶</span>
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeTrack(track.id)
-                  }}
+              <div key={track.id}>
+                <div
                   style={{
-                    padding: '0.5rem',
-                    background: 'rgba(239, 68, 68, 0.2)',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem',
+                    backgroundColor: currentTrack?.id === track.id 
+                      ? 'rgba(239, 68, 68, 0.2)' 
+                      : 'rgba(255, 255, 255, 0.05)',
+                    border: `2px solid ${currentTrack?.id === track.id ? 'rgba(239, 68, 68, 0.5)' : 'transparent'}`,
+                    borderRadius: '12px',
                     cursor: 'pointer',
-                    fontSize: '0.9rem'
+                    transition: 'all 0.2s ease'
                   }}
+                  onClick={() => playTrack(track)}
                 >
-                  🗑
-                </button>
+                  <span style={{ 
+                    color: '#ef4444', 
+                    fontWeight: 'bold',
+                    minWidth: '24px'
+                  }}>
+                    {index + 1}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontWeight: 500 }}>
+                      {track.title}
+                    </p>
+                    <p style={{ color: '#a1a1aa', margin: 0, fontSize: '0.85rem' }}>
+                      {track.artist} • добавлен {new Date(track.addedAt).toLocaleDateString('ru-RU')}
+                    </p>
+                  </div>
+                  {currentTrack?.id === track.id && (
+                    <span style={{ color: '#ef4444' }}>▶</span>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setActiveCommentTrack(activeCommentTrack === track.id ? null : track.id)
+                    }}
+                    style={{
+                      padding: '0.5rem',
+                      background: 'rgba(59, 130, 246, 0.2)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#3b82f6',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                  >
+                    💬 {track.comments?.length || 0}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeTrack(track.id)
+                    }}
+                    style={{
+                      padding: '0.5rem',
+                      background: 'rgba(239, 68, 68, 0.2)',
+                      border: 'none',
+                      borderRadius: '6px',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}
+                  >
+                    🗑
+                  </button>
+                </div>
+                
+                {/* Секция комментариев */}
+                {activeCommentTrack === track.id && (
+                  <div style={{
+                    marginTop: '0.5rem',
+                    padding: '1rem',
+                    backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                    border: '2px solid rgba(59, 130, 246, 0.3)',
+                    borderRadius: '12px'
+                  }}>
+                    <h5 style={{ color: '#e2e8f0', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+                      💬 Комментарии ({track.comments?.length || 0})
+                    </h5>
+                    
+                    {/* Список комментариев */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                      {track.comments?.length === 0 ? (
+                        <p style={{ color: '#6b7280', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                          Пока нет комментариев. Будьте первым!
+                        </p>
+                      ) : (
+                        track.comments?.map((comment) => (
+                          <div key={comment.id} style={{
+                            padding: '0.5rem 0.75rem',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(59, 130, 246, 0.2)'
+                          }}>
+                            <p style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}>
+                              {comment.text}
+                            </p>
+                            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.75rem' }}>
+                              {comment.author} • {new Date(comment.createdAt).toLocaleDateString('ru-RU')}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    
+                    {/* Форма добавления комментария */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Напишите комментарий..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        style={{
+                          flex: 1,
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '8px',
+                          border: '2px solid rgba(59, 130, 246, 0.3)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          color: '#e2e8f0',
+                          fontSize: '0.9rem'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAddComment(track.id)
+                        }}
+                        disabled={!commentText.trim()}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: commentText.trim() 
+                            ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
+                            : 'rgba(107, 114, 128, 0.5)',
+                          color: 'white',
+                          cursor: commentText.trim() ? 'pointer' : 'not-allowed',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        Отправить
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

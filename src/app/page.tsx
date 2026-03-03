@@ -3,6 +3,7 @@
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { BackgroundMusicPlayer } from '@/components/common/background-music-player'
 import { GitHubButton } from '@/components/auth/github-button'
+import { RoomRecommendations } from '@/components/room-recommendations'
 import { useSession, signOut } from 'next-auth/react'
 
 export default function Home() {
@@ -171,6 +172,8 @@ export default function Home() {
           </a>
         </div>
 
+        <RoomRecommendations />
+
         {/* GitHub OAuth Section */}
         <div style={{
           marginTop: '3rem',
@@ -201,8 +204,24 @@ export default function Home() {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {session ? (
-              <button
-                onClick={() => signOut({ callbackUrl: '/' })}
+              <>
+                <a
+                  href="/profile"
+                  style={{
+                    display: 'block',
+                    padding: '1rem',
+                    border: '2px solid rgba(139, 92, 246, 0.3)',
+                    borderRadius: '12px',
+                    textDecoration: 'none',
+                    color: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  👤 Мой профиль
+                </a>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
                 style={{
                   background: 'rgba(239, 68, 68, 0.2)',
                   color: '#ef4444',
@@ -222,6 +241,7 @@ export default function Home() {
               >
                 🚪 Выйти
               </button>
+              </>
             ) : (
               <>
                 <GitHubButton mode="login" />

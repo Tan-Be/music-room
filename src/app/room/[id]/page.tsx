@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { AnimatedBackground } from '@/components/common/animated-background'
 import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
 import MusicPlayer from '@/components/music-player'
+import { Chat } from '@/components/chat'
 
 interface Room {
   id: string
@@ -342,7 +343,6 @@ export default function RoomPage() {
           {/* Main Content */}
           <div style={{ 
             gridColumn: 'span 2',
-            border: '2px solid rgba(139, 92, 246, 0.2)',
             borderRadius: '16px',
             padding: '2rem',
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -397,6 +397,18 @@ export default function RoomPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Chat */}
+          <div style={{ 
+            border: '2px solid rgba(139, 92, 246, 0.2)',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            minHeight: '400px'
+          }}>
+            <Chat roomId={roomId} />
           </div>
         </div>
       </div>

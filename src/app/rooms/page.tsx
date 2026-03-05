@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { AnimatedBackground } from '@/components/common/animated-background'
-import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
+import { roomsApi, supabase, isSupabaseConfigured } from '@/lib/supabase'
 
 interface Room {
   id: string
@@ -168,8 +168,17 @@ export default function RoomsPage() {
   }
 
   // Удаление комнаты
-  const handleDeleteRoom = (roomId: string, roomName: string) => {
+  const handleDeleteRoom = async (roomId: string, roomName: string) => {
     if (confirm(`Вы уверены, что хотите удалить комнату "${roomName}"?`)) {
+      // Удаляем из Supabase если настроен
+      if (isSupabaseConfigured() && !isDemoMode) {
+        try {
+          await supabase.from('rooms').delete().eq('id', roomId)
+        } catch (error) {
+          console.error('Failed to delete room:', error)
+        }
+      }
+      
       const updatedRooms = rooms.filter(room => room.id !== roomId)
       setRooms(updatedRooms)
       

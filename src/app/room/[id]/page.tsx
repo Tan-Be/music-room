@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { QRCodeSVG } from 'qrcode.react'
 import { AnimatedBackground } from '@/components/common/animated-background'
-import { roomsApi, isSupabaseConfigured } from '@/lib/supabase'
+import { roomsApi, supabase, isSupabaseConfigured } from '@/lib/supabase'
 import MusicPlayer from '@/components/music-player'
 import { Chat } from '@/components/chat'
 
@@ -97,6 +97,23 @@ export default function RoomPage() {
     })
     setLoading(false)
   }
+
+  const handleDeleteRoom = async () => {
+    if (!room) return
+    if (!confirm(`Удалить комнату "${room.name}"?`)) return
+    
+    if (!isDemoMode && isSupabaseConfigured()) {
+      try {
+        await supabase.from('rooms').delete().eq('id', room.id)
+      } catch (error) {
+        console.error('Delete error:', error)
+      }
+    }
+    
+    window.location.href = '/rooms'
+  }
+
+  const isOwner = session?.user && (session.user as any).id === room?.owner_id
 
   if (loading) {
     return (
@@ -266,6 +283,23 @@ export default function RoomPage() {
             >
               ← Назад
             </a>
+            
+            {isOwner && (
+              <button
+                onClick={handleDeleteRoom}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
+                🗑 Удалить
+              </button>
+            )}
           </div>
         </div>
 

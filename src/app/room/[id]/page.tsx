@@ -386,7 +386,7 @@ export default function RoomPage() {
             <h2 style={{ color: '#e2e8f0', marginBottom: '1.5rem' }}>
               🎶 Музыкальный плеер
             </h2>
-            <MusicPlayer roomId={roomId} isDemoMode={isDemoMode} />
+            <MusicPlayer roomId={roomId} isDemoMode={isDemoMode} roomParticipants={room?.room_participants} />
           </div>
 
           {/* Participants */}

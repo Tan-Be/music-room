@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface Comment {
   id: string
@@ -22,6 +23,9 @@ interface Track {
 interface MusicPlayerProps {
   roomId: string
   isDemoMode: boolean
+  roomParticipants?: Array<{
+    user_id: string
+  }>
 }
 
 // Функция для извлечения YouTube ID из разных форматов ссылок
@@ -40,13 +44,18 @@ const extractYoutubeId = (url: string): string | null => {
   return null
 }
 
-export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
+export default function MusicPlayer({ roomId, isDemoMode, roomParticipants }: MusicPlayerProps) {
+  const { data: session } = useSession()
   const [tracks, setTracks] = useState<Track[]>([])
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newTrack, setNewTrack] = useState({ title: '', artist: '', url: '' })
   const [commentText, setCommentText] = useState('')
   const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(null)
+
+  const userId = session?.user ? (session.user as any).id : null
+  const isParticipant = !roomParticipants || roomParticipants.some(p => p.user_id === userId)
+  const canAddTrack = isDemoMode || isParticipant
 
   // Загрузка треков из localStorage
   useEffect(() => {
@@ -202,23 +211,35 @@ export default function MusicPlayer({ roomId, isDemoMode }: MusicPlayerProps) {
 
       {/* Управление */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          style={{
+        {canAddTrack ? (
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              color: 'white',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            ➕ Добавить из YouTube
+          </button>
+        ) : (
+          <div style={{
             padding: '0.75rem 1.5rem',
-            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-            border: 'none',
+            backgroundColor: 'rgba(107, 114, 128, 0.3)',
             borderRadius: '12px',
-            color: 'white',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
-        >
-          ➕ Добавить из YouTube
-        </button>
+            color: '#9ca3af',
+            fontSize: '0.9rem'
+          }}>
+            🔒 Присоединитесь к комнате, чтобы добавлять треки
+          </div>
+        )}
       </div>
 
       {/* Форма добавления */}

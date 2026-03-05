@@ -48,10 +48,9 @@ export default function RatingPage() {
   }
 
   const getRankStyle = (index: number) => {
-    if (index === 0) return { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', color: '#000' }
-    if (index === 1) return { background: 'linear-gradient(135deg, #C0C0C0 0%, #A0A0A0 100%)', color: '#000' }
-    if (index === 2) return { background: 'linear-gradient(135deg, #CD7F32 0%, #B87333 100%)', color: '#fff' }
-    return { background: 'rgba(139, 92, 246, 0.2)', color: '#e2e8f0' }
+    return {
+      color: index === 0 ? '#fbbf24' : index === 1 ? '#9ca3af' : index === 2 ? '#cd7f32' : '#6b7280'
+    }
   }
 
   const getRankIcon = (index: number) => {
@@ -59,6 +58,13 @@ export default function RatingPage() {
     if (index === 1) return '🥈'
     if (index === 2) return '🥉'
     return `#${index + 1}`
+  }
+
+  const deleteRoom = (roomId: string) => {
+    if (!confirm('Удалить эту комнату?')) return
+    const updated = rooms.filter(r => r.id !== roomId)
+    setRooms(updated)
+    localStorage.setItem('demoRooms', JSON.stringify(updated))
   }
 
   if (loading) {
@@ -185,7 +191,7 @@ export default function RatingPage() {
                     {getRankIcon(index)}
                   </div>
 
-                  {/* Info */}
+                    {/* Info */}
                   <div style={{ flex: 1 }}>
                     <h3 style={{ 
                       color: '#e2e8f0', 
@@ -202,6 +208,24 @@ export default function RatingPage() {
                       {room.description || 'Нет описания'} • 👤 {room.owner}
                     </p>
                   </div>
+
+                  {/* Delete button */}
+                  <button
+                    onClick={() => deleteRoom(room.id)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      borderRadius: '6px',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      marginLeft: '0.5rem'
+                    }}
+                    title="Удалить"
+                  >
+                    🗑
+                  </button>
 
                   {/* Stats */}
                   <div style={{ 

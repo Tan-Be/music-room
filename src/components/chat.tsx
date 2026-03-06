@@ -18,14 +18,16 @@ interface Message {
 
 interface ChatProps {
   roomId: string
+  isOpen?: boolean
 }
 
-export function Chat({ roomId }: ChatProps) {
+export function Chat({ roomId, isOpen = true }: ChatProps) {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [sending, setSending] = useState(false)
+  const [visible, setVisible] = useState(isOpen)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const pollingRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -43,11 +45,17 @@ export function Chat({ roomId }: ChatProps) {
   }, [roomId])
 
   useEffect(() => {
-    scrollToBottom()
+    const chatContainer = messagesEndRef.current?.parentElement
+    if (!chatContainer) return
+    
+    const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100
+    if (isAtBottom) {
+      scrollToBottom()
+    }
   }, [messages])
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
   }
 
   const startPolling = () => {

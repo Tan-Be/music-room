@@ -39,14 +39,15 @@ export default function RoomPage() {
   const [error, setError] = useState<string | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [showChat, setShowChat] = useState(false)
 
   const roomId = params.id as string
   const roomUrl = typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}` : ''
 
+  const userId = session?.user ? (session.user as any).id : null
+
   useEffect(() => {
-    if (roomId) {
-      loadRoom()
-    }
+    loadRoom()
   }, [roomId])
 
   const loadRoom = async () => {
@@ -113,7 +114,8 @@ export default function RoomPage() {
     window.location.href = '/rooms'
   }
 
-  const isOwner = session?.user && (session.user as any).id === room?.owner_id
+  const isOwner = userId !== null && userId === room?.owner_id
+  const isParticipant = isOwner || (room?.room_participants?.some(p => p.user_id === userId) ?? false)
 
   if (loading) {
     return (
@@ -250,6 +252,36 @@ export default function RoomPage() {
               {room.description || 'Нет описания'}
             </p>
           </div>
+
+          {!isParticipant && session && (
+            <button
+              onClick={async () => {
+                if (!userId || isDemoMode) return
+                try {
+                  await supabase.from('room_participants').insert([{
+                    room_id: room.id,
+                    user_id: userId,
+                    role: 'member'
+                  }])
+                  loadRoom()
+                } catch (error) {
+                  console.error('Join error:', error)
+                }
+              }}
+              style={{
+                padding: '0.75rem 2rem',
+                background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                border: 'none',
+                borderRadius: '12px',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)'
+              }}
+            >
+              🎯 Присоединиться
+            </button>
+          )}
           
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button
@@ -386,7 +418,7 @@ export default function RoomPage() {
             <h2 style={{ color: '#e2e8f0', marginBottom: '1.5rem' }}>
               🎶 Музыкальный плеер
             </h2>
-            <MusicPlayer roomId={roomId} isDemoMode={isDemoMode} roomParticipants={room?.room_participants} />
+            <MusicPlayer roomId={roomId} isDemoMode={isDemoMode} roomParticipants={room?.room_participants} roomOwnerId={room?.owner_id} />
           </div>
 
           {/* Participants */}
@@ -434,16 +466,49 @@ export default function RoomPage() {
           </div>
 
           {/* Chat */}
-          <div style={{ 
-            border: '2px solid rgba(139, 92, 246, 0.2)',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
-            minHeight: '400px'
-          }}>
-            <Chat roomId={roomId} />
-          </div>
+          {isParticipant ? (
+            showChat ? (
+              <div style={{ 
+                border: '2px solid rgba(139, 92, 246, 0.2)',
+                borderRadius: '16px',
+                padding: '1.5rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)',
+                minHeight: '400px'
+              }}>
+                <Chat roomId={roomId} isOpen={true} />
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowChat(true)}
+                style={{
+                  border: '2px solid rgba(139, 92, 246, 0.2)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(10px)',
+                  minHeight: '100px',
+                  cursor: 'pointer',
+                  color: '#8b5cf6',
+                  fontSize: '1.1rem'
+                }}
+              >
+                💬 Открыть чат
+              </button>
+            )
+          ) : (
+            <div style={{ 
+              border: '2px solid rgba(139, 92, 246, 0.2)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              textAlign: 'center',
+              color: '#a1a1aa'
+            }}>
+              🔒 Присоединитесь к комнате, чтобы видеть чат
+            </div>
+          )}
         </div>
       </div>
     </main>

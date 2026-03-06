@@ -26,6 +26,7 @@ interface MusicPlayerProps {
   roomParticipants?: Array<{
     user_id: string
   }>
+  roomOwnerId?: string
 }
 
 // Функция для извлечения YouTube ID из разных форматов ссылок
@@ -44,7 +45,7 @@ const extractYoutubeId = (url: string): string | null => {
   return null
 }
 
-export default function MusicPlayer({ roomId, isDemoMode, roomParticipants }: MusicPlayerProps) {
+export default function MusicPlayer({ roomId, isDemoMode, roomParticipants, roomOwnerId }: MusicPlayerProps) {
   const { data: session } = useSession()
   const [tracks, setTracks] = useState<Track[]>([])
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
@@ -54,8 +55,9 @@ export default function MusicPlayer({ roomId, isDemoMode, roomParticipants }: Mu
   const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(null)
 
   const userId = session?.user ? (session.user as any).id : null
+  const isOwner = userId === roomOwnerId
   const isParticipant = !roomParticipants || roomParticipants.some(p => p.user_id === userId)
-  const canAddTrack = isDemoMode || isParticipant
+  const canAddTrack = isDemoMode || isParticipant || isOwner
 
   // Загрузка треков из localStorage
   useEffect(() => {

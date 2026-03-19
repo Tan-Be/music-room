@@ -1,129 +1,41 @@
-# Технический Контекст - Music Room
+# Tech Context - Music Room
 
-## Технологический Стек
+## Стек
+- Next.js 16.1.6
+- React 19.2.4
+- TypeScript 5.x
+- NextAuth 4.24.13
+- Supabase JS 2.93.3
+- qrcode.react 4.2.0
 
-### Основные Технологии
-- **Frontend Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript
-- **Styling**: Inline Styles (текущая реализация)
-- **Package Manager**: pnpm
-- **Node.js Version**: 18+
+## Управление пакетами и команды
+- Репозиторный стандарт: `bun`.
+- В `package.json` сейчас зафиксирован `packageManager: pnpm`, это расхождение с правилами репозитория и требует отдельной технической синхронизации.
+- Доступные скрипты:
+  - `bun run dev`
+  - `bun run build`
+  - `bun run start`
+  - `bun run type-check`
 
-### Зависимости (Текущие)
-```json
-{
-  "dependencies": {
-    "next": "14.0.3",
-    "react": "^18",
-    "react-dom": "^18",
-    "typescript": "^5"
-  }
-}
-```
+## Важные переменные окружения
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_GITHUB_CLIENT_ID`
+- server-side переменные NextAuth/GitHub для `api/auth/[...nextauth]`
 
-### Планируемые Зависимости
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Real-time**: Supabase Realtime
-- **Styling**: Tailwind CSS (после стабилизации)
-- **UI Components**: Radix UI (после стабилизации)
-- **State Management**: Zustand (минимальное использование)
+## Структура проекта
+- `src/app`: маршруты и route handlers.
+- `src/components`: UI и пользовательские виджеты.
+- `src/lib`: инфраструктурные клиенты и API-обертки.
+- `docs`: продуктовая и техническая документация.
+- `.memory_bank`: операционная память проекта для агента.
 
-## Конфигурация Среды
+## Ограничения среды
+- Сервер разработки управляется пользователем; агент не должен его запускать, останавливать или проверять статус.
+- Для форматирования и линтинга нужно использовать Biome и не запускать его по Markdown-файлам.
+- Сеть в рабочем окружении ограничена, поэтому `git push` может потребовать эскалацию.
 
-### Next.js Configuration
-```javascript
-// next.config.js - Упрощенная версия
-const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-}
-```
-
-### TypeScript Configuration
-- Строгий режим включен
-- Поддержка JSX
-- Модульная система ES2022
-
-### Среда Разработки
-- **IDE**: VS Code / Kiro IDE
-- **Browser**: Chrome/Edge для разработки
-- **Git**: Основная ветка `main`
-- **Deployment**: Vercel (планируется)
-
-## Ограничения и Требования
-
-### Технические Ограничения
-- **Нет серверного рендеринга сложных компонентов** (для избежания гидратации)
-- **Минимальное использование внешних библиотек** до стабилизации
-- **Приоритет совместимости** над новейшими фичами
-
-### Браузерная Поддержка
-- **Desktop**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
-- **Mobile**: iOS Safari 14+, Chrome Mobile 90+
-- **PWA**: Service Workers, Web App Manifest
-
-### Производительность
-- **First Contentful Paint**: < 1.5s
-- **Largest Contentful Paint**: < 2.5s
-- **Cumulative Layout Shift**: < 0.1
-- **Bundle Size**: Минимизация через code splitting
-
-## Инфраструктура
-
-### Текущая Инфраструктура
-- **Development**: Local development server
-- **Version Control**: Git + GitHub
-- **CI/CD**: GitHub Actions (планируется)
-
-### Планируемая Инфраструктура
-- **Hosting**: Vercel
-- **Database**: Supabase Cloud
-- **CDN**: Vercel Edge Network
-- **Monitoring**: Vercel Analytics
-- **Error Tracking**: Sentry (опционально)
-
-## Безопасность
-
-### Текущие Меры
-- TypeScript для type safety
-- Next.js встроенная безопасность
-- Отсутствие пользовательского ввода (пока)
-
-### Планируемые Меры
-- **Authentication**: Supabase Auth с JWT
-- **Authorization**: Row Level Security (RLS)
-- **Input Validation**: Zod для валидации
-- **HTTPS**: Принудительное использование
-- **CSP**: Content Security Policy headers
-
-## Особенности Локального Окружения
-
-### Требования к Системе
-- **OS**: Windows 10+ (текущая разработка)
-- **Node.js**: 18.17.0+
-- **RAM**: 8GB+ рекомендуется
-- **Storage**: 2GB+ свободного места
-
-### Команды Разработки
-```bash
-# Установка зависимостей
-pnpm install
-
-# Запуск dev сервера
-pnpm dev
-
-# Сборка проекта
-pnpm build
-
-# Запуск production сервера
-pnpm start
-```
-
-### Переменные Окружения
-```bash
-# .env.local (планируется)
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
+## Ключевые технические наблюдения
+- Проект использует inline styles вместе с небольшим `globals.css`.
+- Значительная часть данных продолжает жить в `localStorage`, даже при наличии Supabase.
+- Версии `next` и `eslint-config-next` в `package.json` расходятся по мажорной линии и заслуживают отдельной проверки вне этой задачи.

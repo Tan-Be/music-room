@@ -1,535 +1,912 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import {
+	isSupabaseConfigured,
+	queueApi,
+	type RoomQueueItem,
+	roomsApi,
+	supabase,
+} from "@/lib/supabase";
 
 interface Comment {
-  id: string
-  text: string
-  author: string
-  createdAt: string
+	id: string;
+	text: string;
+	author: string;
+	createdAt: string;
 }
 
-interface Track {
-  id: string
-  title: string
-  artist: string
-  youtubeId: string
-  addedBy: string
-  addedAt: string
-  comments?: Comment[]
+interface DemoTrack {
+	id: string;
+	title: string;
+	artist: string;
+	youtubeId: string;
+	addedBy: string;
+	addedAt: string;
+	comments?: Comment[];
 }
 
 interface MusicPlayerProps {
-  roomId: string
-  isDemoMode: boolean
-  roomParticipants?: Array<{
-    user_id: string
-  }>
-  roomOwnerId?: string
+	roomId: string;
+	isDemoMode: boolean;
+	roomParticipants?: Array<{
+		user_id: string;
+	}>;
+	roomOwnerId?: string;
 }
 
-// Функция для извлечения YouTube ID из разных форматов ссылок
 const extractYoutubeId = (url: string): string | null => {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
-    /youtube\.com\/watch\?.*v=([^&\s]+)/,
-  ]
-  
-  for (const pattern of patterns) {
-    const match = url.match(pattern)
-    if (match && match[1]) {
-      return match[1]
-    }
-  }
-  return null
-}
+	const patterns = [
+		/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
+		/youtube\.com\/watch\?.*v=([^&\s]+)/,
+	];
 
-export default function MusicPlayer({ roomId, isDemoMode, roomParticipants, roomOwnerId }: MusicPlayerProps) {
-  const { data: session } = useSession()
-  const [tracks, setTracks] = useState<Track[]>([])
-  const [currentTrack, setCurrentTrack] = useState<Track | null>(null)
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newTrack, setNewTrack] = useState({ title: '', artist: '', url: '' })
-  const [commentText, setCommentText] = useState('')
-  const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(null)
+	for (const pattern of patterns) {
+		const match = url.match(pattern);
+		if (match?.[1]) {
+			return match[1];
+		}
+	}
 
-  const userId = session?.user ? (session.user as any).id : null
-  const isOwner = userId === roomOwnerId
-  const isParticipant = !roomParticipants || roomParticipants.some(p => p.user_id === userId)
-  const canAddTrack = isDemoMode || isParticipant || isOwner
+	return null;
+};
 
-  // Загрузка треков из localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem(`roomTracks-${roomId}`)
-    if (saved) {
-      try {
-        setTracks(JSON.parse(saved))
-      } catch (e) {
-        console.error('Ошибка загрузки треков:', e)
-      }
-    }
-  }, [roomId])
+const getTrackLabel = (item: RoomQueueItem | DemoTrack) => {
+	if ("tracks" in item) {
+		return {
+			title: item.tracks?.title || "Без названия",
+			artist: item.tracks?.artist || "Неизвестен",
+			youtubeId: item.tracks?.youtube_id || "",
+			addedAt: item.added_at,
+		};
+	}
 
-  // Сохранение треков
-  useEffect(() => {
-    if (tracks.length > 0) {
-      localStorage.setItem(`roomTracks-${roomId}`, JSON.stringify(tracks))
-    }
-  }, [tracks, roomId])
+	return {
+		title: item.title,
+		artist: item.artist,
+		youtubeId: item.youtubeId,
+		addedAt: item.addedAt,
+	};
+};
 
-  const handleAddTrack = () => {
-    if (!newTrack.title.trim() || !newTrack.url.trim()) {
-      alert('Введите название трека и ссылку на YouTube')
-      return
-    }
+export default function MusicPlayer({
+	roomId,
+	isDemoMode,
+	roomParticipants,
+	roomOwnerId,
+}: MusicPlayerProps) {
+	const { data: session } = useSession();
+	const [queueItems, setQueueItems] = useState<RoomQueueItem[]>([]);
+	const [demoTracks, setDemoTracks] = useState<DemoTrack[]>([]);
+	const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
+	const [showAddForm, setShowAddForm] = useState(false);
+	const [newTrack, setNewTrack] = useState({ title: "", artist: "", url: "" });
+	const [commentText, setCommentText] = useState("");
+	const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(
+		null,
+	);
+	const [loading, setLoading] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
 
-    // Извлекаем YouTube ID
-    const youtubeId = extractYoutubeId(newTrack.url)
-    if (!youtubeId) {
-      alert('Некорректная ссылка на YouTube. Примеры:\nhttps://www.youtube.com/watch?v=VIDEO_ID\nhttps://youtu.be/VIDEO_ID')
-      return
-    }
+	const userId = session?.user
+		? ((session.user as { id?: string }).id ?? null)
+		: null;
+	const isOwner = userId === roomOwnerId;
+	const isParticipant =
+		!roomParticipants ||
+		roomParticipants.some((participant) => participant.user_id === userId);
+	const canAddTrack = isDemoMode || isParticipant || isOwner;
+	const syncedMode = !isDemoMode && isSupabaseConfigured();
 
-    const track: Track = {
-      id: Date.now().toString(),
-      title: newTrack.title,
-      artist: newTrack.artist || 'Неизвестен',
-      youtubeId: youtubeId,
-      addedBy: 'Вы',
-      addedAt: new Date().toISOString()
-    }
+	// biome-ignore lint/correctness/useExhaustiveDependencies: room sync subscriptions are recreated only when room or mode changes.
+	useEffect(() => {
+		if (syncedMode) {
+			void loadSyncedRoomState();
+			const channel = supabase
+				.channel(`room-sync:${roomId}`)
+				.on(
+					"postgres_changes",
+					{
+						event: "*",
+						schema: "public",
+						table: "room_queue",
+						filter: `room_id=eq.${roomId}`,
+					},
+					() => {
+						void loadQueue();
+					},
+				)
+				.on(
+					"postgres_changes",
+					{
+						event: "UPDATE",
+						schema: "public",
+						table: "rooms",
+						filter: `id=eq.${roomId}`,
+					},
+					() => {
+						void loadPlaybackState();
+					},
+				)
+				.subscribe();
 
-    setTracks([...tracks, track])
-    setNewTrack({ title: '', artist: '', url: '' })
-    setShowAddForm(false)
+			return () => {
+				void supabase.removeChannel(channel);
+			};
+		}
 
-    // Автоматически начинаем играть первый трек
-    if (!currentTrack) {
-      setCurrentTrack(track)
-    }
-  }
+		const saved = localStorage.getItem(`roomTracks-${roomId}`);
+		if (saved) {
+			try {
+				const parsed = JSON.parse(saved) as DemoTrack[];
+				setDemoTracks(parsed);
+			} catch (error) {
+				console.error("Ошибка загрузки локальных треков:", error);
+			}
+		} else {
+			setDemoTracks([]);
+		}
 
-  const playTrack = (track: Track) => {
-    setCurrentTrack(track)
-  }
+		setCurrentTrackId(null);
+	}, [roomId, syncedMode]);
 
-  const removeTrack = (id: string) => {
-    const updated = tracks.filter(t => t.id !== id)
-    setTracks(updated)
-    
-    if (currentTrack?.id === id) {
-      setCurrentTrack(null)
-    }
-    
-    // Очищаем localStorage если треков не осталось
-    if (updated.length === 0) {
-      localStorage.removeItem(`roomTracks-${roomId}`)
-    }
-  }
+	useEffect(() => {
+		if (!isDemoMode) {
+			return;
+		}
 
-  const handleAddComment = (trackId: string) => {
-    if (!commentText.trim()) return
+		if (demoTracks.length > 0) {
+			localStorage.setItem(`roomTracks-${roomId}`, JSON.stringify(demoTracks));
+			if (!currentTrackId) {
+				setCurrentTrackId(demoTracks[0].id);
+			}
+			return;
+		}
 
-    const updatedTracks = tracks.map(track => {
-      if (track.id === trackId) {
-        const newComment: Comment = {
-          id: Date.now().toString(),
-          text: commentText,
-          author: 'Вы',
-          createdAt: new Date().toISOString()
-        }
-        return {
-          ...track,
-          comments: [...(track.comments || []), newComment]
-        }
-      }
-      return track
-    })
+		localStorage.removeItem(`roomTracks-${roomId}`);
+		setCurrentTrackId(null);
+	}, [currentTrackId, demoTracks, isDemoMode, roomId]);
 
-    setTracks(updatedTracks)
-    setCommentText('')
-    setActiveCommentTrack(null)
-  }
+	const loadSyncedRoomState = async () => {
+		setLoading(true);
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Текущий трек */}
-      {currentTrack && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
-          border: '2px solid rgba(139, 92, 246, 0.3)',
-          borderRadius: '16px',
-          padding: '1.5rem',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem'
-            }}>
-              🎵
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontSize: '1.2rem' }}>
-                {currentTrack.title}
-              </h3>
-              <p style={{ color: '#a1a1aa', margin: 0, fontSize: '0.9rem' }}>
-                {currentTrack.artist}
-              </p>
-            </div>
-          </div>
-          
-          {/* YouTube плеер */}
-          <div style={{ 
-            position: 'relative', 
-            paddingBottom: '56.25%', 
-            height: 0, 
-            overflow: 'hidden',
-            borderRadius: '12px'
-          }}>
-            <iframe
-              src={`https://www.youtube.com/embed/${currentTrack.youtubeId}?autoplay=1`}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                border: 'none'
-              }}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      )}
+		try {
+			const [items, playback] = await Promise.all([
+				queueApi.getQueue(roomId),
+				roomsApi.getPlaybackState(roomId),
+			]);
+			setQueueItems(items);
+			setCurrentTrackId(playback.current_track_id);
 
-      {/* Управление */}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        {canAddTrack ? (
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              border: 'none',
-              borderRadius: '12px',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            ➕ Добавить из YouTube
-          </button>
-        ) : (
-          <div style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: 'rgba(107, 114, 128, 0.3)',
-            borderRadius: '12px',
-            color: '#9ca3af',
-            fontSize: '0.9rem'
-          }}>
-            🔒 Присоединитесь к комнате, чтобы добавлять треки
-          </div>
-        )}
-      </div>
+			if (!playback.current_track_id && items.length > 0) {
+				await roomsApi.setPlaybackState(roomId, {
+					current_track_id: items[0].track_id,
+					is_playing: true,
+				});
+			}
+		} catch (error) {
+			console.error("Ошибка синхронизации комнаты:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-      {/* Форма добавления */}
-      {showAddForm && (
-        <div style={{
-          backgroundColor: 'rgba(30, 30, 30, 0.8)',
-          border: '2px solid rgba(239, 68, 68, 0.3)',
-          borderRadius: '12px',
-          padding: '1.5rem'
-        }}>
-          <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem' }}>Добавить из YouTube</h4>
-          <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '1rem' }}>
-            Вставьте ссылку на YouTube видео. Примеры:<br/>
-            https://www.youtube.com/watch?v=ABC123<br/>
-            https://youtu.be/ABC123
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <input
-              type="text"
-              placeholder="Название трека *"
-              value={newTrack.title}
-              onChange={(e) => setNewTrack({ ...newTrack, title: e.target.value })}
-              style={{
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '2px solid rgba(239, 68, 68, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: '#e2e8f0',
-                fontSize: '1rem'
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Исполнитель"
-              value={newTrack.artist}
-              onChange={(e) => setNewTrack({ ...newTrack, artist: e.target.value })}
-              style={{
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '2px solid rgba(239, 68, 68, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: '#e2e8f0',
-                fontSize: '1rem'
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Ссылка на YouTube *"
-              value={newTrack.url}
-              onChange={(e) => setNewTrack({ ...newTrack, url: e.target.value })}
-              style={{
-                padding: '0.75rem',
-                borderRadius: '8px',
-                border: '2px solid rgba(239, 68, 68, 0.3)',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: '#e2e8f0',
-                fontSize: '1rem'
-              }}
-            />
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button
-                onClick={() => setShowAddForm(false)}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  border: '2px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  color: '#ef4444',
-                  cursor: 'pointer'
-                }}
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleAddTrack}
-                disabled={!newTrack.title.trim() || !newTrack.url.trim()}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  border: 'none',
-                  borderRadius: '8px',
-                  background: newTrack.title.trim() && newTrack.url.trim()
-                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                    : 'rgba(107, 114, 128, 0.5)',
-                  color: 'white',
-                  cursor: newTrack.title.trim() && newTrack.url.trim() ? 'pointer' : 'not-allowed'
-                }}
-              >
-                Добавить
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+	const loadQueue = async () => {
+		const items = await queueApi.getQueue(roomId);
+		setQueueItems(items);
 
-      {/* Список треков */}
-      <div>
-        <h4 style={{ color: '#e2e8f0', marginBottom: '1rem' }}>
-          📋 Плейлист ({tracks.length})
-        </h4>
-        {tracks.length === 0 ? (
-          <div style={{ color: '#a1a1aa', textAlign: 'center', padding: '2rem' }}>
-            <p style={{ marginBottom: '0.5rem' }}>🎵 Пока нет треков</p>
-            <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>
-              Нажмите "Добавить из YouTube" и вставьте ссылку на видео
-            </p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {tracks.map((track, index) => (
-              <div key={track.id}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1rem',
-                    backgroundColor: currentTrack?.id === track.id 
-                      ? 'rgba(239, 68, 68, 0.2)' 
-                      : 'rgba(255, 255, 255, 0.05)',
-                    border: `2px solid ${currentTrack?.id === track.id ? 'rgba(239, 68, 68, 0.5)' : 'transparent'}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onClick={() => playTrack(track)}
-                >
-                  <span style={{ 
-                    color: '#ef4444', 
-                    fontWeight: 'bold',
-                    minWidth: '24px'
-                  }}>
-                    {index + 1}
-                  </span>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontWeight: 500 }}>
-                      {track.title}
-                    </p>
-                    <p style={{ color: '#a1a1aa', margin: 0, fontSize: '0.85rem' }}>
-                      {track.artist} • добавлен {new Date(track.addedAt).toLocaleDateString('ru-RU')}
-                    </p>
-                  </div>
-                  {currentTrack?.id === track.id && (
-                    <span style={{ color: '#ef4444' }}>▶</span>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveCommentTrack(activeCommentTrack === track.id ? null : track.id)
-                    }}
-                    style={{
-                      padding: '0.5rem',
-                      background: 'rgba(59, 130, 246, 0.2)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: '#3b82f6',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    💬 {track.comments?.length || 0}
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      removeTrack(track.id)
-                    }}
-                    style={{
-                      padding: '0.5rem',
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: '#ef4444',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    🗑
-                  </button>
-                </div>
-                
-                {/* Секция комментариев */}
-                {activeCommentTrack === track.id && (
-                  <div style={{
-                    marginTop: '0.5rem',
-                    padding: '1rem',
-                    backgroundColor: 'rgba(30, 30, 30, 0.8)',
-                    border: '2px solid rgba(59, 130, 246, 0.3)',
-                    borderRadius: '12px'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                      <h5 style={{ color: '#e2e8f0', margin: 0, fontSize: '0.9rem' }}>
-                        💬 Комментарии ({track.comments?.length || 0})
-                      </h5>
-                      <span style={{ 
-                        color: '#f59e0b', 
-                        fontSize: '0.75rem', 
-                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px'
-                      }}>
-                        ⚠️ Только для вас
-                      </span>
-                    </div>
-                    <p style={{ 
-                      color: '#9ca3af', 
-                      fontSize: '0.8rem', 
-                      marginBottom: '0.75rem',
-                      fontStyle: 'italic'
-                    }}>
-                      Комментарии сохраняются локально и видны только вам. Другие пользователи их не увидят.
-                    </p>
-                    
-                    {/* Список комментариев */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-                      {track.comments?.length === 0 ? (
-                        <p style={{ color: '#6b7280', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                          Пока нет комментариев. Будьте первым!
-                        </p>
-                      ) : (
-                        track.comments?.map((comment) => (
-                          <div key={comment.id} style={{
-                            padding: '0.5rem 0.75rem',
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderRadius: '8px',
-                            border: '1px solid rgba(59, 130, 246, 0.2)'
-                          }}>
-                            <p style={{ color: '#e2e8f0', margin: '0 0 0.25rem 0', fontSize: '0.9rem' }}>
-                              {comment.text}
-                            </p>
-                            <p style={{ color: '#6b7280', margin: 0, fontSize: '0.75rem' }}>
-                              {comment.author} • {new Date(comment.createdAt).toLocaleDateString('ru-RU')}
-                            </p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    
-                    {/* Форма добавления комментария */}
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <input
-                        type="text"
-                        placeholder="Напишите комментарий..."
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '8px',
-                          border: '2px solid rgba(59, 130, 246, 0.3)',
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                          color: '#e2e8f0',
-                          fontSize: '0.9rem'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleAddComment(track.id)
-                        }}
-                        disabled={!commentText.trim()}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          borderRadius: '8px',
-                          border: 'none',
-                          background: commentText.trim() 
-                            ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
-                            : 'rgba(107, 114, 128, 0.5)',
-                          color: 'white',
-                          cursor: commentText.trim() ? 'pointer' : 'not-allowed',
-                          fontSize: '0.9rem'
-                        }}
-                      >
-                        Отправить
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
+		if (items.length === 0) {
+			setCurrentTrackId(null);
+		}
+	};
+
+	const loadPlaybackState = async () => {
+		const playback = await roomsApi.getPlaybackState(roomId);
+		setCurrentTrackId(playback.current_track_id);
+	};
+
+	const handleAddTrack = async () => {
+		if (!newTrack.title.trim() || !newTrack.url.trim()) {
+			alert("Введите название трека и ссылку на YouTube");
+			return;
+		}
+
+		const youtubeId = extractYoutubeId(newTrack.url);
+		if (!youtubeId) {
+			alert(
+				"Некорректная ссылка на YouTube. Примеры:\nhttps://www.youtube.com/watch?v=VIDEO_ID\nhttps://youtu.be/VIDEO_ID",
+			);
+			return;
+		}
+
+		setSubmitting(true);
+
+		try {
+			if (syncedMode) {
+				const createdTrack = await queueApi.addTrack(roomId, {
+					title: newTrack.title.trim(),
+					artist: newTrack.artist.trim() || "Неизвестен",
+					youtubeId,
+					userId,
+				});
+
+				if (!currentTrackId) {
+					await roomsApi.setPlaybackState(roomId, {
+						current_track_id: createdTrack.id,
+						is_playing: true,
+					});
+				}
+			} else {
+				const track: DemoTrack = {
+					id: Date.now().toString(),
+					title: newTrack.title.trim(),
+					artist: newTrack.artist.trim() || "Неизвестен",
+					youtubeId,
+					addedBy: "Вы",
+					addedAt: new Date().toISOString(),
+				};
+
+				setDemoTracks((previous) => [...previous, track]);
+				if (!currentTrackId) {
+					setCurrentTrackId(track.id);
+				}
+			}
+
+			setNewTrack({ title: "", artist: "", url: "" });
+			setShowAddForm(false);
+		} catch (error) {
+			console.error("Ошибка добавления трека:", error);
+			alert(
+				"Не удалось добавить трек. Проверьте настройки комнаты и Supabase.",
+			);
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	const playTrack = async (trackId: string) => {
+		if (syncedMode) {
+			try {
+				await roomsApi.setPlaybackState(roomId, {
+					current_track_id: trackId,
+					is_playing: true,
+				});
+			} catch (error) {
+				console.error("Ошибка обновления текущего трека:", error);
+			}
+			return;
+		}
+
+		setCurrentTrackId(trackId);
+	};
+
+	const removeTrack = async (trackId: string, queueItemId?: string) => {
+		if (syncedMode && queueItemId) {
+			try {
+				await queueApi.removeTrack(queueItemId);
+
+				if (currentTrackId === trackId) {
+					const remainingItems = queueItems.filter(
+						(item) => item.id !== queueItemId,
+					);
+					const nextTrackId = remainingItems[0]?.track_id ?? null;
+					await roomsApi.setPlaybackState(roomId, {
+						current_track_id: nextTrackId,
+						is_playing: Boolean(nextTrackId),
+					});
+				}
+			} catch (error) {
+				console.error("Ошибка удаления трека:", error);
+				alert("Не удалось удалить трек из очереди.");
+			}
+			return;
+		}
+
+		const updatedTracks = demoTracks.filter((track) => track.id !== trackId);
+		setDemoTracks(updatedTracks);
+
+		if (currentTrackId === trackId) {
+			setCurrentTrackId(updatedTracks[0]?.id ?? null);
+		}
+	};
+
+	const handleAddComment = (trackId: string) => {
+		if (!commentText.trim() || syncedMode) {
+			return;
+		}
+
+		const updatedTracks = demoTracks.map((track) => {
+			if (track.id !== trackId) {
+				return track;
+			}
+
+			return {
+				...track,
+				comments: [
+					...(track.comments || []),
+					{
+						id: Date.now().toString(),
+						text: commentText,
+						author: "Вы",
+						createdAt: new Date().toISOString(),
+					},
+				],
+			};
+		});
+
+		setDemoTracks(updatedTracks);
+		setCommentText("");
+		setActiveCommentTrack(null);
+	};
+
+	const currentSyncedTrack =
+		queueItems.find((item) => item.track_id === currentTrackId) ?? null;
+	const currentDemoTrack =
+		demoTracks.find((track) => track.id === currentTrackId) ?? null;
+	const currentTrack = syncedMode ? currentSyncedTrack : currentDemoTrack;
+	const visibleTracks = syncedMode ? queueItems : demoTracks;
+
+	return (
+		<div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+			{loading && (
+				<div
+					style={{
+						padding: "0.75rem 1rem",
+						borderRadius: "12px",
+						backgroundColor: "rgba(139, 92, 246, 0.12)",
+						color: "#c4b5fd",
+						fontSize: "0.9rem",
+					}}
+				>
+					Синхронизация состояния комнаты...
+				</div>
+			)}
+
+			{currentTrack && (
+				<div
+					style={{
+						background:
+							"linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)",
+						border: "2px solid rgba(139, 92, 246, 0.3)",
+						borderRadius: "16px",
+						padding: "1.5rem",
+						backdropFilter: "blur(10px)",
+					}}
+				>
+					<div
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: "1rem",
+							marginBottom: "1rem",
+						}}
+					>
+						<div
+							style={{
+								width: "60px",
+								height: "60px",
+								background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+								borderRadius: "12px",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								fontSize: "1.5rem",
+							}}
+						>
+							🎵
+						</div>
+						<div style={{ flex: 1 }}>
+							<h3
+								style={{
+									color: "#e2e8f0",
+									margin: "0 0 0.25rem 0",
+									fontSize: "1.2rem",
+								}}
+							>
+								{getTrackLabel(currentTrack).title}
+							</h3>
+							<p style={{ color: "#a1a1aa", margin: 0, fontSize: "0.9rem" }}>
+								{getTrackLabel(currentTrack).artist}
+							</p>
+						</div>
+						{syncedMode && (
+							<span
+								style={{
+									color: "#22c55e",
+									fontSize: "0.8rem",
+									backgroundColor: "rgba(34, 197, 94, 0.14)",
+									borderRadius: "999px",
+									padding: "0.4rem 0.75rem",
+								}}
+							>
+								Комната синхронизирована
+							</span>
+						)}
+					</div>
+
+					<div
+						style={{
+							position: "relative",
+							paddingBottom: "56.25%",
+							height: 0,
+							overflow: "hidden",
+							borderRadius: "12px",
+						}}
+					>
+						<iframe
+							title={`YouTube плеер: ${getTrackLabel(currentTrack).title}`}
+							src={`https://www.youtube.com/embed/${getTrackLabel(currentTrack).youtubeId}?autoplay=1`}
+							style={{
+								position: "absolute",
+								top: 0,
+								left: 0,
+								width: "100%",
+								height: "100%",
+								border: "none",
+							}}
+							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+							allowFullScreen
+						/>
+					</div>
+				</div>
+			)}
+
+			<div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+				{canAddTrack ? (
+					<button
+						type="button"
+						onClick={() => setShowAddForm((value) => !value)}
+						style={{
+							padding: "0.75rem 1.5rem",
+							background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+							border: "none",
+							borderRadius: "12px",
+							color: "white",
+							cursor: "pointer",
+							fontSize: "1rem",
+							display: "flex",
+							alignItems: "center",
+							gap: "0.5rem",
+						}}
+					>
+						➕ Добавить из YouTube
+					</button>
+				) : (
+					<div
+						style={{
+							padding: "0.75rem 1.5rem",
+							backgroundColor: "rgba(107, 114, 128, 0.3)",
+							borderRadius: "12px",
+							color: "#9ca3af",
+							fontSize: "0.9rem",
+						}}
+					>
+						🔒 Присоединитесь к комнате, чтобы добавлять треки
+					</div>
+				)}
+				{syncedMode && (
+					<div
+						style={{
+							padding: "0.75rem 1rem",
+							backgroundColor: "rgba(34, 197, 94, 0.12)",
+							border: "1px solid rgba(34, 197, 94, 0.2)",
+							borderRadius: "12px",
+							color: "#86efac",
+							fontSize: "0.85rem",
+						}}
+					>
+						Очередь и выбранный трек общие для всех участников комнаты.
+					</div>
+				)}
+			</div>
+
+			{showAddForm && (
+				<div
+					style={{
+						backgroundColor: "rgba(30, 30, 30, 0.8)",
+						border: "2px solid rgba(239, 68, 68, 0.3)",
+						borderRadius: "12px",
+						padding: "1.5rem",
+					}}
+				>
+					<h4 style={{ color: "#e2e8f0", marginBottom: "0.5rem" }}>
+						Добавить из YouTube
+					</h4>
+					<p
+						style={{
+							color: "#a1a1aa",
+							fontSize: "0.85rem",
+							marginBottom: "1rem",
+						}}
+					>
+						Вставьте ссылку на YouTube видео. Примеры:
+						<br />
+						https://www.youtube.com/watch?v=ABC123
+						<br />
+						https://youtu.be/ABC123
+					</p>
+					<div
+						style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+					>
+						<input
+							type="text"
+							placeholder="Название трека *"
+							value={newTrack.title}
+							onChange={(event) =>
+								setNewTrack({ ...newTrack, title: event.target.value })
+							}
+							style={{
+								padding: "0.75rem",
+								borderRadius: "8px",
+								border: "2px solid rgba(239, 68, 68, 0.3)",
+								backgroundColor: "rgba(255, 255, 255, 0.05)",
+								color: "#e2e8f0",
+								fontSize: "1rem",
+							}}
+						/>
+						<input
+							type="text"
+							placeholder="Исполнитель"
+							value={newTrack.artist}
+							onChange={(event) =>
+								setNewTrack({ ...newTrack, artist: event.target.value })
+							}
+							style={{
+								padding: "0.75rem",
+								borderRadius: "8px",
+								border: "2px solid rgba(239, 68, 68, 0.3)",
+								backgroundColor: "rgba(255, 255, 255, 0.05)",
+								color: "#e2e8f0",
+								fontSize: "1rem",
+							}}
+						/>
+						<input
+							type="text"
+							placeholder="Ссылка на YouTube *"
+							value={newTrack.url}
+							onChange={(event) =>
+								setNewTrack({ ...newTrack, url: event.target.value })
+							}
+							style={{
+								padding: "0.75rem",
+								borderRadius: "8px",
+								border: "2px solid rgba(239, 68, 68, 0.3)",
+								backgroundColor: "rgba(255, 255, 255, 0.05)",
+								color: "#e2e8f0",
+								fontSize: "1rem",
+							}}
+						/>
+						<div style={{ display: "flex", gap: "1rem" }}>
+							<button
+								type="button"
+								onClick={() => setShowAddForm(false)}
+								style={{
+									flex: 1,
+									padding: "0.75rem",
+									border: "2px solid rgba(239, 68, 68, 0.3)",
+									borderRadius: "8px",
+									backgroundColor: "rgba(239, 68, 68, 0.1)",
+									color: "#ef4444",
+									cursor: "pointer",
+								}}
+							>
+								Отмена
+							</button>
+							<button
+								type="button"
+								onClick={() => void handleAddTrack()}
+								disabled={
+									submitting || !newTrack.title.trim() || !newTrack.url.trim()
+								}
+								style={{
+									flex: 1,
+									padding: "0.75rem",
+									border: "none",
+									borderRadius: "8px",
+									background:
+										!submitting && newTrack.title.trim() && newTrack.url.trim()
+											? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+											: "rgba(107, 114, 128, 0.5)",
+									color: "white",
+									cursor:
+										!submitting && newTrack.title.trim() && newTrack.url.trim()
+											? "pointer"
+											: "not-allowed",
+								}}
+							>
+								{submitting ? "Добавление..." : "Добавить"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			<div>
+				<h4 style={{ color: "#e2e8f0", marginBottom: "1rem" }}>
+					📋 Плейлист ({visibleTracks.length})
+				</h4>
+				{visibleTracks.length === 0 ? (
+					<div
+						style={{ color: "#a1a1aa", textAlign: "center", padding: "2rem" }}
+					>
+						<p style={{ marginBottom: "0.5rem" }}>🎵 Пока нет треков</p>
+						<p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+							Нажмите "Добавить из YouTube" и вставьте ссылку на видео
+						</p>
+					</div>
+				) : (
+					<div
+						style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+					>
+						{visibleTracks.map((track, index) => {
+							const label = getTrackLabel(track);
+							const isCurrent =
+								"tracks" in track
+									? currentTrackId === track.track_id
+									: currentTrackId === track.id;
+							const itemId = "tracks" in track ? track.id : track.id;
+							const trackId = "tracks" in track ? track.track_id : track.id;
+
+							return (
+								<div key={itemId}>
+									{/* biome-ignore lint/a11y/useSemanticElements: this container also includes nested action buttons, so a semantic button would be invalid here. */}
+									<div
+										role="button"
+										tabIndex={0}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											gap: "1rem",
+											padding: "1rem",
+											backgroundColor: isCurrent
+												? "rgba(239, 68, 68, 0.2)"
+												: "rgba(255, 255, 255, 0.05)",
+											border: `2px solid ${isCurrent ? "rgba(239, 68, 68, 0.5)" : "transparent"}`,
+											borderRadius: "12px",
+											cursor: "pointer",
+											transition: "all 0.2s ease",
+										}}
+										onClick={() => void playTrack(trackId)}
+										onKeyDown={(event) => {
+											if (event.key === "Enter" || event.key === " ") {
+												event.preventDefault();
+												void playTrack(trackId);
+											}
+										}}
+									>
+										<span
+											style={{
+												color: "#ef4444",
+												fontWeight: "bold",
+												minWidth: "24px",
+											}}
+										>
+											{index + 1}
+										</span>
+										<div style={{ flex: 1 }}>
+											<p
+												style={{
+													color: "#e2e8f0",
+													margin: "0 0 0.25rem 0",
+													fontWeight: 500,
+												}}
+											>
+												{label.title}
+											</p>
+											<p
+												style={{
+													color: "#a1a1aa",
+													margin: 0,
+													fontSize: "0.85rem",
+												}}
+											>
+												{label.artist} • добавлен{" "}
+												{new Date(label.addedAt).toLocaleDateString("ru-RU")}
+											</p>
+										</div>
+										{isCurrent && <span style={{ color: "#ef4444" }}>▶</span>}
+										{"tracks" in track ? (
+											<span
+												style={{
+													padding: "0.4rem 0.6rem",
+													background: "rgba(34, 197, 94, 0.14)",
+													borderRadius: "6px",
+													color: "#86efac",
+													fontSize: "0.75rem",
+												}}
+											>
+												Общий трек
+											</span>
+										) : (
+											<button
+												type="button"
+												onClick={(event) => {
+													event.stopPropagation();
+													setActiveCommentTrack(
+														activeCommentTrack === track.id ? null : track.id,
+													);
+												}}
+												style={{
+													padding: "0.5rem",
+													background: "rgba(59, 130, 246, 0.2)",
+													border: "none",
+													borderRadius: "6px",
+													color: "#3b82f6",
+													cursor: "pointer",
+													fontSize: "0.9rem",
+													display: "flex",
+													alignItems: "center",
+													gap: "0.25rem",
+												}}
+											>
+												💬 {track.comments?.length || 0}
+											</button>
+										)}
+										<button
+											type="button"
+											onClick={(event) => {
+												event.stopPropagation();
+												void removeTrack(
+													trackId,
+													"tracks" in track ? track.id : undefined,
+												);
+											}}
+											style={{
+												padding: "0.5rem",
+												background: "rgba(239, 68, 68, 0.2)",
+												border: "none",
+												borderRadius: "6px",
+												color: "#ef4444",
+												cursor: "pointer",
+												fontSize: "0.9rem",
+											}}
+										>
+											🗑
+										</button>
+									</div>
+									{!syncedMode &&
+										"comments" in track &&
+										activeCommentTrack === track.id && (
+											<div
+												style={{
+													marginTop: "0.5rem",
+													padding: "1rem",
+													backgroundColor: "rgba(30, 30, 30, 0.8)",
+													border: "2px solid rgba(59, 130, 246, 0.3)",
+													borderRadius: "12px",
+												}}
+											>
+												<div
+													style={{
+														display: "flex",
+														justifyContent: "space-between",
+														alignItems: "center",
+														marginBottom: "0.75rem",
+													}}
+												>
+													<h5
+														style={{
+															color: "#e2e8f0",
+															margin: 0,
+															fontSize: "0.9rem",
+														}}
+													>
+														💬 Комментарии ({track.comments?.length || 0})
+													</h5>
+													<span
+														style={{
+															color: "#f59e0b",
+															fontSize: "0.75rem",
+															backgroundColor: "rgba(245, 158, 11, 0.2)",
+															padding: "0.25rem 0.5rem",
+															borderRadius: "4px",
+														}}
+													>
+														Только локально
+													</span>
+												</div>
+												<div
+													style={{
+														display: "flex",
+														flexDirection: "column",
+														gap: "0.5rem",
+														marginBottom: "1rem",
+													}}
+												>
+													{track.comments?.length ? (
+														track.comments.map((comment) => (
+															<div
+																key={comment.id}
+																style={{
+																	padding: "0.5rem 0.75rem",
+																	backgroundColor: "rgba(59, 130, 246, 0.1)",
+																	borderRadius: "8px",
+																	border: "1px solid rgba(59, 130, 246, 0.2)",
+																}}
+															>
+																<p
+																	style={{
+																		color: "#e2e8f0",
+																		margin: "0 0 0.25rem 0",
+																		fontSize: "0.9rem",
+																	}}
+																>
+																	{comment.text}
+																</p>
+																<p
+																	style={{
+																		color: "#6b7280",
+																		margin: 0,
+																		fontSize: "0.75rem",
+																	}}
+																>
+																	{comment.author} •{" "}
+																	{new Date(
+																		comment.createdAt,
+																	).toLocaleDateString("ru-RU")}
+																</p>
+															</div>
+														))
+													) : (
+														<p
+															style={{
+																color: "#6b7280",
+																fontSize: "0.85rem",
+																fontStyle: "italic",
+															}}
+														>
+															Пока нет комментариев. Будьте первым!
+														</p>
+													)}
+												</div>
+												<div style={{ display: "flex", gap: "0.5rem" }}>
+													<input
+														type="text"
+														placeholder="Напишите комментарий..."
+														value={commentText}
+														onChange={(event) =>
+															setCommentText(event.target.value)
+														}
+														style={{
+															flex: 1,
+															padding: "0.5rem 0.75rem",
+															borderRadius: "8px",
+															border: "2px solid rgba(59, 130, 246, 0.3)",
+															backgroundColor: "rgba(255, 255, 255, 0.05)",
+															color: "#e2e8f0",
+															fontSize: "0.9rem",
+														}}
+													/>
+													<button
+														type="button"
+														onClick={() => handleAddComment(track.id)}
+														disabled={!commentText.trim()}
+														style={{
+															padding: "0.5rem 1rem",
+															borderRadius: "8px",
+															border: "none",
+															background: commentText.trim()
+																? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
+																: "rgba(107, 114, 128, 0.5)",
+															color: "white",
+															cursor: commentText.trim()
+																? "pointer"
+																: "not-allowed",
+															fontSize: "0.9rem",
+														}}
+													>
+														Отправить
+													</button>
+												</div>
+											</div>
+										)}
+								</div>
+							);
+						})}
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }

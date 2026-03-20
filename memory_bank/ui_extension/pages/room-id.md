@@ -16,4 +16,5 @@
 - Комната загружается через `roomsApi.getRoomById(roomId)`.
 - При сетевых проблемах или отсутствии конфигурации включается демо-режим.
 - Чат использует `GET/POST /api/chat`.
-- Плеер хранит очередь в `localStorage`.
+- Комментарии к трекам в synced-режиме используют `GET/POST /api/track-comments` и Realtime-подписку на `track_comments`.
+- Плеер хранит очередь и комментарии в `localStorage` только в demo-режиме.

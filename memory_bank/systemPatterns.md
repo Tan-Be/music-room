@@ -25,7 +25,12 @@
 - `src/app/api/chat/route.ts` остается thin backend для загрузки истории и отправки сообщений.
 - `src/components/chat.tsx` использует Realtime-подписку на `chat_messages` для мгновенного обновления UI.
 
-### 5. Graceful degradation
+### 5. Server-backed track comments
+- `src/app/api/track-comments/route.ts` выступает thin backend для чтения и записи комментариев к трекам.
+- `src/components/music-player.tsx` подписывается на `track_comments` через Supabase Realtime и группирует комментарии по `track_id`.
+- В demo-режиме комментарии остаются локальными внутри `localStorage` вместе с демо-очередью.
+
+### 6. Graceful degradation
 - Если `isSupabaseConfigured()` возвращает `false`, сценарии комнаты переходят в локальный режим.
 - В демо-режиме очередь и комментарии к трекам живут в `localStorage`.
 
@@ -33,11 +38,11 @@
 - `src/app/page.tsx`: главная страница, навигационные карточки, рекомендации и быстрый OAuth-вход.
 - `src/app/rooms/page.tsx`: список комнат, голосование, создание, удаление, демо-режим.
 - `src/app/room/[id]/page.tsx`: страница комнаты, участие, QR-код, чат, список участников, Realtime-подписки на комнату.
-- `src/components/music-player.tsx`: общая очередь, выбор текущего трека, fallback-логика демо-режима.
+- `src/components/music-player.tsx`: общая очередь, комментарии к трекам, выбор текущего трека, fallback-логика демо-режима.
 - `src/components/chat.tsx`: Realtime-чат комнаты.
 - `src/lib/supabase.ts`: типы Supabase и клиентские API для комнат, очереди и профилей.
+- `src/app/api/track-comments/route.ts`: загрузка и отправка комментариев к трекам.
 
 ## Известные архитектурные ограничения
 - YouTube `iframe` не позволяет точно синхронизировать прогресс воспроизведения между участниками на уровне таймкода.
-- Комментарии к трекам пока не вынесены в серверную модель.
 - Часть продукта использует mixed strategy: база данных для комнаты и чата, localStorage для части второстепенных сценариев демо-режима.

@@ -17,6 +17,19 @@ interface Comment {
 	createdAt: string;
 }
 
+interface SyncedComment {
+	id: string;
+	room_id: string;
+	track_id: string;
+	user_id: string;
+	comment: string;
+	created_at: string;
+	profiles?: {
+		username: string;
+		avatar_url: string | null;
+	};
+}
+
 interface DemoTrack {
 	id: string;
 	title: string;
@@ -86,8 +99,14 @@ export default function MusicPlayer({
 	const [activeCommentTrack, setActiveCommentTrack] = useState<string | null>(
 		null,
 	);
+	const [syncedComments, setSyncedComments] = useState<
+		Record<string, SyncedComment[]>
+	>({});
 	const [loading, setLoading] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
+	const [submittingCommentTrackId, setSubmittingCommentTrackId] = useState<
+		string | null
+	>(null);
 
 	const userId = session?.user
 		? ((session.user as { id?: string }).id ?? null)
@@ -97,6 +116,7 @@ export default function MusicPlayer({
 		!roomParticipants ||
 		roomParticipants.some((participant) => participant.user_id === userId);
 	const canAddTrack = isDemoMode || isParticipant || isOwner;
+	const canComment = isDemoMode || isParticipant || isOwner;
 	const syncedMode = !isDemoMode && isSupabaseConfigured();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: room sync subscriptions are recreated only when room or mode changes.
@@ -115,6 +135,18 @@ export default function MusicPlayer({
 					},
 					() => {
 						void loadQueue();
+					},
+				)
+				.on(
+					"postgres_changes",
+					{
+						event: "*",
+						schema: "public",
+						table: "track_comments",
+						filter: `room_id=eq.${roomId}`,
+					},
+					() => {
+						void loadTrackComments();
 					},
 				)
 				.on(
@@ -149,6 +181,7 @@ export default function MusicPlayer({
 		}
 
 		setCurrentTrackId(null);
+		setSyncedComments({});
 	}, [roomId, syncedMode]);
 
 	useEffect(() => {
@@ -175,6 +208,7 @@ export default function MusicPlayer({
 			const [items, playback] = await Promise.all([
 				queueApi.getQueue(roomId),
 				roomsApi.getPlaybackState(roomId),
+				loadTrackComments(),
 			]);
 			setQueueItems(items);
 			setCurrentTrackId(playback.current_track_id);
@@ -204,6 +238,22 @@ export default function MusicPlayer({
 	const loadPlaybackState = async () => {
 		const playback = await roomsApi.getPlaybackState(roomId);
 		setCurrentTrackId(playback.current_track_id);
+	};
+
+	const loadTrackComments = async () => {
+		const response = await fetch(`/api/track-comments?roomId=${roomId}`);
+		const data = (await response.json()) as { comments?: SyncedComment[] };
+		const groupedComments = (data.comments || []).reduce<
+			Record<string, SyncedComment[]>
+		>((accumulator, item) => {
+			if (!accumulator[item.track_id]) {
+				accumulator[item.track_id] = [];
+			}
+			accumulator[item.track_id].push(item);
+			return accumulator;
+		}, {});
+		setSyncedComments(groupedComments);
+		return groupedComments;
 	};
 
 	const handleAddTrack = async () => {
@@ -311,8 +361,40 @@ export default function MusicPlayer({
 		}
 	};
 
-	const handleAddComment = (trackId: string) => {
-		if (!commentText.trim() || syncedMode) {
+	const handleAddComment = async (trackId: string) => {
+		if (!commentText.trim()) {
+			return;
+		}
+
+		if (syncedMode) {
+			if (!userId || !canComment) {
+				return;
+			}
+
+			try {
+				setSubmittingCommentTrackId(trackId);
+				const response = await fetch("/api/track-comments", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						roomId,
+						trackId,
+						userId,
+						comment: commentText,
+					}),
+				});
+
+				if (!response.ok) {
+					throw new Error("Failed to send comment");
+				}
+
+				setCommentText("");
+			} catch (error) {
+				console.error("Ошибка отправки комментария:", error);
+				alert("Не удалось отправить комментарий.");
+			} finally {
+				setSubmittingCommentTrackId(null);
+			}
 			return;
 		}
 
@@ -346,6 +428,14 @@ export default function MusicPlayer({
 		demoTracks.find((track) => track.id === currentTrackId) ?? null;
 	const currentTrack = syncedMode ? currentSyncedTrack : currentDemoTrack;
 	const visibleTracks = syncedMode ? queueItems : demoTracks;
+
+	const getCommentCount = (track: RoomQueueItem | DemoTrack) => {
+		if ("tracks" in track) {
+			return syncedComments[track.track_id]?.length || 0;
+		}
+
+		return track.comments?.length || 0;
+	};
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -706,7 +796,7 @@ export default function MusicPlayer({
 											</p>
 										</div>
 										{isCurrent && <span style={{ color: "#ef4444" }}>▶</span>}
-										{"tracks" in track ? (
+										{"tracks" in track && (
 											<span
 												style={{
 													padding: "0.4rem 0.6rem",
@@ -718,31 +808,30 @@ export default function MusicPlayer({
 											>
 												Общий трек
 											</span>
-										) : (
-											<button
-												type="button"
-												onClick={(event) => {
-													event.stopPropagation();
-													setActiveCommentTrack(
-														activeCommentTrack === track.id ? null : track.id,
-													);
-												}}
-												style={{
-													padding: "0.5rem",
-													background: "rgba(59, 130, 246, 0.2)",
-													border: "none",
-													borderRadius: "6px",
-													color: "#3b82f6",
-													cursor: "pointer",
-													fontSize: "0.9rem",
-													display: "flex",
-													alignItems: "center",
-													gap: "0.25rem",
-												}}
-											>
-												💬 {track.comments?.length || 0}
-											</button>
 										)}
+										<button
+											type="button"
+											onClick={(event) => {
+												event.stopPropagation();
+												setActiveCommentTrack(
+													activeCommentTrack === trackId ? null : trackId,
+												);
+											}}
+											style={{
+												padding: "0.5rem",
+												background: "rgba(59, 130, 246, 0.2)",
+												border: "none",
+												borderRadius: "6px",
+												color: "#3b82f6",
+												cursor: "pointer",
+												fontSize: "0.9rem",
+												display: "flex",
+												alignItems: "center",
+												gap: "0.25rem",
+											}}
+										>
+											💬 {getCommentCount(track)}
+										</button>
 										<button
 											type="button"
 											onClick={(event) => {
@@ -765,57 +854,59 @@ export default function MusicPlayer({
 											🗑
 										</button>
 									</div>
-									{!syncedMode &&
-										"comments" in track &&
-										activeCommentTrack === track.id && (
+									{activeCommentTrack === trackId && (
+										<div
+											style={{
+												marginTop: "0.5rem",
+												padding: "1rem",
+												backgroundColor: "rgba(30, 30, 30, 0.8)",
+												border: "2px solid rgba(59, 130, 246, 0.3)",
+												borderRadius: "12px",
+											}}
+										>
 											<div
 												style={{
-													marginTop: "0.5rem",
-													padding: "1rem",
-													backgroundColor: "rgba(30, 30, 30, 0.8)",
-													border: "2px solid rgba(59, 130, 246, 0.3)",
-													borderRadius: "12px",
+													display: "flex",
+													justifyContent: "space-between",
+													alignItems: "center",
+													marginBottom: "0.75rem",
 												}}
 											>
-												<div
+												<h5
 													style={{
-														display: "flex",
-														justifyContent: "space-between",
-														alignItems: "center",
-														marginBottom: "0.75rem",
+														color: "#e2e8f0",
+														margin: 0,
+														fontSize: "0.9rem",
 													}}
 												>
-													<h5
-														style={{
-															color: "#e2e8f0",
-															margin: 0,
-															fontSize: "0.9rem",
-														}}
-													>
-														💬 Комментарии ({track.comments?.length || 0})
-													</h5>
-													<span
-														style={{
-															color: "#f59e0b",
-															fontSize: "0.75rem",
-															backgroundColor: "rgba(245, 158, 11, 0.2)",
-															padding: "0.25rem 0.5rem",
-															borderRadius: "4px",
-														}}
-													>
-														Только локально
-													</span>
-												</div>
-												<div
+													💬 Комментарии ({getCommentCount(track)})
+												</h5>
+												<span
 													style={{
-														display: "flex",
-														flexDirection: "column",
-														gap: "0.5rem",
-														marginBottom: "1rem",
+														color: syncedMode ? "#86efac" : "#f59e0b",
+														fontSize: "0.75rem",
+														backgroundColor: syncedMode
+															? "rgba(34, 197, 94, 0.14)"
+															: "rgba(245, 158, 11, 0.2)",
+														padding: "0.25rem 0.5rem",
+														borderRadius: "4px",
 													}}
 												>
-													{track.comments?.length ? (
-														track.comments.map((comment) => (
+													{syncedMode
+														? "Синхронизируется в комнате"
+														: "Только локально"}
+												</span>
+											</div>
+											<div
+												style={{
+													display: "flex",
+													flexDirection: "column",
+													gap: "0.5rem",
+													marginBottom: "1rem",
+												}}
+											>
+												{syncedMode
+													? (syncedComments[trackId] || []).map((comment) => (
 															<div
 																key={comment.id}
 																style={{
@@ -832,7 +923,7 @@ export default function MusicPlayer({
 																		fontSize: "0.9rem",
 																	}}
 																>
-																	{comment.text}
+																	{comment.comment}
 																</p>
 																<p
 																	style={{
@@ -841,25 +932,62 @@ export default function MusicPlayer({
 																		fontSize: "0.75rem",
 																	}}
 																>
-																	{comment.author} •{" "}
+																	{comment.profiles?.username || "Пользователь"}{" "}
+																	•{" "}
 																	{new Date(
-																		comment.createdAt,
+																		comment.created_at,
 																	).toLocaleDateString("ru-RU")}
 																</p>
 															</div>
 														))
-													) : (
-														<p
-															style={{
-																color: "#6b7280",
-																fontSize: "0.85rem",
-																fontStyle: "italic",
-															}}
-														>
-															Пока нет комментариев. Будьте первым!
-														</p>
-													)}
-												</div>
+													: ("tracks" in track ? [] : track.comments || []).map(
+															(comment: Comment) => (
+																<div
+																	key={comment.id}
+																	style={{
+																		padding: "0.5rem 0.75rem",
+																		backgroundColor: "rgba(59, 130, 246, 0.1)",
+																		borderRadius: "8px",
+																		border: "1px solid rgba(59, 130, 246, 0.2)",
+																	}}
+																>
+																	<p
+																		style={{
+																			color: "#e2e8f0",
+																			margin: "0 0 0.25rem 0",
+																			fontSize: "0.9rem",
+																		}}
+																	>
+																		{comment.text}
+																	</p>
+																	<p
+																		style={{
+																			color: "#6b7280",
+																			margin: 0,
+																			fontSize: "0.75rem",
+																		}}
+																	>
+																		{comment.author} •{" "}
+																		{new Date(
+																			comment.createdAt,
+																		).toLocaleDateString("ru-RU")}
+																	</p>
+																</div>
+															),
+														)}
+												{getCommentCount(track) === 0 && (
+													<p
+														style={{
+															color: "#6b7280",
+															fontSize: "0.85rem",
+															fontStyle: "italic",
+														}}
+													>
+														Пока нет комментариев. Будьте первым!
+													</p>
+												)}
+											</div>
+											{canComment ? (
 												<div style={{ display: "flex", gap: "0.5rem" }}>
 													<input
 														type="text"
@@ -880,8 +1008,11 @@ export default function MusicPlayer({
 													/>
 													<button
 														type="button"
-														onClick={() => handleAddComment(track.id)}
-														disabled={!commentText.trim()}
+														onClick={() => void handleAddComment(trackId)}
+														disabled={
+															!commentText.trim() ||
+															submittingCommentTrackId === trackId
+														}
 														style={{
 															padding: "0.5rem 1rem",
 															borderRadius: "8px",
@@ -896,11 +1027,23 @@ export default function MusicPlayer({
 															fontSize: "0.9rem",
 														}}
 													>
-														Отправить
+														{submittingCommentTrackId === trackId
+															? "..."
+															: "Отправить"}
 													</button>
 												</div>
-											</div>
-										)}
+											) : (
+												<div
+													style={{
+														color: "#9ca3af",
+														fontSize: "0.85rem",
+													}}
+												>
+													Присоединитесь к комнате, чтобы писать комментарии.
+												</div>
+											)}
+										</div>
+									)}
 								</div>
 							);
 						})}

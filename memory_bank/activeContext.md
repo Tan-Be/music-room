@@ -5,14 +5,18 @@
 ## Текущий фокус
 - Реальная синхронизация комнаты между участниками запущена через серверное состояние и Supabase Realtime.
 - Общая очередь комнаты и текущий трек вынесены из локального состояния браузера в общую модель комнаты.
-- Память проекта и архитектурная документация синхронизированы с новым устройством комнаты.
+- Комментарии к трекам переведены на серверную модель для Supabase-режима, а память проекта и архитектурная документация синхронизируются с этим изменением.
 
 ## Что проверено в этой сессии
 - Комната в [page.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/app/room/[id]/page.tsx) теперь подписывается на изменения `room_participants` и `rooms`.
 - Плеер в [music-player.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/components/music-player.tsx) использует `room_queue`, `tracks` и `rooms.current_track_id`.
 - Чат в [chat.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/components/chat.tsx) переведен на Supabase Realtime.
+- Скрипт [database-setup.sql](C:/Users/Admin/Documents/Веркин/music-room/docs/database-setup.sql) приведен к актуальной модели комнаты: добавлены `rooms.current_track_id`, `rooms.is_playing`, индексы и безопасное повторное создание политик/Realtime-публикаций.
+- Добавлен route handler [route.ts](C:/Users/Admin/Documents/Веркин/music-room/src/app/api/track-comments/route.ts) для чтения и записи комментариев к трекам.
+- Плеер теперь подписывается на `track_comments` и показывает общие комментарии к трекам в Supabase-режиме.
 - Проверка `bun run type-check` прошла успешно.
-- Проверка `bunx @biomejs/biome check --write` по измененным не-Markdown-файлам прошла успешно.
+- Проверка `bunx @biomejs/biome check --write` по измененным TypeScript-файлам прошла успешно.
+- Проверка `bunx @biomejs/biome check --write` для измененного SQL-файла не дала исправлений: файл не обрабатывается Biome как поддерживаемый формат.
 
 ## Актуальная картина системы
 - Приложение построено на Next.js App Router и использует маршруты `/`, `/rooms`, `/room/[id]`, `/rating`, `/profile`, `/register`, `/auth/signin`, `/auth/error`.
@@ -22,15 +26,16 @@
 
 ## Активные решения
 - Реальная синхронизация комнаты строится на `tracks`, `room_queue`, `rooms.current_track_id` и `rooms.is_playing`.
+- Комментарии к трекам в Supabase-режиме хранятся в `track_comments` и загружаются через `api/track-comments`, а в demo-режиме остаются локальными.
 - Demo-режим сохраняется как fallback, но основная логика комнаты должна работать через Supabase.
 - Realtime используется для комнаты и чата, а не только для уведомлений.
 
 ## Открытые вопросы и риски
 - В `package.json` указан `packageManager: pnpm`, хотя репозиторное правило требует использовать `bun`.
 - YouTube `iframe` ограничивает точную синхронизацию таймкода между участниками.
-- Комментарии к трекам пока не имеют серверной модели и остаются локальными.
-- Для полной работы новой логики в Supabase должны существовать таблицы `tracks`, `room_queue` и публикации Realtime.
+- Обновленный SQL-скрипт нужно применить в среде Supabase, иначе серверные комментарии к трекам и синхронизация комнаты останутся зависимыми от ручной настройки базы.
+- У комментариев к трекам пока нет сценариев редактирования и удаления.
 
 ## Следующее действие
-- Завершить SQL-инициализацию `tracks` и `room_queue` в среде Supabase.
-- Следующим шагом выбрать между серверной моделью комментариев к трекам и точной синхронизацией playback state.
+- Применить обновленный [database-setup.sql](C:/Users/Admin/Documents/Веркин/music-room/docs/database-setup.sql) в проекте Supabase и проверить создание `tracks`, `room_queue`, `track_comments`, полей playback state и Realtime-публикаций.
+- После применения SQL проверить поведение комментариев в живой комнате и затем перейти к технической синхронизации `packageManager` на `bun`.

@@ -303,7 +303,9 @@ export const queueApi = {
 					title: input.title,
 					artist: input.artist,
 					youtube_id: input.youtubeId,
-					added_by: input.userId ?? null,
+					// Client uses anon Supabase access, so nullable author keeps inserts
+					// compatible with current RLS until full Supabase Auth adoption.
+					added_by: null,
 				},
 			])
 			.select()
@@ -315,7 +317,7 @@ export const queueApi = {
 			{
 				room_id: roomId,
 				track_id: trackData.id,
-				added_by: input.userId ?? null,
+				added_by: null,
 				position: nextPosition,
 			},
 		]);

@@ -6,9 +6,9 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `deb5f9b16a425d4e4e4a4eb1569ff626ecf410b6`
+- last_checked_commit: `75ebf0f7200e8d84d66a8d96b5f4888fb0d53b2d`
 - last_checked_date: `2026-03-24`
-- status: synchronized with repository snapshot after owner-button fallback fix
+- status: synchronized with repository snapshot after owner-button fix and before NextAuth/Supabase profile bridge patch
 
 ## Что подтверждено
 - В комнате добавлена серверная очередь через `room_queue` и `tracks`, а текущий трек синхронизируется через `rooms.current_track_id`.
@@ -17,6 +17,8 @@
 - Страница комнаты подписывается на изменения `room_participants` и `rooms`, поэтому состав комнаты обновляется без ручной перезагрузки.
 - Страница комнаты корректно открывает старые demo-комнаты с не-UUID id через локальный fallback и больше не ломает загрузку запросом в Supabase.
 - Для создателя комнаты добавлена локальная ownership-метка, поэтому кнопка `Присоединиться` может быть скрыта даже если текущая сессия и профиль владельца не совпадают по id.
+- GitHub OAuth через NextAuth теперь может быть синхронизирован с `profiles.id` в Supabase через server-side deterministic UUID bridge вместо provider numeric id.
+- `docs/database-setup.sql` теперь также покрывает RLS-политики для `rooms` и `room_participants`, которые нужны текущему клиентскому слою Supabase.
 - `docs/README.md` обновлен под текущую модель комнаты и снова соответствует коду.
 - `docs/database-setup.sql` теперь идемпотентно создает `tracks`, `room_queue`, `track_comments`, добавляет `rooms.current_track_id` и `rooms.is_playing`, а также безопасно включает нужные Realtime-публикации.
 
@@ -26,9 +28,14 @@
 - Для комментариев к трекам пока не реализованы редактирование и удаление.
 - В рабочем дереве присутствует неотслеживаемый файл `nul`.
 - В `package.json` зафиксирован `packageManager: pnpm`, что расходится с репозиторным правилом использовать `bun`.
+- Пока клиент не аутентифицируется в Supabase напрямую, `tracks.added_by` и `room_queue.added_by` остаются пустыми при клиентской вставке для совместимости с текущими RLS-политиками.
+- Если в реальной базе не применены политики для `rooms` и `room_participants`, UI может уйти в demo fallback даже при корректных env-переменных Supabase.
 
 ## Changelog
 ### 2026-03-24
+- Начата и реализована правка auth/data-интеграции: `api/auth/[...nextauth]` теперь вычисляет совместимый UUID профиля Supabase для GitHub-пользователя и создает/обновляет `profiles` через server-side service role client, чтобы новые комнаты больше не уходили в demo fallback из-за GitHub numeric id.
+- Для клиентского добавления треков временно зафиксирована совместимость с текущими RLS: `tracks.added_by` и `room_queue.added_by` записываются как `null`.
+- Исправлен вводящий в заблуждение demo-баннер на странице комнат: теперь он показывает реальную причину fallback, а SQL-документация дополняет обязательные политики для `rooms` и `room_participants`.
 - Исправлено поведение кнопки `Присоединиться` для владельца комнаты: после создания комнаты ownership сохраняется локально, а страница комнаты использует эту метку при рендере действий.
 
 ### 2026-03-20

@@ -25,6 +25,7 @@ export default function RoomsPage() {
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [creating, setCreating] = useState(false);
 	const [isDemoMode, setIsDemoMode] = useState(false);
+	const [demoReason, setDemoReason] = useState<string | null>(null);
 	const [userVotes, setUserVotes] = useState<
 		Record<string, "like" | "dislike">
 	>({});
@@ -85,10 +86,14 @@ export default function RoomsPage() {
 		try {
 			setLoading(true);
 			setIsDemoMode(false);
+			setDemoReason(null);
 
 			// Проверяем, настроен ли Supabase
 			if (!isSupabaseConfigured()) {
 				setIsDemoMode(true);
+				setDemoReason(
+					"NEXT_PUBLIC_SUPABASE_URL или NEXT_PUBLIC_SUPABASE_ANON_KEY не загружены в клиент.",
+				);
 				loadDemoRooms();
 				return;
 			}
@@ -97,8 +102,13 @@ export default function RoomsPage() {
 			let data;
 			try {
 				data = await roomsApi.getPublicRooms();
-			} catch (supabaseError: any) {
+			} catch (supabaseError) {
 				setIsDemoMode(true);
+				setDemoReason(
+					supabaseError instanceof Error
+						? supabaseError.message
+						: "Не удалось загрузить комнаты из Supabase.",
+				);
 				loadDemoRooms();
 				return;
 			}
@@ -116,8 +126,13 @@ export default function RoomsPage() {
 
 			setRooms(formattedRooms);
 			setLoading(false);
-		} catch (error: any) {
+		} catch (error) {
 			setIsDemoMode(true);
+			setDemoReason(
+				error instanceof Error
+					? error.message
+					: "Не удалось загрузить комнаты из Supabase.",
+			);
 			loadDemoRooms();
 		}
 	};
@@ -372,7 +387,9 @@ export default function RoomsPage() {
 									fontSize: "0.9rem",
 								}}
 							>
-								Supabase не подключен. Данные сохраняются только локально.
+								{demoReason
+									? `Не удалось работать с Supabase: ${demoReason}`
+									: "Supabase недоступен. Данные сохраняются только локально."}
 							</p>
 						</div>
 					</div>

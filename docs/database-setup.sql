@@ -101,11 +101,105 @@ CREATE INDEX IF NOT EXISTS idx_tracks_youtube_id
 CREATE UNIQUE INDEX IF NOT EXISTS idx_room_queue_room_position_unique
   ON public.room_queue (room_id, position);
 
+ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.room_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tracks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.room_queue ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'rooms'
+      AND policyname = 'Anyone can view rooms'
+  ) THEN
+    CREATE POLICY "Anyone can view rooms"
+      ON public.rooms
+      FOR SELECT
+      USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'rooms'
+      AND policyname = 'Anyone can create rooms'
+  ) THEN
+    CREATE POLICY "Anyone can create rooms"
+      ON public.rooms
+      FOR INSERT
+      WITH CHECK (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'rooms'
+      AND policyname = 'Anyone can update rooms'
+  ) THEN
+    CREATE POLICY "Anyone can update rooms"
+      ON public.rooms
+      FOR UPDATE
+      USING (true)
+      WITH CHECK (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'rooms'
+      AND policyname = 'Anyone can delete rooms'
+  ) THEN
+    CREATE POLICY "Anyone can delete rooms"
+      ON public.rooms
+      FOR DELETE
+      USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'room_participants'
+      AND policyname = 'Anyone can view room participants'
+  ) THEN
+    CREATE POLICY "Anyone can view room participants"
+      ON public.room_participants
+      FOR SELECT
+      USING (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'room_participants'
+      AND policyname = 'Anyone can join room participants'
+  ) THEN
+    CREATE POLICY "Anyone can join room participants"
+      ON public.room_participants
+      FOR INSERT
+      WITH CHECK (true);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'room_participants'
+      AND policyname = 'Anyone can leave room participants'
+  ) THEN
+    CREATE POLICY "Anyone can leave room participants"
+      ON public.room_participants
+      FOR DELETE
+      USING (true);
+  END IF;
+
   IF NOT EXISTS (
     SELECT 1
     FROM pg_policies

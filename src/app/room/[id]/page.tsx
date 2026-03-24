@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
@@ -35,17 +35,25 @@ interface Room {
 	room_participants?: RoomParticipant[];
 }
 
+const isUuid = (value: string) =>
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+		value,
+	);
+
 export default function RoomPage() {
 	const params = useParams();
+	const searchParams = useSearchParams();
 	const { data: session } = useSession();
 	const [room, setRoom] = useState<Room | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [isDemoMode, setIsDemoMode] = useState(false);
+	const [isLocallyOwnedRoom, setIsLocallyOwnedRoom] = useState(false);
 	const [showQRCode, setShowQRCode] = useState(false);
 	const [showChat, setShowChat] = useState(false);
 
 	const roomId = params.id as string;
+	const ownerFlag = searchParams.get("owner");
 	const roomUrl =
 		typeof window !== "undefined"
 			? `${window.location.origin}/room/${roomId}`
@@ -53,9 +61,53 @@ export default function RoomPage() {
 	const userId = session?.user
 		? ((session.user as { id?: string }).id ?? null)
 		: null;
+	const userName = session?.user?.name ?? null;
+
+	useEffect(() => {
+		if (ownerFlag !== "1") {
+			return;
+		}
+
+		const savedOwnedRoomIds = localStorage.getItem("ownedRoomIds");
+		try {
+			const ownedRoomIds = savedOwnedRoomIds
+				? JSON.parse(savedOwnedRoomIds)
+				: [];
+			const nextOwnedRoomIds = Array.isArray(ownedRoomIds)
+				? Array.from(new Set([...ownedRoomIds, roomId]))
+				: [roomId];
+			localStorage.setItem("ownedRoomIds", JSON.stringify(nextOwnedRoomIds));
+			setIsLocallyOwnedRoom(true);
+		} catch (error) {
+			console.error("Ошибка сохранения ownerFlag:", error);
+			localStorage.setItem("ownedRoomIds", JSON.stringify([roomId]));
+			setIsLocallyOwnedRoom(true);
+		}
+
+		window.history.replaceState({}, "", `/room/${roomId}`);
+	}, [ownerFlag, roomId]);
+
+	useEffect(() => {
+		const savedOwnedRoomIds = localStorage.getItem("ownedRoomIds");
+		if (!savedOwnedRoomIds) {
+			setIsLocallyOwnedRoom(false);
+			return;
+		}
+
+		try {
+			const ownedRoomIds = JSON.parse(savedOwnedRoomIds) as string[];
+			setIsLocallyOwnedRoom(
+				Array.isArray(ownedRoomIds) && ownedRoomIds.includes(roomId),
+			);
+		} catch (error) {
+			console.error("Ошибка загрузки ownedRoomIds:", error);
+			setIsLocallyOwnedRoom(false);
+		}
+	}, [roomId]);
 
 	const loadDemoRoom = () => {
-		setRoom({
+		const savedRooms = localStorage.getItem("demoRooms");
+		const fallbackRoom = {
 			id: roomId,
 			name: `Комната #${roomId.slice(0, 8)}`,
 			description: "Демо-комната",
@@ -65,7 +117,46 @@ export default function RoomPage() {
 			created_at: new Date().toISOString(),
 			profiles: { username: "Demo User" },
 			room_participants: [],
-		});
+		};
+
+		if (!savedRooms) {
+			setRoom(fallbackRoom);
+			setLoading(false);
+			return;
+		}
+
+		try {
+			const parsedRooms = JSON.parse(savedRooms) as Array<{
+				id: string;
+				name: string;
+				description?: string | null;
+				is_public?: boolean;
+				created_at?: string;
+				owner?: string;
+				participants?: number;
+			}>;
+			const localRoom = parsedRooms.find((item) => item.id === roomId);
+
+			if (localRoom) {
+				setRoom({
+					id: localRoom.id,
+					name: localRoom.name,
+					description: localRoom.description || "Демо-комната",
+					is_public: localRoom.is_public ?? true,
+					owner_id: "demo",
+					max_participants: Math.max(localRoom.participants || 1, 10),
+					created_at: localRoom.created_at || new Date().toISOString(),
+					profiles: { username: localRoom.owner || "Demo User" },
+					room_participants: [],
+				});
+			} else {
+				setRoom(fallbackRoom);
+			}
+		} catch (error) {
+			console.error("Ошибка загрузки demoRooms:", error);
+			setRoom(fallbackRoom);
+		}
+
 		setLoading(false);
 	};
 
@@ -76,6 +167,12 @@ export default function RoomPage() {
 			setIsDemoMode(false);
 
 			if (!isSupabaseConfigured()) {
+				setIsDemoMode(true);
+				loadDemoRoom();
+				return;
+			}
+
+			if (!isUuid(roomId)) {
 				setIsDemoMode(true);
 				loadDemoRoom();
 				return;
@@ -154,7 +251,10 @@ export default function RoomPage() {
 		window.location.href = "/rooms";
 	};
 
-	const isOwner = userId !== null && userId === room?.owner_id;
+	const isOwner =
+		isLocallyOwnedRoom ||
+		(userId !== null && userId === room?.owner_id) ||
+		(userName !== null && userName === room?.profiles?.username);
 	const isParticipant =
 		isOwner ||
 		(room?.room_participants?.some(
@@ -331,7 +431,7 @@ export default function RoomPage() {
 					</div>
 
 					<div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-						{!isParticipant && session && (
+						{!isOwner && !isParticipant && !isDemoMode && session && (
 							<button
 								type="button"
 								onClick={async () => {

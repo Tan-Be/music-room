@@ -1,6 +1,6 @@
 # Active Context - Music Room
 
-**Дата последнего обновления**: 2026-03-20
+**Дата последнего обновления**: 2026-03-24
 
 ## Текущий фокус
 - Реальная синхронизация комнаты между участниками запущена через серверное состояние и Supabase Realtime.
@@ -9,6 +9,8 @@
 
 ## Что проверено в этой сессии
 - Комната в [page.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/app/room/[id]/page.tsx) теперь подписывается на изменения `room_participants` и `rooms`.
+- Страница комнаты больше не отправляет не-UUID demo-id в Supabase: старые локальные комнаты корректно открываются через `localStorage` fallback вместо ошибки `invalid input syntax for type uuid`.
+- После создания комнаты маршрут сохраняет локальную ownership-метку, а страница комнаты скрывает кнопку `Присоединиться` для создателя даже при расхождении данных Supabase и сессии.
 - Плеер в [music-player.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/components/music-player.tsx) использует `room_queue`, `tracks` и `rooms.current_track_id`.
 - Чат в [chat.tsx](C:/Users/Admin/Documents/Веркин/music-room/src/components/chat.tsx) переведен на Supabase Realtime.
 - Скрипт [database-setup.sql](C:/Users/Admin/Documents/Веркин/music-room/docs/database-setup.sql) приведен к актуальной модели комнаты: добавлены `rooms.current_track_id`, `rooms.is_playing`, индексы и безопасное повторное создание политик/Realtime-публикаций.
@@ -27,6 +29,8 @@
 ## Активные решения
 - Реальная синхронизация комнаты строится на `tracks`, `room_queue`, `rooms.current_track_id` и `rooms.is_playing`.
 - Комментарии к трекам в Supabase-режиме хранятся в `track_comments` и загружаются через `api/track-comments`, а в demo-режиме остаются локальными.
+- Страница комнаты различает серверные UUID-комнаты и старые локальные demo-комнаты с числовыми id.
+- Для newly created room ownership используется дополнительная локальная метка `ownedRoomIds`, чтобы не показывать владельцу лишнее действие присоединения.
 - Demo-режим сохраняется как fallback, но основная логика комнаты должна работать через Supabase.
 - Realtime используется для комнаты и чата, а не только для уведомлений.
 

@@ -388,7 +388,20 @@ export default function MusicPlayer({
 					throw new Error("Failed to send comment");
 				}
 
+				const data = (await response.json()) as {
+					comment?: SyncedComment;
+				};
+				const createdComment = data.comment;
+
+				if (createdComment) {
+					setSyncedComments((previous) => ({
+						...previous,
+						[trackId]: [...(previous[trackId] || []), createdComment],
+					}));
+				}
+
 				setCommentText("");
+				setActiveCommentTrack(null);
 			} catch (error) {
 				console.error("Ошибка отправки комментария:", error);
 				alert("Не удалось отправить комментарий.");

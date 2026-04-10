@@ -11,6 +11,8 @@
 - status: synchronized with repository snapshot after bun package manager alignment and memory bank refresh
 
 ## Что подтверждено
+- API рекомендаций `/api/recommendations` теперь отдает только чужие публичные комнаты: собственные комнаты пользователя исключаются и из fallback, и из основной выборки.
+- Экран входа `/auth/signin` получил внешний бренд-логотип из `public/music-room-logo.png.jpg`; карточка входа теперь визуально опирается на продуктовый знак, а не только на текстовый заголовок.
 - В комнате добавлена серверная очередь через `room_queue` и `tracks`, а текущий трек синхронизируется через `rooms.current_track_id`.
 - Чат переведен на Supabase Realtime и больше не зависит от polling в клиенте.
 - Комментарии к трекам в Supabase-режиме переведены на серверную модель через `track_comments` и `api/track-comments`.
@@ -34,6 +36,8 @@
 
 ## Changelog
 ### 2026-04-07
+- Исправлена серверная логика рекомендаций комнат: собственные публичные комнаты пользователя исключены из выдачи `/api/recommendations`.
+- Обновлен экран входа `/auth/signin`: в карточку добавлен внешний логотип приложения из `public/music-room-logo.png.jpg`.
 - Синхронизирован пакетный менеджер проекта с репозиторным правилом: в `package.json` `packageManager` изменен с `pnpm` на `bun`, что теперь соответствует существующему `bun.lock`.
 - Обновлены `activeContext.md` и `progress.md` под фактическое состояние репозитория и актуальный HEAD-коммит `caab51dd0ec6ebc9263ca117bb1708651a434965`.
 - Подтверждено успешное применение `docs/database-setup.sql` в реальном Supabase-проекте.

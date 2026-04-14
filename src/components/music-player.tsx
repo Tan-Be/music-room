@@ -34,10 +34,18 @@ interface DemoTrack {
 	id: string;
 	title: string;
 	artist: string;
-	youtubeId: string;
+	sourceType: "youtube" | "audio_url";
+	youtubeId: string | null;
+	audioUrl: string | null;
 	addedBy: string;
 	addedAt: string;
 	comments?: Comment[];
+}
+
+interface TrackSourceInfo {
+	sourceType: "youtube" | "audio_url";
+	youtubeId: string;
+	audioUrl: string;
 }
 
 interface MusicPlayerProps {
@@ -65,12 +73,46 @@ const extractYoutubeId = (url: string): string | null => {
 	return null;
 };
 
+const isDirectAudioUrl = (url: string): boolean => {
+	try {
+		const parsedUrl = new URL(url);
+		return /\.(mp3|ogg|wav|m4a|aac|flac)(\?.*)?$/i.test(parsedUrl.pathname);
+	} catch {
+		return false;
+	}
+};
+
+const resolveTrackSource = (url: string): TrackSourceInfo | null => {
+	const trimmedUrl = url.trim();
+	const youtubeId = extractYoutubeId(trimmedUrl);
+
+	if (youtubeId) {
+		return {
+			sourceType: "youtube",
+			youtubeId,
+			audioUrl: "",
+		};
+	}
+
+	if (isDirectAudioUrl(trimmedUrl)) {
+		return {
+			sourceType: "audio_url",
+			youtubeId: "",
+			audioUrl: trimmedUrl,
+		};
+	}
+
+	return null;
+};
+
 const getTrackLabel = (item: RoomQueueItem | DemoTrack) => {
 	if ("tracks" in item) {
 		return {
 			title: item.tracks?.title || "Без названия",
 			artist: item.tracks?.artist || "Неизвестен",
+			sourceType: item.tracks?.source_type || "youtube",
 			youtubeId: item.tracks?.youtube_id || "",
+			audioUrl: item.tracks?.audio_url || "",
 			addedAt: item.added_at,
 		};
 	}
@@ -78,7 +120,9 @@ const getTrackLabel = (item: RoomQueueItem | DemoTrack) => {
 	return {
 		title: item.title,
 		artist: item.artist,
-		youtubeId: item.youtubeId,
+		sourceType: item.sourceType,
+		youtubeId: item.youtubeId || "",
+		audioUrl: item.audioUrl || "",
 		addedAt: item.addedAt,
 	};
 };
@@ -258,14 +302,14 @@ export default function MusicPlayer({
 
 	const handleAddTrack = async () => {
 		if (!newTrack.title.trim() || !newTrack.url.trim()) {
-			alert("Введите название трека и ссылку на YouTube");
+			alert("Введите название трека и ссылку на YouTube или аудиофайл");
 			return;
 		}
 
-		const youtubeId = extractYoutubeId(newTrack.url);
-		if (!youtubeId) {
+		const trackSource = resolveTrackSource(newTrack.url);
+		if (!trackSource) {
 			alert(
-				"Некорректная ссылка на YouTube. Примеры:\nhttps://www.youtube.com/watch?v=VIDEO_ID\nhttps://youtu.be/VIDEO_ID",
+				"Поддерживаются ссылки на YouTube и прямые аудиофайлы (.mp3, .ogg, .wav, .m4a, .aac, .flac).",
 			);
 			return;
 		}
@@ -277,7 +321,9 @@ export default function MusicPlayer({
 				const createdTrack = await queueApi.addTrack(roomId, {
 					title: newTrack.title.trim(),
 					artist: newTrack.artist.trim() || "Неизвестен",
-					youtubeId,
+					sourceType: trackSource.sourceType,
+					youtubeId: trackSource.youtubeId || null,
+					audioUrl: trackSource.audioUrl || null,
 					userId,
 				});
 
@@ -292,7 +338,9 @@ export default function MusicPlayer({
 					id: Date.now().toString(),
 					title: newTrack.title.trim(),
 					artist: newTrack.artist.trim() || "Неизвестен",
-					youtubeId,
+					sourceType: trackSource.sourceType,
+					youtubeId: trackSource.youtubeId || null,
+					audioUrl: trackSource.audioUrl || null,
 					addedBy: "Вы",
 					addedAt: new Date().toISOString(),
 				};
@@ -531,26 +579,57 @@ export default function MusicPlayer({
 					<div
 						style={{
 							position: "relative",
-							paddingBottom: "56.25%",
-							height: 0,
-							overflow: "hidden",
 							borderRadius: "12px",
+							overflow: "hidden",
+							backgroundColor: "rgba(15, 23, 42, 0.92)",
 						}}
 					>
-						<iframe
-							title={`YouTube плеер: ${getTrackLabel(currentTrack).title}`}
-							src={`https://www.youtube.com/embed/${getTrackLabel(currentTrack).youtubeId}?autoplay=1`}
-							style={{
-								position: "absolute",
-								top: 0,
-								left: 0,
-								width: "100%",
-								height: "100%",
-								border: "none",
-							}}
-							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-							allowFullScreen
-						/>
+						{getTrackLabel(currentTrack).sourceType === "audio_url" ? (
+							<div
+								style={{
+									padding: "1.5rem",
+									display: "flex",
+									flexDirection: "column",
+									gap: "1rem",
+								}}
+							>
+								<p style={{ color: "#a1a1aa", margin: 0, fontSize: "0.9rem" }}>
+									Прямое аудио
+								</p>
+								{/* biome-ignore lint/a11y/useMediaCaption: music tracks are played as standalone audio sources without caption tracks. */}
+								<audio
+									controls
+									autoPlay
+									src={getTrackLabel(currentTrack).audioUrl}
+									style={{ width: "100%" }}
+								>
+									Ваш браузер не поддерживает воспроизведение аудио.
+								</audio>
+							</div>
+						) : (
+							<div
+								style={{
+									position: "relative",
+									paddingBottom: "56.25%",
+									height: 0,
+								}}
+							>
+								<iframe
+									title={`YouTube плеер: ${getTrackLabel(currentTrack).title}`}
+									src={`https://www.youtube.com/embed/${getTrackLabel(currentTrack).youtubeId}?autoplay=1`}
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										width: "100%",
+										height: "100%",
+										border: "none",
+									}}
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+									allowFullScreen
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 			)}
@@ -573,7 +652,7 @@ export default function MusicPlayer({
 							gap: "0.5rem",
 						}}
 					>
-						➕ Добавить из YouTube
+						➕ Добавить трек
 					</button>
 				) : (
 					<div
@@ -614,7 +693,7 @@ export default function MusicPlayer({
 					}}
 				>
 					<h4 style={{ color: "#e2e8f0", marginBottom: "0.5rem" }}>
-						Добавить из YouTube
+						Добавить трек
 					</h4>
 					<p
 						style={{
@@ -623,11 +702,13 @@ export default function MusicPlayer({
 							marginBottom: "1rem",
 						}}
 					>
-						Вставьте ссылку на YouTube видео. Примеры:
+						Вставьте ссылку на YouTube или прямую ссылку на аудиофайл. Примеры:
 						<br />
 						https://www.youtube.com/watch?v=ABC123
 						<br />
 						https://youtu.be/ABC123
+						<br />
+						https://example.com/song.mp3
 					</p>
 					<div
 						style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
@@ -666,7 +747,7 @@ export default function MusicPlayer({
 						/>
 						<input
 							type="text"
-							placeholder="Ссылка на YouTube *"
+							placeholder="Ссылка на YouTube или аудиофайл *"
 							value={newTrack.url}
 							onChange={(event) =>
 								setNewTrack({ ...newTrack, url: event.target.value })
@@ -735,7 +816,7 @@ export default function MusicPlayer({
 					>
 						<p style={{ marginBottom: "0.5rem" }}>🎵 Пока нет треков</p>
 						<p style={{ fontSize: "0.85rem", opacity: 0.8 }}>
-							Нажмите "Добавить из YouTube" и вставьте ссылку на видео
+							Нажмите "Добавить трек" и вставьте ссылку на YouTube или аудиофайл
 						</p>
 					</div>
 				) : (
@@ -822,6 +903,25 @@ export default function MusicPlayer({
 												Общий трек
 											</span>
 										)}
+										<span
+											style={{
+												padding: "0.4rem 0.6rem",
+												background:
+													label.sourceType === "audio_url"
+														? "rgba(245, 158, 11, 0.16)"
+														: "rgba(59, 130, 246, 0.16)",
+												borderRadius: "6px",
+												color:
+													label.sourceType === "audio_url"
+														? "#fcd34d"
+														: "#93c5fd",
+												fontSize: "0.75rem",
+											}}
+										>
+											{label.sourceType === "audio_url"
+												? "Аудио URL"
+												: "YouTube"}
+										</span>
 										<button
 											type="button"
 											onClick={(event) => {

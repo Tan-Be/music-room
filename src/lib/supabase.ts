@@ -52,7 +52,9 @@ export interface TrackRecord {
 	artist: string;
 	duration: number | null;
 	spotify_id: string | null;
+	source_type: "youtube" | "audio_url";
 	youtube_id: string | null;
+	audio_url: string | null;
 	thumbnail_url: string | null;
 	added_by: string | null;
 	created_at: string;
@@ -248,7 +250,9 @@ export const queueApi = {
           artist,
           duration,
           spotify_id,
+          source_type,
           youtube_id,
+          audio_url,
           thumbnail_url,
           added_by,
           created_at
@@ -281,7 +285,9 @@ export const queueApi = {
 		input: {
 			title: string;
 			artist: string;
-			youtubeId: string;
+			sourceType: "youtube" | "audio_url";
+			youtubeId?: string | null;
+			audioUrl?: string | null;
 			userId?: string | null;
 		},
 	) {
@@ -302,7 +308,9 @@ export const queueApi = {
 				{
 					title: input.title,
 					artist: input.artist,
-					youtube_id: input.youtubeId,
+					source_type: input.sourceType,
+					youtube_id: input.youtubeId ?? null,
+					audio_url: input.audioUrl ?? null,
 					// Client uses anon Supabase access, so nullable author keeps inserts
 					// compatible with current RLS until full Supabase Auth adoption.
 					added_by: null,

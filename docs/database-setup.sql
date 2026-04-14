@@ -7,11 +7,17 @@ CREATE TABLE IF NOT EXISTS public.tracks (
   artist VARCHAR NOT NULL,
   duration INTEGER,
   spotify_id VARCHAR,
+  source_type VARCHAR NOT NULL DEFAULT 'youtube',
   youtube_id VARCHAR,
+  audio_url TEXT,
   thumbnail_url TEXT,
   added_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS public.tracks
+  ADD COLUMN IF NOT EXISTS source_type VARCHAR NOT NULL DEFAULT 'youtube',
+  ADD COLUMN IF NOT EXISTS audio_url TEXT;
 
 -- Общая очередь комнаты
 CREATE TABLE IF NOT EXISTS public.room_queue (
@@ -97,6 +103,9 @@ CREATE INDEX IF NOT EXISTS idx_room_queue_track_id
 
 CREATE INDEX IF NOT EXISTS idx_tracks_youtube_id
   ON public.tracks (youtube_id);
+
+CREATE INDEX IF NOT EXISTS idx_tracks_source_type
+  ON public.tracks (source_type);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_room_queue_room_position_unique
   ON public.room_queue (room_id, position);

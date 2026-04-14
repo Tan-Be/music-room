@@ -51,6 +51,7 @@ export default function RoomPage() {
 	const [isLocallyOwnedRoom, setIsLocallyOwnedRoom] = useState(false);
 	const [showQRCode, setShowQRCode] = useState(false);
 	const [showChat, setShowChat] = useState(false);
+	const [isLeavingRoom, setIsLeavingRoom] = useState(false);
 
 	const roomId = params.id as string;
 	const ownerFlag = searchParams.get("owner");
@@ -249,6 +250,27 @@ export default function RoomPage() {
 		}
 
 		window.location.href = "/rooms";
+	};
+
+	const handleLeaveRoom = async () => {
+		if (!room || !userId || isDemoMode) {
+			return;
+		}
+
+		if (!confirm(`Покинуть комнату "${room.name}"?`)) {
+			return;
+		}
+
+		try {
+			setIsLeavingRoom(true);
+			await roomsApi.leaveRoom(room.id, userId);
+			window.location.href = "/rooms";
+		} catch (leaveError) {
+			console.error("Leave error:", leaveError);
+			alert("Не удалось покинуть комнату.");
+		} finally {
+			setIsLeavingRoom(false);
+		}
 	};
 
 	const isOwner =
@@ -454,6 +476,24 @@ export default function RoomPage() {
 								}}
 							>
 								🎯 Присоединиться
+							</button>
+						)}
+						{!isOwner && isParticipant && !isDemoMode && session && (
+							<button
+								type="button"
+								onClick={() => void handleLeaveRoom()}
+								disabled={isLeavingRoom}
+								style={{
+									padding: "0.75rem 1.5rem",
+									border: "2px solid rgba(239, 68, 68, 0.3)",
+									borderRadius: "12px",
+									backgroundColor: "rgba(239, 68, 68, 0.1)",
+									color: "#ef4444",
+									cursor: isLeavingRoom ? "not-allowed" : "pointer",
+									opacity: isLeavingRoom ? 0.7 : 1,
+								}}
+							>
+								{isLeavingRoom ? "Выходим..." : "↩ Покинуть комнату"}
 							</button>
 						)}
 						<button

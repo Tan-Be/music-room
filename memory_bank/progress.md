@@ -6,7 +6,7 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `pending — будет обновлён после коммита`
+- last_checked_commit: `8a82232`
 - last_checked_date: `2026-05-08`
 - status: synchronized after UI refactoring, room cards redesign and bug fixes
 

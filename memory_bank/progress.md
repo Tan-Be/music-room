@@ -6,9 +6,9 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `e99f14119926a77dbc8279ad4c713fe3c7b34bf5`
-- last_checked_date: `2026-05-07`
-- status: synchronized after Supabase database migration and GitHub OAuth configuration
+- last_checked_commit: `pending — будет обновлён после коммита`
+- last_checked_date: `2026-05-08`
+- status: synchronized after UI refactoring, room cards redesign and bug fixes
 
 ## Что подтверждено
 - Страница комнаты поддерживает явный выход участника: `Покинуть комнату` удаляет текущего пользователя из `room_participants`, если он не владелец комнаты.
@@ -43,6 +43,34 @@
 - После перехода на Supabase Auth старые cookies/сессии NextAuth в браузере могут требовать очистки или повторного входа.
 
 ## Changelog
+### 2026-05-08 — UI Refactoring & Bug Fixes
+- Создана единая CSS design system в `src/app/globals.css`: кнопки (7 вариантов + 3 размера), `.glass-card`, `.form-input`, `.badge`, `.spinner`.
+- Подключён `globals.css` в `layout.tsx` — ранее файл не импортировался (все стили не применялись).
+- Убран несуществующий `tailwindcss` из `postcss.config.js` — устранён build error при старте.
+- Все страницы и компоненты переведены на CSS-классы: убраны JS `onMouseEnter/Leave`-хаки, inline gradient/shadow стили.
+- Переработан дизайн карточек комнат `/rooms`: cover с цветным градиентом, структура cover→body→footer, медаль/ранг, кнопка «Войти →».
+- Исправлен HTML-баг: `<button>` внутри `<button>` в карточке комнаты → `<div role="button" tabIndex={0}>`.
+- Исправлен аватар участника в `/room/[id]`: `avatar_url` теперь рендерится как `<img>`, а не текст.
+- Добавлена `toError()` в `supabase.ts` — нормализует Supabase plain-object ошибки в стандартный `Error`.
+- `loadSyncedRoomState` переведён на `Promise.allSettled` — частичный сбой API не блокирует открытие комнаты.
+
+### 2026-05-07
+- Добавлена CSS-система в `src/app/globals.css`: классы `.btn`, `.btn-primary/secondary/success/danger/ghost/outline/github`, `.btn-sm/lg/icon`, `.glass-card`, `.form-input`, `.form-textarea`, `.badge`, `.badge-green/red/purple/yellow`, `.spinner`, `.spinner-lg`.
+- `github-button.tsx` переписан на CSS-классы: убраны `onMouseEnter/Leave`-хаки, inline-spinner и mixed Tailwind-классы; добавлена вынесенная SVG-иконка `GitHubIcon`; состояния авторизации/не-настроен — на `.badge`.
+- `auth/signin/page.tsx` переписан: карточка → `.glass-card`, ссылки → `.btn btn-secondary` / `.btn btn-ghost btn-sm`, спиннер загрузки → `.spinner.spinner-lg`.
+- `register/page.tsx` переписан: инпуты → `.form-input`, кнопка отправки → `.btn btn-success btn-lg`, удалён `<style dangerouslySetInnerHTML>` со спиннером и все `onMouseEnter/Leave`.
+- Линтинг `biome check --write` по трём TSX-файлам — 0 ошибок, 0 предупреждений.
+- `room/[id]/page.tsx`: кнопки «🎯 Присоединиться» (⇒ `btn btn-success btn-lg`), «↩ Покинуть комнату» (⇒ `btn btn-danger`), «📱 Пригласить/Скрыть QR» (⇒ `btn btn-secondary`), «← Назад» (⇒ `btn btn-outline`), «🗑 Удалить» (⇒ `btn btn-danger`), «Копировать» (⇒ `btn btn-primary btn-sm`), «💬 Открыть чат» (⇒ `btn btn-secondary` + inline `width/minHeight/fontSize`) переведены на CSS-классы.
+- `profile/page.tsx`: «← На главную» шапка (⇒ `btn btn-ghost btn-sm`), таб-кнопки (⇒ динам. `btn-primary`/`btn-ghost`), «Сохранить» (⇒ `btn btn-primary btn-sm`), «Изменить» (⇒ `btn btn-ghost btn-sm`), «Выйти из аккаунта» (⇒ `btn btn-danger`), «✕ удалить» (⇒ `btn btn-danger btn-icon btn-sm`), «Войти в комнату» (⇒ `btn btn-success btn-sm`), «← На главную» подвал — новый элемент (⇒ `btn btn-outline btn-lg`) переведены на CSS-классы.
+- Линтинг `biome check --write` по `room/[id]/page.tsx` и `profile/page.tsx` — 0 ошибок, 0 предупреждений.
+- last_checked_commit: `7695d40`
+
+### 2026-05-07
+- В `globals.css` добавлены CSS-классы кнопок (`btn`, `btn-primary`, `btn-secondary`, `btn-success`, `btn-danger`, `btn-ghost`, `btn-outline`, `btn-sm`, `btn-lg`, `btn-icon`).
+- Заменены inline-стили и `onMouseEnter`/`onMouseLeave` на CSS-классы в `page.tsx`, `rating/page.tsx`, `rooms/page.tsx`.
+- Линтинг Biome прошёл без ошибок.
+- last_checked_commit: `7695d40`
+
 ### 2026-05-07
 - Выполнена полная миграция базы данных на новый Supabase проект (whpaliaipaiyeuflzecy).
 - Восстановлены 7 таблиц из бэкапа: profiles, rooms, tracks, chat_messages, room_participants, room_queue, track_votes.

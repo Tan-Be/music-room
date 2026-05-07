@@ -1,66 +1,50 @@
 # Active Context - Music Room
 
-**Дата последнего обновления**: 2026-05-07
+**Дата последнего обновления**: 2026-05-08
 
 ## Текущий фокус
-- Проект полностью восстановлен на новом Supabase проекте (whpaliaipaiyeuflzecy).
-- База данных мигрирована из бэкапа с полной структурой таблиц, индексов и RLS политик.
-- GitHub OAuth переведен на Supabase Auth и готов к работе без NextAuth.
-- Memory Bank синхронизирован с актуальным состоянием проекта.
-- AGENTS.md обновлен до актуальной версии из projects-tracker.
+- Завершён масштабный UI-рефакторинг: единая CSS design system, современные карточки комнат, исправлены баги (кнопка в кнопке, аватар как текст, ошибка синхронизации).
+- Проект полностью восстановлен на Supabase (whpaliaipaiyeuflzecy), GitHub OAuth через Supabase Auth.
 
-## Что выполнено в этой сессии (2026-05-07)
-- Настроен Supabase MCP: конфигурация, OAuth-аутентификация, установка Agent Skills.
-- Восстановлена база данных из бэкапа `db_cluster-12-11-2025@23-05-41.backup.gz`:
-  - 7 таблиц созданы через MCP: profiles, rooms, tracks, chat_messages, room_participants, room_queue, track_votes
-  - 12 индексов добавлены для оптимизации foreign keys
-  - 16 RLS политик настроены и оптимизированы с `(select auth.uid())`
-  - Триггер `on_auth_user_created` создан для автоматического создания профилей
-- Исправлена проблема GitHub OAuth:
-  - Добавлена переменная `NEXT_PUBLIC_GITHUB_CLIENT_ID` в `.env`
-  - Создана документация по настройке: GITHUB_OAUTH_SETUP.md, GITHUB_OAUTH_FIX.md
-- Обновлен AGENTS.md до актуальной версии из https://github.com/Ravva/projects-tracker
-- Проверен и исправлен формат Project Deliverables в projectbrief.md:
-  - Заголовки таблицы переведены на английский: ID | Deliverable | Status | Weight
-  - Подтверждена сумма весов: ровно 100
-  - Все статусы соответствуют каноническим значениям: pending, in_progress, completed, blocked
-- Создана полная документация миграции: MIGRATION_REPORT.md, PROJECT_SUMMARY.md
-- Обновлены progress.md и activeContext.md с информацией о текущей сессии
-- Auth-архитектура переведена с NextAuth на Supabase Auth:
-  - добавлен `src/lib/auth-context.tsx` как единый клиентский источник пользователя;
-  - добавлен маршрут `/auth/callback` для завершения OAuth flow;
-  - удален route `api/auth/[...nextauth]` и зависимость `next-auth`;
-  - чат, треки, очередь, комментарии и профиль используют `auth.users.id` как единый UUID пользователя;
-  - в Supabase добавлены `track_comments`, `favorite_rooms`, недостающие индексы и RLS-политики под Supabase Auth.
+## Что выполнено в этой сессии (2026-05-08)
+
+### CSS Design System
+- Создана и подключена единая CSS-система в `src/app/globals.css`.
+- Классы кнопок: `.btn` + варианты `primary`, `secondary`, `success`, `danger`, `ghost`, `outline`, `github` — с градиентами, `inset` highlight, box-shadow и hover-анимацией `translateY(-2px)`.
+- Вспомогательные классы: `.glass-card`, `.form-input`, `.badge` (4 цвета), `.spinner`, `.spinner-lg`.
+- Подключение: добавлен `import './globals.css'` в `src/app/layout.tsx` (ранее файл не импортировался).
+- Убран `tailwindcss` из `postcss.config.js` — пакет не был установлен, вызывал build error.
+
+### Рефакторинг страниц и компонентов
+- `github-button.tsx` — `btn-github btn-lg`, SVG-иконка вынесена отдельно, убраны JS hover-хаки.
+- `auth/signin/page.tsx` — `glass-card`, `btn-secondary`, `btn-ghost btn-sm`, спиннер.
+- `register/page.tsx` — `form-input`, `btn-success btn-lg`, убран `dangerouslySetInnerHTML` со спиннером.
+- `page.tsx` (главная) — `btn-secondary`, `btn-danger`.
+- `rooms/page.tsx` — `btn-primary btn-lg`, `btn-ghost` для отмены, карточки комнат.
+- `rating/page.tsx` — `btn-primary`, `btn-outline`.
+- `room/[id]/page.tsx` — `btn-success btn-lg`, `btn-danger`, `btn-secondary`, `btn-outline`, `btn-primary btn-sm`; аватар участника теперь рендерится как `<img>` а не текст URL.
+- `profile/page.tsx` — таб-кнопки `btn-primary`/`btn-ghost`, `btn-danger`, `btn-success btn-sm`.
+- `music-player.tsx` — `btn-danger`, `btn-ghost` (отмена), `form-input`, `btn-primary btn-sm`.
+- `room-recommendations.tsx` — `btn-secondary` вместо JS hover.
+
+### Карточки комнат (`/rooms`)
+- Полностью переработан дизайн: цветная обложка-шапка с уникальным градиентом на каждую комнату, иконка-плашка поверх обложки, `overflow: hidden`.
+- Структура: cover (90px) → body (название, описание 2 строки, мета) → footer (рейтинг + голоса + кнопка).
+- Исправлен баг `<button>` внутри `<button>`: внешний контейнер карточки стал `<div role="button" tabIndex={0}>` с `onKeyDown`.
+
+### Исправления багов
+- **Аватар участника** в `/room/[id]`: `avatar_url` (URL строка) рендерился как текст в `<span>`. Исправлено на `<img>` с `border-radius: 50%` и фоллбек-плейсхолдер.
+- **Ошибка синхронизации `{}`**: Supabase возвращает ошибки как plain-объект без `Error.prototype`. Добавлена функция `toError()` в `supabase.ts`, все `throw error` заменены на `throw toError(error)`.
+- **`loadSyncedRoomState`**: заменён `Promise.all` на `Promise.allSettled` — падение одного запроса (очередь/воспроизведение/комментарии) больше не блокирует открытие комнаты.
 
 ## Актуальная картина системы
-- Приложение построено на Next.js App Router и использует маршруты `/`, `/rooms`, `/room/[id]`, `/rating`, `/profile`, `/register`, `/auth/signin`, `/auth/callback`, `/auth/error`.
-- Серверные route handlers сведены к вспомогательным API вроде `src/app/api/recommendations/route.ts`; пользовательские записи теперь идут через Supabase Auth/RLS.
-- Доступ к данным Supabase и обертки для работы с комнатами, очередью и профилями сосредоточены в `src/lib/supabase.ts`, а auth-состояние — в `src/lib/auth-context.tsx`.
-- Основное состояние комнаты теперь синхронизируется через Supabase, а `localStorage` остается fallback-слоем для demo-режима и локальных комментариев.
-
-## Активные решения
-- Реальная синхронизация комнаты строится на `tracks`, `room_queue`, `rooms.current_track_id` и `rooms.is_playing`.
-- Источник трека задается в `tracks.source_type`: `youtube` использует iframe-воспроизведение, `audio_url` использует встроенный HTML audio player.
-- Комментарии к трекам в Supabase-режиме хранятся в `track_comments` и записываются напрямую через Supabase Auth/RLS, а в demo-режиме остаются локальными.
-- Страница комнаты различает серверные UUID-комнаты и старые локальные demo-комнаты с числовыми id.
-- Для newly created room ownership используется дополнительная локальная метка `ownedRoomIds`, чтобы не показывать владельцу лишнее действие присоединения.
-- Demo-режим сохраняется как fallback, но основная логика комнаты должна работать через Supabase.
-- Realtime используется для комнаты и чата, а не только для уведомлений.
-- Supabase Auth-сессия несет `auth.users.id`, который совпадает с `profiles.id` и используется во всех FK-связях пользовательских таблиц.
-- Вставки в `tracks`, `room_queue`, `chat_messages` и `track_comments` теперь пишут реальный user id и проходят RLS.
-- Канонический пакетный менеджер проекта зафиксирован как `bun`; наличие `pnpm-lock.yaml` считается техническим долгом до отдельной уборки.
+- Приложение: Next.js 16.1.6 App Router, маршруты `/`, `/rooms`, `/room/[id]`, `/rating`, `/profile`, `/register`, `/auth/signin`, `/auth/callback`.
+- Стили: глобальные CSS-классы в `src/app/globals.css`, подключены через `layout.tsx`. PostCSS без плагинов (tailwind не установлен).
+- Данные: `src/lib/supabase.ts` — все API с нормализацией ошибок через `toError()`.
+- Auth: `src/lib/auth-context.tsx` — Supabase Auth, GitHub OAuth.
 
 ## Открытые вопросы и риски
 - YouTube `iframe` ограничивает точную синхронизацию таймкода между участниками.
-- У комментариев к трекам пока нет сценариев редактирования и удаления.
-- Исторические сессии NextAuth и cookies могут потребовать очистки браузера после перехода на Supabase Auth.
-- До добавления политик для `rooms` и `room_participants` баннер demo-режима мог ошибочно сообщать, что Supabase не подключен, хотя реальной причиной была ошибка доступа к таблицам.
-
-## Следующее действие
-- Перезапустить dev-сервер и протестировать полный цикл: регистрация через GitHub → создание комнаты → добавление треков → чат.
-- Проверить автоматическое создание профиля при первой регистрации через GitHub.
-- Проверить работу RLS политик для разных пользователей.
-- Удалить временные файлы миграции и документации при необходимости.
-- Рассмотреть удаление `pnpm-lock.yaml` как технический долг.
-- Проверить работу приложения на мобильных устройствах.
+- У комментариев к трекам нет редактирования и удаления.
+- В корне присутствует `pnpm-lock.yaml` (технический долг — удалить при случае).
+- После перехода на Supabase Auth старые cookies/сессии NextAuth могут требовать очистки браузера.

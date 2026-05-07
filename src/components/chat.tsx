@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 interface Message {
@@ -22,7 +22,7 @@ interface ChatProps {
 }
 
 export function Chat({ roomId, isOpen = true }: ChatProps) {
-	const { data: session } = useSession();
+	const { user } = useAuth();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -92,25 +92,26 @@ export function Chat({ roomId, isOpen = true }: ChatProps) {
 	};
 
 	const sendMessage = async () => {
-		if (!newMessage.trim() || !session?.user) return;
+		if (!newMessage.trim() || !user) return;
 
-		const userId = (session.user as { id?: string }).id;
+		const userId = user.id;
 		if (!userId) return;
 
 		try {
 			setSending(true);
 
-			await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					roomId,
-					userId,
-					message: newMessage,
-				}),
-			});
+			const { error } = await supabase.from("chat_messages").insert([
+				{
+					room_id: roomId,
+					user_id: userId,
+					message: newMessage.trim(),
+				},
+			]);
+
+			if (error) throw error;
 
 			setNewMessage("");
+			void loadMessages(false);
 		} catch (error) {
 			console.error("Failed to send message:", error);
 		} finally {
@@ -227,9 +228,7 @@ export function Chat({ roomId, isOpen = true }: ChatProps) {
 					</div>
 				) : (
 					messages.map((message) => {
-						const isOwnMessage =
-							session?.user &&
-							(session.user as { id?: string }).id === message.user_id;
+						const isOwnMessage = user?.id === message.user_id;
 
 						return (
 							<div
@@ -284,7 +283,7 @@ export function Chat({ roomId, isOpen = true }: ChatProps) {
 				<div ref={messagesEndRef} />
 			</div>
 
-			{session ? (
+			{user ? (
 				<div
 					style={{
 						padding: "0.75rem",

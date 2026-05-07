@@ -1,7 +1,7 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
+import { getUserDisplayName, useAuth } from "@/lib/auth-context";
 
 interface GitHubButtonProps {
 	mode: "login" | "register";
@@ -10,7 +10,7 @@ interface GitHubButtonProps {
 
 export function GitHubButton({ mode, className = "" }: GitHubButtonProps) {
 	const [isLoading, setIsLoading] = useState(false);
-	const { data: session } = useSession();
+	const { user, signInWithGitHub } = useAuth();
 
 	// Проверяем, настроен ли GitHub OAuth
 	const isGitHubConfigured =
@@ -26,18 +26,7 @@ export function GitHubButton({ mode, className = "" }: GitHubButtonProps) {
 		setIsLoading(true);
 
 		try {
-			const result = await signIn("github", {
-				callbackUrl: "/",
-				redirect: false,
-			});
-
-			if (result?.error) {
-				alert(
-					`Ошибка ${mode === "login" ? "входа" : "регистрации"}: ${result.error}`,
-				);
-			} else if (result?.url) {
-				window.location.href = result.url;
-			}
+			await signInWithGitHub();
 		} catch (error) {
 			console.error("GitHub auth error:", error);
 			alert("Ошибка при подключении к GitHub");
@@ -47,7 +36,7 @@ export function GitHubButton({ mode, className = "" }: GitHubButtonProps) {
 	};
 
 	// Если пользователь уже авторизован
-	if (session) {
+	if (user) {
 		return (
 			<div
 				style={{
@@ -59,7 +48,7 @@ export function GitHubButton({ mode, className = "" }: GitHubButtonProps) {
 					color: "#22c55e",
 				}}
 			>
-				✅ Вы вошли как {session.user?.name || session.user?.email}
+				✅ Вы вошли как {getUserDisplayName(user)}
 			</div>
 		);
 	}

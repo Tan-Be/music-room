@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import {
 	isSupabaseConfigured,
 	queueApi,
@@ -133,7 +133,7 @@ export default function MusicPlayer({
 	roomParticipants,
 	roomOwnerId,
 }: MusicPlayerProps) {
-	const { data: session } = useSession();
+	const { user } = useAuth();
 	const [queueItems, setQueueItems] = useState<RoomQueueItem[]>([]);
 	const [demoTracks, setDemoTracks] = useState<DemoTrack[]>([]);
 	const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
@@ -152,9 +152,7 @@ export default function MusicPlayer({
 		string | null
 	>(null);
 
-	const userId = session?.user
-		? ((session.user as { id?: string }).id ?? null)
-		: null;
+	const userId = user?.id ?? null;
 	const isOwner = userId === roomOwnerId;
 	const isParticipant =
 		!roomParticipants ||
@@ -421,25 +419,20 @@ export default function MusicPlayer({
 
 			try {
 				setSubmittingCommentTrackId(trackId);
-				const response = await fetch("/api/track-comments", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						roomId,
-						trackId,
-						userId,
-						comment: commentText,
-					}),
-				});
+				const { data: createdComment, error } = await supabase
+					.from("track_comments")
+					.insert([
+						{
+							room_id: roomId,
+							track_id: trackId,
+							user_id: userId,
+							comment: commentText.trim(),
+						},
+					])
+					.select("*, profiles(username, avatar_url)")
+					.single();
 
-				if (!response.ok) {
-					throw new Error("Failed to send comment");
-				}
-
-				const data = (await response.json()) as {
-					comment?: SyncedComment;
-				};
-				const createdComment = data.comment;
+				if (error) throw error;
 
 				if (createdComment) {
 					setSyncedComments((previous) => ({

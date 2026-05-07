@@ -2,25 +2,26 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { getSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { GitHubButton } from "@/components/auth/github-button";
 import { AnimatedBackground } from "@/components/common/animated-background";
+import { useAuth } from "@/lib/auth-context";
 
 export default function SignInPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const router = useRouter();
+	const { user, loading } = useAuth();
 
 	useEffect(() => {
-		// Проверяем, авторизован ли пользователь
-		getSession().then((session) => {
-			if (session) {
-				router.push("/");
-			} else {
-				setIsLoading(false);
-			}
-		});
-	}, [router]);
+		if (loading) return;
+
+		if (user) {
+			router.push("/");
+			return;
+		}
+
+		setIsLoading(false);
+	}, [loading, router, user]);
 
 	if (isLoading) {
 		return (
@@ -109,13 +110,13 @@ export default function SignInPage() {
 									height={96}
 									priority
 									style={{
-									width: "100%",
-									height: "100%",
-									display: "block",
-									objectFit: "contain",
-									backgroundColor: "rgba(15, 23, 42, 0.96)",
-								}}
-							/>
+										width: "100%",
+										height: "100%",
+										display: "block",
+										objectFit: "contain",
+										backgroundColor: "rgba(15, 23, 42, 0.96)",
+									}}
+								/>
 							</div>
 						</div>
 					</div>

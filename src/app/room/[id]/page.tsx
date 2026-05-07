@@ -1,12 +1,12 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { Chat } from "@/components/chat";
 import { AnimatedBackground } from "@/components/common/animated-background";
 import MusicPlayer from "@/components/music-player";
+import { getUserDisplayName, useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured, roomsApi, supabase } from "@/lib/supabase";
 
 interface RoomParticipant {
@@ -43,7 +43,7 @@ const isUuid = (value: string) =>
 export default function RoomPage() {
 	const params = useParams();
 	const searchParams = useSearchParams();
-	const { data: session } = useSession();
+	const { user } = useAuth();
 	const [room, setRoom] = useState<Room | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -59,10 +59,8 @@ export default function RoomPage() {
 		typeof window !== "undefined"
 			? `${window.location.origin}/room/${roomId}`
 			: "";
-	const userId = session?.user
-		? ((session.user as { id?: string }).id ?? null)
-		: null;
-	const userName = session?.user?.name ?? null;
+	const userId = user?.id ?? null;
+	const userName = getUserDisplayName(user);
 
 	useEffect(() => {
 		if (ownerFlag !== "1") {
@@ -453,7 +451,7 @@ export default function RoomPage() {
 					</div>
 
 					<div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-						{!isOwner && !isParticipant && !isDemoMode && session && (
+						{!isOwner && !isParticipant && !isDemoMode && user && (
 							<button
 								type="button"
 								onClick={async () => {
@@ -478,7 +476,7 @@ export default function RoomPage() {
 								🎯 Присоединиться
 							</button>
 						)}
-						{!isOwner && isParticipant && !isDemoMode && session && (
+						{!isOwner && isParticipant && !isDemoMode && user && (
 							<button
 								type="button"
 								onClick={() => void handleLeaveRoom()}

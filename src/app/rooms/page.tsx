@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AnimatedBackground } from "@/components/common/animated-background";
+import { getUserDisplayName, useAuth } from "@/lib/auth-context";
 import { isSupabaseConfigured, roomsApi, supabase } from "@/lib/supabase";
 
 interface Room {
@@ -18,8 +18,18 @@ interface Room {
 	dislikes?: number;
 }
 
+interface PublicRoomRecord {
+	id: string;
+	name: string;
+	description: string | null;
+	room_participants?: unknown[] | null;
+	is_public: boolean;
+	profiles?: { username?: string | null } | null;
+	created_at: string;
+}
+
 export default function RoomsPage() {
-	const { data: session } = useSession();
+	const { user } = useAuth();
 	const [rooms, setRooms] = useState<Room[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -55,6 +65,7 @@ export default function RoomsPage() {
 	};
 
 	// Загрузка комнат и голосов при монтировании компонента
+	// biome-ignore lint/correctness/useExhaustiveDependencies: initial room load should run once on mount.
 	useEffect(() => {
 		// Загружаем голоса пользователя
 		const savedVotes = localStorage.getItem("userVotes");
@@ -99,7 +110,7 @@ export default function RoomsPage() {
 			}
 
 			// Пробуем загрузить из Supabase
-			let data;
+			let data: PublicRoomRecord[];
 			try {
 				data = await roomsApi.getPublicRooms();
 			} catch (supabaseError) {
@@ -114,7 +125,7 @@ export default function RoomsPage() {
 			}
 
 			// Преобразуем данные в нужный формат
-			const formattedRooms: Room[] = data.map((room: any) => ({
+			const formattedRooms: Room[] = data.map((room) => ({
 				id: room.id,
 				name: room.name,
 				description: room.description,
@@ -236,7 +247,7 @@ export default function RoomsPage() {
 			return;
 		}
 
-		if (!session?.user) {
+		if (!user) {
 			alert("Необходимо войти в систему для создания комнаты");
 			return;
 		}
@@ -249,7 +260,7 @@ export default function RoomsPage() {
 				description: newRoom.description || undefined,
 				is_public: newRoom.is_public,
 				password: newRoom.password || undefined,
-				owner_id: (session.user as any).id || "demo-user",
+				owner_id: user.id,
 			};
 
 			const createdRoom = await roomsApi.createRoom(roomData);
@@ -274,7 +285,7 @@ export default function RoomsPage() {
 				description: newRoom.description,
 				participants: 1,
 				is_public: newRoom.is_public,
-				owner: session.user?.name || "Вы",
+				owner: getUserDisplayName(user),
 				rating: 0,
 				likes: 0,
 				dislikes: 0,
@@ -426,10 +437,11 @@ export default function RoomsPage() {
 					</div>
 
 					<button
+						type="button"
 						onClick={() => setShowCreateDialog(true)}
-						disabled={!session}
+						disabled={!user}
 						style={{
-							background: session
+							background: user
 								? "linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)"
 								: "rgba(107, 114, 128, 0.5)",
 							color: "white",
@@ -437,29 +449,27 @@ export default function RoomsPage() {
 							padding: "1rem 2rem",
 							borderRadius: "12px",
 							fontSize: "1.1rem",
-							cursor: session ? "pointer" : "not-allowed",
-							boxShadow: session
-								? "0 8px 25px rgba(139, 92, 246, 0.4)"
-								: "none",
+							cursor: user ? "pointer" : "not-allowed",
+							boxShadow: user ? "0 8px 25px rgba(139, 92, 246, 0.4)" : "none",
 							transition: "all 0.3s ease",
-							opacity: session ? 1 : 0.6,
+							opacity: user ? 1 : 0.6,
 						}}
 						onMouseEnter={(e) => {
-							if (session) {
+							if (user) {
 								e.currentTarget.style.transform = "translateY(-3px)";
 								e.currentTarget.style.boxShadow =
 									"0 12px 35px rgba(139, 92, 246, 0.6)";
 							}
 						}}
 						onMouseLeave={(e) => {
-							if (session) {
+							if (user) {
 								e.currentTarget.style.transform = "translateY(0)";
 								e.currentTarget.style.boxShadow =
 									"0 8px 25px rgba(139, 92, 246, 0.4)";
 							}
 						}}
 					>
-						{session ? "✨ Создать комнату" : "🔒 Войдите для создания"}
+						{user ? "✨ Создать комнату" : "🔒 Войдите для создания"}
 					</button>
 				</div>
 
@@ -507,8 +517,9 @@ export default function RoomsPage() {
 						<p style={{ color: "#a1a1aa", marginBottom: "2rem" }}>
 							Станьте первым, кто создаст музыкальную комнату!
 						</p>
-						{session && (
+						{user && (
 							<button
+								type="button"
 								onClick={() => setShowCreateDialog(true)}
 								style={{
 									background:
@@ -536,9 +547,13 @@ export default function RoomsPage() {
 						}}
 					>
 						{getSortedRooms().map((room, index) => (
-							<div
+							<button
+								type="button"
 								key={room.id}
 								style={{
+									width: "100%",
+									textAlign: "left",
+									color: "inherit",
 									border: "2px solid rgba(139, 92, 246, 0.2)",
 									borderRadius: "16px",
 									padding: "1.5rem",
@@ -602,6 +617,7 @@ export default function RoomsPage() {
 											{room.is_public ? "🌍 Публичная" : "🔒 Приватная"}
 										</div>
 										<button
+											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
 												handleDeleteRoom(room.id, room.name);
@@ -674,7 +690,7 @@ export default function RoomsPage() {
 											gap: "0.5rem",
 										}}
 									>
-										{session?.user?.name === room.owner ? (
+										{getUserDisplayName(user) === room.owner ? (
 											<span
 												style={{
 													padding: "0.5rem 0.75rem",
@@ -688,6 +704,7 @@ export default function RoomsPage() {
 										) : (
 											<>
 												<button
+													type="button"
 													onClick={(e) => {
 														e.stopPropagation();
 														handleVote(room.id, "like");
@@ -712,6 +729,7 @@ export default function RoomsPage() {
 												</button>
 
 												<button
+													type="button"
 													onClick={(e) => {
 														e.stopPropagation();
 														handleVote(room.id, "dislike");
@@ -762,6 +780,7 @@ export default function RoomsPage() {
 									</div>
 
 									<button
+										type="button"
 										style={{
 											background:
 												"linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
@@ -792,7 +811,7 @@ export default function RoomsPage() {
 										Присоединиться
 									</button>
 								</div>
-							</div>
+							</button>
 						))}
 					</div>
 				)}
@@ -876,6 +895,7 @@ export default function RoomsPage() {
 
 						<div style={{ marginBottom: "1.5rem" }}>
 							<label
+								htmlFor="room-name"
 								style={{
 									display: "block",
 									marginBottom: "0.5rem",
@@ -886,6 +906,7 @@ export default function RoomsPage() {
 								Название комнаты *
 							</label>
 							<input
+								id="room-name"
 								type="text"
 								value={newRoom.name}
 								onChange={(e) =>
@@ -914,6 +935,7 @@ export default function RoomsPage() {
 
 						<div style={{ marginBottom: "1.5rem" }}>
 							<label
+								htmlFor="room-description"
 								style={{
 									display: "block",
 									marginBottom: "0.5rem",
@@ -924,6 +946,7 @@ export default function RoomsPage() {
 								Описание
 							</label>
 							<textarea
+								id="room-description"
 								value={newRoom.description}
 								onChange={(e) =>
 									setNewRoom({ ...newRoom, description: e.target.value })
@@ -980,6 +1003,7 @@ export default function RoomsPage() {
 
 						<div style={{ display: "flex", gap: "1rem" }}>
 							<button
+								type="button"
 								onClick={() => setShowCreateDialog(false)}
 								disabled={creating}
 								style={{
@@ -1015,6 +1039,7 @@ export default function RoomsPage() {
 							</button>
 
 							<button
+								type="button"
 								onClick={handleCreateRoom}
 								disabled={creating}
 								style={{

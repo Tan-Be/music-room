@@ -6,9 +6,9 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `caab51dd0ec6ebc9263ca117bb1708651a434965`
-- last_checked_date: `2026-04-07`
-- status: synchronized with repository snapshot after bun package manager alignment and memory bank refresh
+- last_checked_commit: `e99f14119926a77dbc8279ad4c713fe3c7b34bf5`
+- last_checked_date: `2026-05-07`
+- status: synchronized after Supabase database migration and GitHub OAuth configuration
 
 ## Что подтверждено
 - Страница комнаты поддерживает явный выход участника: `Покинуть комнату` удаляет текущего пользователя из `room_participants`, если он не владелец комнаты.
@@ -39,6 +39,20 @@
 - Если в реальной базе не применены политики для `rooms` и `room_participants`, UI может уйти в demo fallback даже при корректных env-переменных Supabase.
 
 ## Changelog
+### 2026-05-07
+- Выполнена полная миграция базы данных на новый Supabase проект (whpaliaipaiyeuflzecy).
+- Восстановлены 7 таблиц из бэкапа: profiles, rooms, tracks, chat_messages, room_participants, room_queue, track_votes.
+- Настроены 16 RLS политик для безопасного доступа к данным.
+- Добавлены 12 индексов для оптимизации производительности foreign keys.
+- Создан триггер `on_auth_user_created` для автоматического создания профилей при регистрации.
+- Исправлена проблема GitHub OAuth: добавлена переменная `NEXT_PUBLIC_GITHUB_CLIENT_ID` в `.env`.
+- Обновлен `AGENTS.md` до актуальной версии из projects-tracker.
+- Исправлен формат таблицы Project Deliverables в `projectbrief.md`: заголовки переведены на английский (ID | Deliverable | Status | Weight).
+- Проверена сумма весов deliverables: подтверждено ровно 100.
+- Настроен Supabase MCP и выполнена OAuth-аутентификация.
+- Установлены Supabase Agent Skills.
+- Создана документация: MIGRATION_REPORT.md, GITHUB_OAUTH_SETUP.md, GITHUB_OAUTH_FIX.md, PROJECT_SUMMARY.md.
+
 ### 2026-04-07
 - На странице комнаты добавлена кнопка `Покинуть комнату` для участника, не являющегося владельцем.
 - Добавлена поддержка второго источника треков в комнате: прямые публичные аудио-ссылки сохраняются через `tracks.source_type` / `tracks.audio_url` и воспроизводятся через HTML audio player.

@@ -6,7 +6,7 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `2d3f16f`
+- last_checked_commit: `2e20118`
 - last_checked_date: `2026-05-19`
 - status: synchronized after AGENTS.md refresh and Project Deliverables validation
 

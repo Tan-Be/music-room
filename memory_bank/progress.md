@@ -6,9 +6,9 @@
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
-- last_checked_commit: `8a82232`
-- last_checked_date: `2026-05-08`
-- status: synchronized after UI refactoring, room cards redesign and bug fixes
+- last_checked_commit: `2d3f16f`
+- last_checked_date: `2026-05-19`
+- status: synchronized after AGENTS.md refresh and Project Deliverables validation
 
 ## Что подтверждено
 - Страница комнаты поддерживает явный выход участника: `Покинуть комнату` удаляет текущего пользователя из `room_participants`, если он не владелец комнаты.
@@ -43,6 +43,13 @@
 - После перехода на Supabase Auth старые cookies/сессии NextAuth в браузере могут требовать очистки или повторного входа.
 
 ## Changelog
+### 2026-05-19 — Memory Bank Deliverables Validation
+- Скачана и применена актуальная инструкция `AGENTS.md` из `Ravva/projects-tracker`.
+- Проверен `memory_bank/projectbrief.md`: обязательный раздел `## Project Deliverables` присутствует, таблица использует колонки `ID | Deliverable | Status | Weight`.
+- Подтверждены канонические статусы deliverables: `completed` и `in_progress`; недопустимых переводов, синонимов или свободных формулировок нет.
+- Выполнена арифметическая самопроверка суммы Weight по фактическим строкам: `15 + 20 + 20 + 20 + 15 + 10 = 100`.
+- Канонический процент готовности остается 80%, так как completed-вес равен `15 + 20 + 20 + 15 + 10 = 80`.
+
 ### 2026-05-08 — UI Refactoring & Bug Fixes
 - Создана единая CSS design system в `src/app/globals.css`: кнопки (7 вариантов + 3 размера), `.glass-card`, `.form-input`, `.badge`, `.spinner`.
 - Подключён `globals.css` в `layout.tsx` — ранее файл не импортировался (все стили не применялись).

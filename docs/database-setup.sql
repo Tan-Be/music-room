@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS public.room_queue (
 -- Поля текущего воспроизведения в rooms используются клиентом для синхронизации.
 ALTER TABLE IF EXISTS public.rooms
   ADD COLUMN IF NOT EXISTS current_track_id UUID,
-  ADD COLUMN IF NOT EXISTS is_playing BOOLEAN NOT NULL DEFAULT FALSE;
+  ADD COLUMN IF NOT EXISTS is_playing BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS playback_position DOUBLE PRECISION NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS playback_updated_at TIMESTAMPTZ DEFAULT NOW();
 
 DO $$
 BEGIN

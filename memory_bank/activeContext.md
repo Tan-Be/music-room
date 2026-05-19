@@ -3,6 +3,7 @@
 **Дата последнего обновления**: 2026-05-19
 
 ## Текущий фокус
+- Завершена доработка синхронизации YouTube-плеера с помощью YouTube IFrame API; достигнута 100% готовность всех проектных deliverables.
 - Проверена актуальная инструкция `AGENTS.md` из `Ravva/projects-tracker` и применены правила Memory Bank к текущей синхронизации документации.
 - `memory_bank/projectbrief.md` содержит обязательный раздел `## Project Deliverables` в формате таблицы `ID | Deliverable | Status | Weight`; сумма весов подтверждена как ровно 100.
 - Завершён масштабный UI-рефакторинг: единая CSS design system, современные карточки комнат, исправлены баги (кнопка в кнопке, аватар как текст, ошибка синхронизации).
@@ -10,9 +11,13 @@
 
 ## Что выполнено в этой сессии (2026-05-19)
 - Скачана и использована актуальная версия правил `AGENTS.md` из `https://github.com/Ravva/projects-tracker/blob/main/AGENTS.md`.
-- Проверен раздел `## Project Deliverables` в `memory_bank/projectbrief.md`: таблица имеет колонки `ID | Deliverable | Status | Weight`, статусы используют канонические значения.
+- Расширен `RoomPlaybackState` и Supabase API-обертки в `src/lib/supabase.ts` для поддержки полей `playback_position` и `playback_updated_at`.
+- Обновлена база данных и SQL-схема `docs/database-setup.sql` с добавлением новых колонок.
+- Создан новый React-компонент `YouTubeSyncPlayer` с использованием YouTube IFrame API для точной синхронизации play/pause/seek.
+- Интегрирован `YouTubeSyncPlayer` в `src/components/music-player.tsx`, поддерживая автоматическую синхронизацию для участников и обратную передачу состояния от владельца комнаты.
+- Проверен раздел `## Project Deliverables` в `memory_bank/projectbrief.md`: таблица имеет колонки `ID | Deliverable | Status | Weight`, все задачи имеют статус `completed`.
 - Выполнена явная арифметическая самопроверка весов deliverables: `15 + 20 + 20 + 20 + 15 + 10 = 100`.
-- Memory Bank обновлён под текущую документационную синхронизацию без изменения проектного scope и без изменения архитектуры.
+- Проверен проект через `bun run type-check` и `Biome lint/format`, достигнута полная работоспособность без ошибок.
 
 ## Что выполнено в этой сессии (2026-05-08)
 

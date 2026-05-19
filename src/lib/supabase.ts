@@ -5,174 +5,187 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Нормализует любую supabase-ошибку в стандартный Error
 function toError(err: unknown): Error {
-  if (err instanceof Error) return err;
-  if (err && typeof err === "object") {
-    const e = err as Record<string, unknown>;
-    const msg =
-      (e.message as string) ||
-      (e.code as string) ||
-      (e.details as string) ||
-      JSON.stringify(err);
-    return new Error(msg);
-  }
-  return new Error(String(err));
+	if (err instanceof Error) return err;
+	if (err && typeof err === "object") {
+		const e = err as Record<string, unknown>;
+		const msg =
+			(e.message as string) ||
+			(e.code as string) ||
+			(e.details as string) ||
+			JSON.stringify(err);
+		return new Error(msg);
+	}
+	return new Error(String(err));
 }
 
 export const isSupabaseConfigured = (): boolean => {
-  return !!(
-    supabaseUrl &&
-    supabaseAnonKey &&
-    supabaseUrl !== "your_supabase_url" &&
-    supabaseUrl !== "https://your-project.supabase.co" &&
-    supabaseUrl.startsWith("https://")
-  );
+	return !!(
+		supabaseUrl &&
+		supabaseAnonKey &&
+		supabaseUrl !== "your_supabase_url" &&
+		supabaseUrl !== "https://your-project.supabase.co" &&
+		supabaseUrl.startsWith("https://")
+	);
 };
 
 if (!isSupabaseConfigured()) {
-  console.warn(
-    "Supabase не настроен. Установите NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY в .env.local",
-  );
+	console.warn(
+		"Supabase не настроен. Установите NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY в .env.local",
+	);
 }
 
 export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
 
 export interface Room {
-  id: string;
-  name: string;
-  description: string | null;
-  is_public: boolean;
-  password_hash: string | null;
-  max_participants: number;
-  owner_id: string;
-  current_track_id: string | null;
-  is_playing: boolean;
-  created_at: string;
-  updated_at: string;
+	id: string;
+	name: string;
+	description: string | null;
+	is_public: boolean;
+	password_hash: string | null;
+	max_participants: number;
+	owner_id: string;
+	current_track_id: string | null;
+	is_playing: boolean;
+	playback_position: number;
+	playback_updated_at: string | null;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface Profile {
-  id: string;
-  username: string;
-  avatar_url: string | null;
-  spotify_id: string | null;
-  tracks_added_today: number;
-  last_track_date: string;
-  created_at: string;
-  updated_at: string;
+	id: string;
+	username: string;
+	avatar_url: string | null;
+	spotify_id: string | null;
+	tracks_added_today: number;
+	last_track_date: string;
+	created_at: string;
+	updated_at: string;
 }
 
 export interface TrackRecord {
-  id: string;
-  title: string;
-  artist: string;
-  duration: number | null;
-  spotify_id: string | null;
-  source_type: "youtube" | "audio_url";
-  youtube_id: string | null;
-  audio_url: string | null;
-  thumbnail_url: string | null;
-  added_by: string | null;
-  created_at: string;
+	id: string;
+	title: string;
+	artist: string;
+	duration: number | null;
+	spotify_id: string | null;
+	source_type: "youtube" | "audio_url";
+	youtube_id: string | null;
+	audio_url: string | null;
+	thumbnail_url: string | null;
+	added_by: string | null;
+	created_at: string;
 }
 
 export interface RoomQueueItem {
-  id: string;
-  room_id: string;
-  track_id: string;
-  added_by: string | null;
-  position: number;
-  votes_up: number;
-  votes_down: number;
-  added_at: string;
-  tracks: TrackRecord | null;
+	id: string;
+	room_id: string;
+	track_id: string;
+	added_by: string | null;
+	position: number;
+	votes_up: number;
+	votes_down: number;
+	added_at: string;
+	tracks: TrackRecord | null;
 }
 
 export interface RoomPlaybackState {
-  current_track_id: string | null;
-  is_playing: boolean;
+	current_track_id: string | null;
+	is_playing: boolean;
+	playback_position: number;
+	playback_updated_at: string | null;
 }
 
+const normalizePlaybackState = (
+	state: Partial<RoomPlaybackState> | null | undefined,
+): RoomPlaybackState => ({
+	current_track_id: state?.current_track_id ?? null,
+	is_playing: Boolean(state?.is_playing),
+	playback_position: Number(state?.playback_position ?? 0),
+	playback_updated_at: state?.playback_updated_at ?? null,
+});
+
 interface RoomQueueRow {
-  id: string;
-  room_id: string;
-  track_id: string;
-  added_by: string | null;
-  position: number;
-  votes_up: number;
-  votes_down: number;
-  added_at: string;
-  tracks: TrackRecord[] | TrackRecord | null;
+	id: string;
+	room_id: string;
+	track_id: string;
+	added_by: string | null;
+	position: number;
+	votes_up: number;
+	votes_down: number;
+	added_at: string;
+	tracks: TrackRecord[] | TrackRecord | null;
 }
 
 export const roomsApi = {
-  async getPublicRooms() {
-    if (!isSupabaseConfigured()) {
-      throw new Error(
-        "Supabase не настроен. Проверьте переменные окружения NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      );
-    }
+	async getPublicRooms() {
+		if (!isSupabaseConfigured()) {
+			throw new Error(
+				"Supabase не настроен. Проверьте переменные окружения NEXT_PUBLIC_SUPABASE_URL и NEXT_PUBLIC_SUPABASE_ANON_KEY",
+			);
+		}
 
-    const { data, error } = await supabase
-      .from("rooms")
-      .select(
-        `
+		const { data, error } = await supabase
+			.from("rooms")
+			.select(
+				`
           *,
           profiles:owner_id (username),
           room_participants (id)
         `,
-      )
-      .eq("is_public", true)
-      .order("created_at", { ascending: false });
+			)
+			.eq("is_public", true)
+			.order("created_at", { ascending: false });
 
-    if (error) {
-      throw new Error(
-        error.message || error.code || "Ошибка при загрузке комнат",
-      );
-    }
+		if (error) {
+			throw new Error(
+				error.message || error.code || "Ошибка при загрузке комнат",
+			);
+		}
 
-    return data || [];
-  },
+		return data || [];
+	},
 
-  async createRoom(roomData: {
-    name: string;
-    description?: string;
-    is_public: boolean;
-    password?: string;
-    owner_id: string;
-  }) {
-    const { data, error } = await supabase
-      .from("rooms")
-      .insert([
-        {
-          name: roomData.name,
-          description: roomData.description || null,
-          is_public: roomData.is_public,
-          password_hash: roomData.password || null,
-          owner_id: roomData.owner_id,
-          max_participants: 10,
-        },
-      ])
-      .select()
-      .single();
+	async createRoom(roomData: {
+		name: string;
+		description?: string;
+		is_public: boolean;
+		password?: string;
+		owner_id: string;
+	}) {
+		const { data, error } = await supabase
+			.from("rooms")
+			.insert([
+				{
+					name: roomData.name,
+					description: roomData.description || null,
+					is_public: roomData.is_public,
+					password_hash: roomData.password || null,
+					owner_id: roomData.owner_id,
+					max_participants: 10,
+				},
+			])
+			.select()
+			.single();
 
-    if (error) throw toError(error);
+		if (error) throw toError(error);
 
-    await supabase.from("room_participants").insert([
-      {
-        room_id: data.id,
-        user_id: roomData.owner_id,
-        role: "owner",
-      },
-    ]);
+		await supabase.from("room_participants").insert([
+			{
+				room_id: data.id,
+				user_id: roomData.owner_id,
+				role: "owner",
+			},
+		]);
 
-    return data;
-  },
+		return data;
+	},
 
-  async getRoomById(roomId: string) {
-    const { data, error } = await supabase
-      .from("rooms")
-      .select(
-        `
+	async getRoomById(roomId: string) {
+		const { data, error } = await supabase
+			.from("rooms")
+			.select(
+				`
           *,
           profiles:owner_id (username),
           room_participants (
@@ -183,79 +196,87 @@ export const roomsApi = {
             profiles:user_id (username, avatar_url)
           )
         `,
-      )
-      .eq("id", roomId)
-      .single();
+			)
+			.eq("id", roomId)
+			.single();
 
-    if (error) {
-      throw new Error(error.message || "Ошибка базы данных");
-    }
+		if (error) {
+			throw new Error(error.message || "Ошибка базы данных");
+		}
 
-    return data;
-  },
+		return data;
+	},
 
-  async joinRoom(roomId: string, userId: string) {
-    const { data, error } = await supabase
-      .from("room_participants")
-      .insert([
-        {
-          room_id: roomId,
-          user_id: userId,
-          role: "member",
-        },
-      ])
-      .select()
-      .single();
+	async joinRoom(roomId: string, userId: string) {
+		const { data, error } = await supabase
+			.from("room_participants")
+			.insert([
+				{
+					room_id: roomId,
+					user_id: userId,
+					role: "member",
+				},
+			])
+			.select()
+			.single();
 
-    if (error) throw toError(error);
-    return data;
-  },
+		if (error) throw toError(error);
+		return data;
+	},
 
-  async leaveRoom(roomId: string, userId: string) {
-    const { error } = await supabase
-      .from("room_participants")
-      .delete()
-      .eq("room_id", roomId)
-      .eq("user_id", userId);
+	async leaveRoom(roomId: string, userId: string) {
+		const { error } = await supabase
+			.from("room_participants")
+			.delete()
+			.eq("room_id", roomId)
+			.eq("user_id", userId);
 
-    if (error) throw toError(error);
-  },
+		if (error) throw toError(error);
+	},
 
-  async getPlaybackState(roomId: string): Promise<RoomPlaybackState> {
-    const { data, error } = await supabase
-      .from("rooms")
-      .select("current_track_id, is_playing")
-      .eq("id", roomId)
-      .single();
+	async getPlaybackState(roomId: string): Promise<RoomPlaybackState> {
+		const { data, error } = await supabase
+			.from("rooms")
+			.select(
+				"current_track_id, is_playing, playback_position, playback_updated_at",
+			)
+			.eq("id", roomId)
+			.single();
 
-    if (error) throw toError(error);
+		if (error) throw toError(error);
 
-    return {
-      current_track_id: data?.current_track_id ?? null,
-      is_playing: Boolean(data?.is_playing),
-    };
-  },
+		return normalizePlaybackState(data);
+	},
 
-  async setPlaybackState(roomId: string, state: RoomPlaybackState) {
-    const { error } = await supabase
-      .from("rooms")
-      .update({
-        current_track_id: state.current_track_id,
-        is_playing: state.is_playing,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", roomId);
+	async setPlaybackState(
+		roomId: string,
+		state: Partial<RoomPlaybackState> & Pick<RoomPlaybackState, "is_playing">,
+	) {
+		const normalizedState = normalizePlaybackState(state);
+		const playbackUpdatedAt =
+			normalizedState.playback_updated_at ?? new Date().toISOString();
 
-    if (error) throw toError(error);
-  },
+		const { error } = await supabase
+			.from("rooms")
+			.update({
+				current_track_id: normalizedState.current_track_id,
+				is_playing: normalizedState.is_playing,
+				playback_position: normalizedState.playback_position,
+				playback_updated_at: playbackUpdatedAt,
+				updated_at: new Date().toISOString(),
+			})
+			.eq("id", roomId);
+
+		if (error) throw toError(error);
+	},
 };
 
 export const queueApi = {
-  async getQueue(roomId: string): Promise<RoomQueueItem[]> {
-    const { data, error } = await supabase
-      .from("room_queue")
-      .select(
-        `
+	async getQueue(roomId: string): Promise<RoomQueueItem[]> {
+		const { data, error } = await supabase
+			.from("room_queue")
+			.select(
+				`
         id,
         room_id,
         track_id,
@@ -278,149 +299,149 @@ export const queueApi = {
           created_at
         )
       `,
-      )
-      .eq("room_id", roomId)
-      .order("position", { ascending: true });
+			)
+			.eq("room_id", roomId)
+			.order("position", { ascending: true });
 
-    if (error) throw toError(error);
+		if (error) throw toError(error);
 
-    const rows = (data || []) as RoomQueueRow[];
+		const rows = (data || []) as RoomQueueRow[];
 
-    return rows.map((item) => ({
-      id: item.id,
-      room_id: item.room_id,
-      track_id: item.track_id,
-      added_by: item.added_by,
-      position: item.position,
-      votes_up: item.votes_up,
-      votes_down: item.votes_down,
-      added_at: item.added_at,
-      tracks: Array.isArray(item.tracks)
-        ? (item.tracks[0] ?? null)
-        : (item.tracks ?? null),
-    }));
-  },
+		return rows.map((item) => ({
+			id: item.id,
+			room_id: item.room_id,
+			track_id: item.track_id,
+			added_by: item.added_by,
+			position: item.position,
+			votes_up: item.votes_up,
+			votes_down: item.votes_down,
+			added_at: item.added_at,
+			tracks: Array.isArray(item.tracks)
+				? (item.tracks[0] ?? null)
+				: (item.tracks ?? null),
+		}));
+	},
 
-  async addTrack(
-    roomId: string,
-    input: {
-      title: string;
-      artist: string;
-      sourceType: "youtube" | "audio_url";
-      youtubeId?: string | null;
-      audioUrl?: string | null;
-      userId?: string | null;
-    },
-  ) {
-    const { data: positionData, error: positionError } = await supabase
-      .from("room_queue")
-      .select("position")
-      .eq("room_id", roomId)
-      .order("position", { ascending: false })
-      .limit(1);
+	async addTrack(
+		roomId: string,
+		input: {
+			title: string;
+			artist: string;
+			sourceType: "youtube" | "audio_url";
+			youtubeId?: string | null;
+			audioUrl?: string | null;
+			userId?: string | null;
+		},
+	) {
+		const { data: positionData, error: positionError } = await supabase
+			.from("room_queue")
+			.select("position")
+			.eq("room_id", roomId)
+			.order("position", { ascending: false })
+			.limit(1);
 
-    if (positionError) throw positionError;
+		if (positionError) throw positionError;
 
-    const nextPosition = (positionData?.[0]?.position ?? -1) + 1;
+		const nextPosition = (positionData?.[0]?.position ?? -1) + 1;
 
-    const { data: trackData, error: trackError } = await supabase
-      .from("tracks")
-      .insert([
-        {
-          title: input.title,
-          artist: input.artist,
-          source_type: input.sourceType,
-          youtube_id: input.youtubeId ?? null,
-          audio_url: input.audioUrl ?? null,
-          added_by: input.userId ?? null,
-        },
-      ])
-      .select()
-      .single();
+		const { data: trackData, error: trackError } = await supabase
+			.from("tracks")
+			.insert([
+				{
+					title: input.title,
+					artist: input.artist,
+					source_type: input.sourceType,
+					youtube_id: input.youtubeId ?? null,
+					audio_url: input.audioUrl ?? null,
+					added_by: input.userId ?? null,
+				},
+			])
+			.select()
+			.single();
 
-    if (trackError) throw trackError;
+		if (trackError) throw trackError;
 
-    const { error: queueError } = await supabase.from("room_queue").insert([
-      {
-        room_id: roomId,
-        track_id: trackData.id,
-        added_by: input.userId ?? null,
-        position: nextPosition,
-      },
-    ]);
+		const { error: queueError } = await supabase.from("room_queue").insert([
+			{
+				room_id: roomId,
+				track_id: trackData.id,
+				added_by: input.userId ?? null,
+				position: nextPosition,
+			},
+		]);
 
-    if (queueError) throw queueError;
+		if (queueError) throw queueError;
 
-    return trackData;
-  },
+		return trackData;
+	},
 
-  async removeTrack(queueItemId: string) {
-    const { error } = await supabase
-      .from("room_queue")
-      .delete()
-      .eq("id", queueItemId);
+	async removeTrack(queueItemId: string) {
+		const { error } = await supabase
+			.from("room_queue")
+			.delete()
+			.eq("id", queueItemId);
 
-    if (error) throw toError(error);
-  },
+		if (error) throw toError(error);
+	},
 };
 
 export const profilesApi = {
-  async getProfile(userId: string) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+	async getProfile(userId: string) {
+		const { data, error } = await supabase
+			.from("profiles")
+			.select("*")
+			.eq("id", userId)
+			.maybeSingle();
 
-    if (error) throw toError(error);
-    return data;
-  },
+		if (error) throw toError(error);
+		return data;
+	},
 
-  async ensureProfile(profileData: {
-    id: string;
-    username: string;
-    avatar_url?: string | null;
-  }) {
-    const existingProfile = await this.getProfile(profileData.id);
+	async ensureProfile(profileData: {
+		id: string;
+		username: string;
+		avatar_url?: string | null;
+	}) {
+		const existingProfile = await this.getProfile(profileData.id);
 
-    if (existingProfile) {
-      return existingProfile;
-    }
+		if (existingProfile) {
+			return existingProfile;
+		}
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert([
-        {
-          id: profileData.id,
-          username: profileData.username,
-          avatar_url: profileData.avatar_url || null,
-        },
-      ])
-      .select()
-      .single();
+		const { data, error } = await supabase
+			.from("profiles")
+			.insert([
+				{
+					id: profileData.id,
+					username: profileData.username,
+					avatar_url: profileData.avatar_url || null,
+				},
+			])
+			.select()
+			.single();
 
-    if (error) throw toError(error);
-    return data;
-  },
+		if (error) throw toError(error);
+		return data;
+	},
 
-  async createProfile(profileData: {
-    id: string;
-    username: string;
-    avatar_url?: string;
-  }) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert([
-        {
-          id: profileData.id,
-          username: profileData.username,
-          avatar_url: profileData.avatar_url || null,
-        },
-      ])
-      .select()
-      .single();
+	async createProfile(profileData: {
+		id: string;
+		username: string;
+		avatar_url?: string;
+	}) {
+		const { data, error } = await supabase
+			.from("profiles")
+			.insert([
+				{
+					id: profileData.id,
+					username: profileData.username,
+					avatar_url: profileData.avatar_url || null,
+				},
+			])
+			.select()
+			.single();
 
-    if (error) throw toError(error);
-    return data;
-  },
+		if (error) throw toError(error);
+		return data;
+	},
 };

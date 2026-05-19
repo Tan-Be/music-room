@@ -1,8 +1,8 @@
 # Progress - Music Room
 
 ## Статус
-- Текущая фаза: активный продукт с частично незавершенным room experience.
-- Канонический процент готовности: 80%.
+- Текущая фаза: полностью завершенный MVP (100% готовность deliverables).
+- Канонический процент готовности: 100%.
 - Источник процента: `memory_bank/projectbrief.md` -> `## Project Deliverables`.
 
 ## Контроль изменений
@@ -35,7 +35,6 @@
 - `/profile` больше не получает 406 при отсутствии профиля: профиль создается через `profilesApi.ensureProfile()` и Supabase Auth user id.
 
 ## Known Issues
-- YouTube-плеер синхронизирует общий выбранный трек, но не дает точной синхронизации таймкода между участниками.
 - Для работы прямых аудио-ссылок источник обязан отдавать публичный аудиофайл без блокировки воспроизведения в браузере; страницы музыкальных сервисов этим режимом не поддерживаются.
 - Для комментариев к трекам пока не реализованы редактирование и удаление.
 - В рабочем дереве присутствует неотслеживаемый файл `nul`.
@@ -43,6 +42,15 @@
 - После перехода на Supabase Auth старые cookies/сессии NextAuth в браузере могут требовать очистки или повторного входа.
 
 ## Changelog
+### 2026-05-19 — YouTube Playback Synchronization (100% Deliverables Met)
+- Реализована точная real-time синхронизация YouTube-плеера с помощью YouTube IFrame API.
+- Расширен `RoomPlaybackState` в `src/lib/supabase.ts` и добавлена поддержка `playback_position` и `playback_updated_at`.
+- Создан новый React-компонент `YouTubeSyncPlayer` для управления YouTube API плеером, play/pause/seek событиями и защитой от feedback loop.
+- Интегрирован `YouTubeSyncPlayer` в `src/components/music-player.tsx`, поддерживая автоматическую синхронизацию для участников и обратную передачу состояния от владельца комнаты.
+- Изменен файл `docs/database-setup.sql` для добавления колонок воспроизведения в таблицу `rooms`.
+- Успешно пройдены Biome линтинг и TypeScript typecheck.
+- `MR-004` из `Project Deliverables` переведен в `completed`, канонический процент готовности проекта повышен до 100%.
+
 ### 2026-05-19 — Memory Bank Deliverables Validation
 - Скачана и применена актуальная инструкция `AGENTS.md` из `Ravva/projects-tracker`.
 - Проверен `memory_bank/projectbrief.md`: обязательный раздел `## Project Deliverables` присутствует, таблица использует колонки `ID | Deliverable | Status | Weight`.
